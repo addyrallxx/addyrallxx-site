@@ -73,7 +73,7 @@ export default function Home() {
 
   const projects = [
     { num: '01', title: 'This Portfolio', desc: 'Dark, minimal personal site built with Next.js and pure intent.',        tags: ['Next.js','TypeScript'], href: '#' },
-    { num: '02', title: 'Coming Soon',    desc: 'Currently building. Check back shortly.',                                tags: ['In Progress'],         href: '#' },
+    { num: '02', title: 'FitTrack',       desc: 'Samsung Health-inspired fitness PWA. Workout logger, macro tracker, weight history and activity rings.', tags: ['Vanilla JS','PWA','Chart.js'], href: 'https://addyrallxx.github.io/fittrack/fittrack.html' },
     { num: '03', title: 'Coming Soon',    desc: 'Currently building. Check back shortly.',                                tags: ['In Progress'],         href: '#' },
   ];
 
