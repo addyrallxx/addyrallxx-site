@@ -6,12 +6,65 @@ world. Last updated **2026-09-01, mid session**.
 
 ## Where we are
 
-**Phase 0 done. Phase 1 done and independently verified. Phase 2 in flight.**
+**Phases 0, 1 and 2 are done and independently verified. Phase 3 copy is
+drafted and reviewed but not yet wired into the page.**
 
 Git, branch `phase-1-scaffold`:
 
+    f327d33  Phase 2 shell, plus four verification fixes
+    9b3ea7f  Phase 2 engine: GPU morph world, six formations
+    536293f  Copy revision after adversarial critique
+    e80d5cf  Phase 3 draft: site copy, all six chapters
+    3b8cca3  Phase 2 groundwork: world spec, pinned interface, arc reference
     0c99650  Phase 1: scaffold, design system, ported primitives
     7902ff3  Phase 0: plan of record, operating rules, handoff
+
+### Phase 2, measured in real Chrome, not asserted
+
+Harness is committed at `scripts/verify/`. Re-run it with the production
+server up: `npm run build && npm run start -- -p 4173`, then
+`node scripts/verify/verify-world.mjs`. It drives real Chrome through
+puppeteer-core, because the Browser pane cannot verify this project.
+
+    tier full        24000 particles
+    tier lite         8000 particles at 375px with a coarse pointer
+    fps              240 at chapter 1 and chapter 6 (floor was 50)
+    reduced motion   tier static, isAnimating false, frameCount held at 1
+                     across 3 seconds, incremented to 2 on chapter change
+    camera           materially different at scroll 0.0, 0.5 and 1.0
+    CPU uploads      one needsUpdate total, the DataTexture at init, none per frame
+    scrolljack       none, wheel defaultPrevented false
+    console          zero errors, zero warnings
+    SSR              all six chapter headings present with JS disabled
+
+**Do not trust a green run alone.** The first re-run reported three 500s and a
+missing world handle, which looked like a real regression. It was a stale
+`next start` still serving a deleted `.next`, surviving `pkill`. Kill test
+servers by port with `Get-NetTCPConnection -LocalPort <p> -State Listen`, not
+with `pkill`.
+
+### Four fixes the verification forced
+
+1. **Lenis is no longer mounted.** It calls `preventDefault` on every wheel
+   event, which `docs/phase-2-world.md` section 5 bans, and it double damped
+   against the world's own easing so the world lagged the wheel twice.
+   `lib/scroll.ts` falls back to native smooth scroll, so anchors still work,
+   and lenis is now absent from the client bundle. The component stays in the
+   repo for a future non-world page.
+2. **Added the missing `h1`.** The page had six `h2` and no top level heading.
+   Arrival now carries the real hero line from `docs/copy.md`.
+3. **Removed the "Chapter" kicker.** A label above a heading is the
+   `kicker-above-heading` anti-pattern, one of the 49 findings against the old
+   site. It had been reintroduced by accident.
+4. **Added `app/icon.svg`.** Every page load was 404ing on `favicon.ico`.
+
+### Known imprecision, not a bug
+
+Section heights are sized as a fraction of total document height, while the
+engine reads scroll as a fraction of *scrollable* distance (total minus one
+viewport). So chapter boundaries land slightly earlier than the pacing ratios
+predict. It is small and it is deliberate for now. Fix it when Phase 3 copy
+makes exact boundaries matter, by having one side own both calculations.
 
 ### Phase 1, verified not just claimed
 
@@ -93,9 +146,34 @@ asking.
 
 ## What is next
 
-**Finish Phase 2**, then the great-circle arc as its own task, then Phase 3
-(content chapters). Phase 3 is blocked on the open questions below in a way
-Phase 2 is not.
+1. **Phase 3, wire the copy in.** `docs/copy.md` holds all six chapters,
+   already through one adversarial review. It is drafted, not placed. Only
+   the Arrival h1 is currently on the page. Two lines in it carry variants
+   awaiting Adnan (TotalTex naming, phone number) and one Puzzled line is
+   explicitly marked as needing his confirmation before it ships.
+2. **The great-circle arc**, chapter 6. Budgeted as its own task, not a
+   detail. `docs/arc-reference.md` has an unverified reference implementation
+   to check rather than trust. The engine left a commented seam for it and
+   documented its sphere axis convention, which the arc must match.
+3. **Phase 5 assets**, TotalTex Ops screenshots from seeded demo data only.
+4. **Phase 6**, `impeccable detect`, `/humanizer` on all copy, Lighthouse,
+   then a Codex adversarial review of the finished diff.
+
+## How the work got split, for the next session
+
+Codex built the world engine and did it well. Gemini reviewed specs and copy
+and caught real errors both times. Claude wrote the copy, made the design and
+architecture calls, and re-verified every claim rather than accepting an
+agent's summary. That split is deliberate and worth keeping:
+
+- **Gemini reviews, it does not write.** Given a copy brief with an explicit
+  "invent nothing" rule it still fabricated a number. Given a spec to attack,
+  it found three real errors.
+- **Codex builds well-specified, self-contained modules.** The engine brief
+  was tight and the result needed no correction.
+- **Claude keeps** architecture, voice, confidentiality calls, and final
+  verification. Every partner has now been caught being confidently wrong
+  once, so re-running the claim is not optional.
 
 ## Open questions, all still awaiting Adnan
 
