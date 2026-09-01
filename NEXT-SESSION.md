@@ -1,190 +1,149 @@
 # Portfolio rebuild handoff
 
-Read this first in any new session, then `PLAN.md` for the plan of record, then
-`CLAUDE.md` for operating rules, then `docs/phase-2-world.md` if touching the
-world. Last updated **2026-09-01, mid session**.
+Read this first, then `PLAN.md` (plan of record), then `CLAUDE.md` (operating
+rules), then `docs/phase-2-world.md` if touching the world.
+Last updated **2026-09-01, end of the third session**.
+
+## The headline: Phase 2 was reported complete and verified, and it was blank
+
+**The world rendered nothing at any chapter, and had not since Phase 2 was
+built.** The previous handoff claimed it was complete and independently
+verified. That claim was false and has been corrected here and in the vault.
+
+Every measurement in the old harness was true: 240 fps, 24000 particles, camera
+materially different at three scroll positions, frame counter climbing, exactly
+one GPU upload, zero console errors, valid WebGL context, SSR headings present.
+**Not one check asserted that a pixel was lit.**
+
+Two independent bugs, both "correct but never reaches the screen":
+
+1. **CSS painting order, not WebGL.** The canvas is `fixed inset-0 -z-10` and
+   `body` carried an opaque background. A negative z-index descendant paints at
+   step 2 of the CSS painting algorithm, before the backgrounds of in-flow block
+   level descendants at step 3, so `body` painted over the whole scene. Now only
+   `html` carries the page background and `body` is transparent. **Do not put a
+   background back on `body`.** A comment in `app/globals.css` says so.
+2. **The arc faced away from the camera.** The Dhaka to Calgary great circle
+   runs near the north pole, so all 65 points sat at z between -1.09 and -0.03
+   while the globe front surface is at z +4. It was correct to 1e-7 on its
+   endpoints and entirely hidden behind the particle field. The arc and the
+   globe formation now share one `orientGlobePoint` rotation in
+   `lib/world/arc.ts`, and `verify-arc` asserts the arc faces the camera.
+
+**The lesson, which matters more than either bug: green instrumentation is not
+evidence of a working feature.** A harness for anything visual must assert the
+visible output at least once or it can pass forever on a blank screen.
 
 ## Where we are
 
-**Phases 0, 1 and 2 are done and independently verified. Phase 3 copy is
-drafted and reviewed but not yet wired into the page.**
+Branch `phase-1-scaffold`, pushed to the **`portfolio-rebuild`** branch of the
+`addyrallxx-site` repo, which gives a Vercel preview WITHOUT touching the live
+site. `addyrallxx-site.vercel.app` still serves the old site.
 
-Git, branch `phase-1-scaffold`:
+    cc8ce6a  Harden the verification harness so its checks can actually fail
+    b405d20  Fix the world never reaching the screen, Phase 3 copy, chapter 6 arc
+    faa7c17  Checkpoint: Phase 2 complete and verified   <- this claim was false
 
-    f327d33  Phase 2 shell, plus four verification fixes
-    9b3ea7f  Phase 2 engine: GPU morph world, six formations
-    536293f  Copy revision after adversarial critique
-    e80d5cf  Phase 3 draft: site copy, all six chapters
-    3b8cca3  Phase 2 groundwork: world spec, pinned interface, arc reference
-    0c99650  Phase 1: scaffold, design system, ported primitives
-    7902ff3  Phase 0: plan of record, operating rules, handoff
+Preview (Vercel SSO, sign in as Adnan):
+`https://addyrallxx-site-git-portfolio-rebuild-addyrallxxs-projects.vercel.app`
 
-### Phase 2, measured in real Chrome, not asserted
+Phases 0, 1, 2 and 3 are done. Phase 2 is now genuinely verified against pixels.
 
-Harness is committed at `scripts/verify/`. Re-run it with the production
-server up: `npm run build && npm run start -- -p 4173`, then
-`node scripts/verify/verify-world.mjs`. It drives real Chrome through
-puppeteer-core, because the Browser pane cannot verify this project.
+## Verification, measured this session
 
-    tier full        24000 particles
-    tier lite         8000 particles at 375px with a coarse pointer
-    fps              240 at chapter 1 and chapter 6 (floor was 50)
-    reduced motion   tier static, isAnimating false, frameCount held at 1
-                     across 3 seconds, incremented to 2 on chapter change
-    camera           materially different at scroll 0.0, 0.5 and 1.0
-    CPU uploads      one needsUpdate total, the DataTexture at init, none per frame
-    scrolljack       none, wheel defaultPrevented false
-    console          zero errors, zero warnings
-    SSR              all six chapter headings present with JS disabled
+    npm run build && npm run start -- -p 4173
+    node scripts/verify/verify-pixels.mjs      # the one that was missing
+    node scripts/verify/verify-world.mjs
+    node scripts/verify/verify-arc-visible.mjs
+    node scripts/verify/wheel-check.mjs
+    node scripts/verify/tab-order-check.mjs
+    node scripts/verify/find-404.mjs
+    node lib/world/verify-arc.mjs             # no server needed
 
-**Do not trust a green run alone.** The first re-run reported three 500s and a
-missing world handle, which looked like a real regression. It was a stale
-`next start` still serving a deleted `.next`, surviving `pkill`. Kill test
-servers by port with `Get-NetTCPConnection -LocalPort <p> -State Listen`, not
-with `pkill`.
+    # StrictMode checks need the DEV server, see below
+    npm run dev -- -p 4174
+    node scripts/verify/strictmode-check.mjs
+    node scripts/verify/strictmode-console-check.mjs
 
-### Four fixes the verification forced
+All pass. Highlights:
 
-1. **Lenis is no longer mounted.** It calls `preventDefault` on every wheel
-   event, which `docs/phase-2-world.md` section 5 bans, and it double damped
-   against the world's own easing so the world lagged the wheel twice.
-   `lib/scroll.ts` falls back to native smooth scroll, so anchors still work,
-   and lenis is now absent from the client bundle. The component stays in the
-   repo for a future non-world page.
-2. **Added the missing `h1`.** The page had six `h2` and no top level heading.
-   Arrival now carries the real hero line from `docs/copy.md`.
-3. **Removed the "Chapter" kicker.** A label above a heading is the
-   `kicker-above-heading` anti-pattern, one of the 49 findings against the old
-   site. It had been reintroduced by accident.
-4. **Added `app/icon.svg`.** Every page load was 404ing on `favicon.ico`.
+- lit pixels with the DOM hidden: 104,652 / 48,057 / 30,830 / 65,845 across the
+  scroll, and 999 amber pixels where the arc draws
+- every chapter renders a signature closest to its OWN counterpart, uniquely
+- **real composited text contrast, worst case 6.609:1** in contact, above 4.5:1.
+  This replaces the Phase 1 numbers, which were measured against a static token
+  colour that no longer describes a translucent panel over a moving scene
+- reduced motion: tier static, `isAnimating` false, 2 frames, arc fully drawn at
+  progress 1 with dashOffset 0
+- wheel input moves the expected distance in both directions, nothing cancelled
 
-### Known imprecision, not a bug
+## Traps that cost real time, do not rediscover them
 
-Section heights are sized as a fraction of total document height, while the
-engine reads scroll as a fraction of *scrollable* distance (total minus one
-viewport). So chapter boundaries land slightly earlier than the pacing ratios
-predict. It is small and it is deliberate for now. Fix it when Phase 3 copy
-makes exact boundaries matter, by having one side own both calculations.
-
-### Phase 1, verified not just claimed
-
-Hand written scaffold, deliberately **no `create-next-app`**, because shipping
-its boilerplate was the previous site's worst single failure (a page title still
-reading "Create Next App"). Next 16.2.12, React 19.2.4, TS strict, Tailwind 4,
-versions matched to `totaltex-ops` which is proven in production here.
-
-Re-run by the orchestrator rather than trusted from an agent summary:
-
-- `npx tsc --noEmit` clean, `npm run build` succeeds
-- contrast on `--ink-0`: paper-0 **16.17:1**, paper-1 **9.04:1**,
-  paper-2 **4.26:1**, signal **7.91:1**, signal-dim **3.15:1**. All above target.
-- type scale bottoms out at **13.3px**, above the 11px floor the old site broke
-- zero em or en dashes in source
-- `public/` empty, no default SVGs, no boilerplate README
-- fonts via `next/font` (Inter + JetBrains Mono), self hosted, no CDN request
-
-Design system is **cold ground, warm signal**: blue black surfaces, warm off
-white text, one amber accent. Chosen so the palette carries the Dhaka to Calgary
-narrative, and specifically to avoid the colored-glow-on-dark look the old site
-was flagged for.
-
-All 8 accessibility hardened primitives ported from `totaltex-web`.
-
-### Phase 2, in flight
-
-Spec is **`docs/phase-2-world.md`**, and it supersedes the looser description in
-`PLAN.md` section 4. The interface is pinned in **`lib/world/types.ts`**, written
-before implementation so the WebGL layer and the React layer cannot drift.
-
-Concept: **one particle field that re-forms six times**, morphing on the GPU.
-Formation 4 is the real 1,069 audited Puzzled descriptions with the real 2
-compliance violations flagged in signal color, so the geometry is the case study
-rather than decoration.
-
-## Two decisions made this session that change PLAN.md
-
-1. **cobe is dropped.** The globe becomes formation 6 of the same particle field.
-   `PLAN.md` 4.2 still describes cobe as chosen; `docs/phase-2-world.md` section 2
-   is now authoritative. The original justification (two WebGL contexts crash
-   mobile) was **wrong** and is withdrawn: the practical iOS Safari limit is
-   nearer 16. The decision stands purely on the seam, since a field collapsing
-   into a sphere is a connection and a canvas cross-fade is a cut. cobe remains
-   the documented fallback.
-2. **The reduced-motion tier renders WebGL, not SVG.** Earlier thinking had a
-   hand built SVG composition per chapter. That would mean maintaining two
-   visual systems that never match. Instead: same scene, snap progress to the
-   chapter integer, render exactly once, schedule no rAF loop.
-
-Both came out of an adversarial review by Gemini 3.1 Pro, which also caught that
-the great-circle arc is **not** trivial (native GL_LINES is 1px, so it needs
-slerp plus `Line2` or `TubeGeometry` plus a dash offset uniform). Budget it as
-its own task.
-
-## Three platform setup, now working
-
-`agy` (Antigravity CLI) was installed this session and **Gemini is reachable
-headlessly**:
-
-    agy --model gemini-3.1-pro-high --new-project --print='your prompt'
-
-The prompt must be attached to `--print` with an equals sign or the CLI silently
-eats the next flag as the prompt. Models include Gemini 3.7/3.6 Flash, Gemini 3.1
-Pro, and also Claude Sonnet/Opus 4.6 and GPT-OSS 120B.
-
-**Hard money rule discovered this session:** Gemini image and video generation is
-free **only inside the Gemini app UI** (roughly 100 images/day, 3 Veo videos/day
-on the Pro tier). The Veo and Nano Banana **APIs bill per call with zero free
-quota, and the consumer subscription grants no API credit at all.** So Gemini is
-not a scriptable free asset pipeline. It joins Monid and Higgsfield on the banned
-list for automated asset generation. Manual generate-then-download in the app is
-fine and is the intended route for Phase 5.
-
-Codex was hard rate limited for most of this session, resetting 08:32 local. A
-usage telemetry script now runs at every session start
-(`C:\Users\adnan\.claude\tools\ai-usage.ps1`) so partner quota is known without
-asking.
+- **Kill test servers by port, never `pkill`.** A stale server survived and
+  served a `.next` that later builds had overwritten, which looked exactly like
+  a fresh regression. `Get-NetTCPConnection -LocalPort <p> -State Listen`.
+  This bit twice, on 4173 and again on 4174.
+- **Port 4174 is the DEV server and that is deliberate.** StrictMode only
+  double invokes in development, so pointing those two checks at production
+  makes them vacuous. Documented at the top of both files. Do not "align" it.
+- **Element level screenshots of a WebGL canvas come back empty.** Use full page
+  capture. This wasted a debugging round.
+- **Hide the DOM before counting pixels.** The amber email link was counted as
+  the arc for a full round. Set `main` visibility to hidden.
+- **Brief Codex and Gemini from a FILE on stdin, never an inline argument.**
+  Use `codex exec --dangerously-bypass-approvals-and-sandbox < brief.md`. Passed
+  as an argument, Codex hangs forever on "Reading additional input from stdin"
+  after producing about 39 bytes, which looks like a long running job.
+- **Drive Gemini only through the wrapper** at
+  `C:\Users\adnan\.claude\tools\gem.ps1`. It handles all five agy traps. Raw
+  invocation cost three round trips today.
 
 ## What is next
 
-1. **Phase 3, wire the copy in.** `docs/copy.md` holds all six chapters,
-   already through one adversarial review. It is drafted, not placed. Only
-   the Arrival h1 is currently on the page. Two lines in it carry variants
-   awaiting Adnan (TotalTex naming, phone number) and one Puzzled line is
-   explicitly marked as needing his confirmation before it ships.
-2. **The great-circle arc**, chapter 6. Budgeted as its own task, not a
-   detail. `docs/arc-reference.md` has an unverified reference implementation
-   to check rather than trust. The engine left a commented seam for it and
-   documented its sphere axis convention, which the arc must match.
-3. **Phase 5 assets**, TotalTex Ops screenshots from seeded demo data only.
-4. **Phase 6**, `impeccable detect`, `/humanizer` on all copy, Lighthouse,
+1. **Design pass on the world.** It works, nobody has judged whether it looks
+   good. Specifically: does the arc sweep read at real scroll speed, and is the
+   globe orientation the most flattering framing or just the first that worked?
+   `GLOBE_FACING` in `lib/world/arc.ts` is the single knob.
+2. **The adversarial review never ran.** Gemini timed out twice on it. The brief
+   is worth re-running when quota is back. It was told to assume a THIRD
+   invisibility bug exists.
+3. **Phase 5 assets.** TotalTex Ops screenshots from `npm run seed:demo` only,
+   never real data. None exist on disk yet.
+4. **Phase 6.** `impeccable detect`, `/humanizer` over all copy, Lighthouse,
    then a Codex adversarial review of the finished diff.
+5. **Promote to production** when Adnan is happy: merge `portfolio-rebuild`
+   into `main` on `addyrallxx-site`. Not done, deliberately.
 
-## How the work got split, for the next session
+## Decisions made this session
 
-Codex built the world engine and did it well. Gemini reviewed specs and copy
-and caught real errors both times. Claude wrote the copy, made the design and
-architecture calls, and re-verified every claim rather than accepting an
-agent's summary. That split is deliberate and worth keeping:
+1. **TotalTex is named on the site.** Adnan confirmed his family is fine with
+   it. The anonymised variant is deleted from `docs/copy.md`.
+2. **No phone number, email only.** Claude's call: a public page is a spam
+   magnet and an employer needs an email address.
+3. **The Puzzled scraper line ships without the TLS fingerprinting clause.**
+   It read as adversarial and invited a question the plan could not answer, so
+   the line states only what is verifiable.
+4. **`AGENTS.md` points at `CLAUDE.md` instead of duplicating it.** Codex had
+   created a verbatim copy, which would drift.
 
-- **Gemini reviews, it does not write.** Given a copy brief with an explicit
-  "invent nothing" rule it still fabricated a number. Given a spec to attack,
-  it found three real errors.
-- **Codex builds well-specified, self-contained modules.** The engine brief
-  was tight and the result needed no correction.
-- **Claude keeps** architecture, voice, confidentiality calls, and final
-  verification. Every partner has now been caught being confidently wrong
-  once, so re-running the claim is not optional.
-
-## Open questions, all still awaiting Adnan
-
-Unchanged from the last handoff except where noted. None block Phase 2.
+## Open questions for Adnan
 
 1. **Domain.** Keep `addyrallxx-site.vercel.app` or register one?
-2. **Contact surface.** Keep the phone number public?
-3. **TotalTex naming.** Name the client, or anonymise to "a garment accessories
-   manufacturer in Dhaka"? Needs family confirmation.
-4. **Photo.** No photograph of Adnan exists on this machine. A real face beats
+2. **Photo.** Still no photograph of Adnan on this machine. A real face beats
    any 3D flourish for trust.
-5. **Asset generation.** Now sharper than before: the free route is Adnan
-   generating images by hand in the Gemini app and saving them into the repo.
-   Nothing scripted, because scripted means billed. Confirm before any is made.
+3. **Do Convertus VMS, LeadBox HQ or DealerEProcess offer the dealer a data
+   feed?** If not, the Puzzled scraper line can say so plainly and the whole
+   objection disappears.
+4. **Asset generation.** The only free route is Adnan generating images by hand
+   in the Gemini app and saving them into the repo. Anything scripted bills.
+
+## How the work split, and how it went
+
+- **Codex builds well specified self contained modules.** It wrote the arc and
+  the harness audit, both good. It hit its usage limit mid task and never wrote
+  a report, so its work was verified by re-running everything here.
+- **Gemini reviews and corrects prose.** It wrote the vault correction cleanly
+  and respected the append only rule. It timed out twice on the code review.
+- **Claude keeps** architecture, the confidentiality and voice calls, and final
+  verification. Both partners and Claude have each now been confidently wrong
+  once on this project, so re-running the claim is not optional.
