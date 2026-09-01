@@ -18,10 +18,6 @@ Voice rules applied throughout:
 - No em dashes, no en dashes.
 - If it has no artifact, it is not on the site.
 
-Two things still need Adnan's answer, and both are drafted twice so nothing is
-blocked: **TotalTex naming** (variant A names it, variant B anonymises) and
-whether the **phone number** stays public.
-
 ---
 
 ## Arrival
@@ -68,20 +64,9 @@ and then prove it, rather than repeating the promise.*
 
 ## TotalTex Ops, the flagship
 
-### Variant A, client named
-
 **Headline**
 
 > Built the order system a Dhaka factory runs on.
-
-### Variant B, anonymised
-
-**Headline**
-
-> Built the order system a Dhaka garment factory runs on.
-
-*Variant B substitutes "a garment accessories manufacturer in Dhaka" for the name
-throughout. Everything else below is identical.*
 
 **Subhead**
 
@@ -153,18 +138,7 @@ reasoned from source and never timed, so it stays off.*
 
 **Evidence lines**
 
-- A `curl_cffi` scraper reads each client's own public inventory across three
-  vendor platforms, including gallery photos, past the TLS fingerprinting those
-  platforms apply.
-
-  > **NEEDS ADNAN'S CONFIRMATION BEFORE THIS SHIPS.** A reviewer pointed out that
-  > "defeats TLS fingerprinting" reads as adversarial and invites the question of
-  > why this scrapes rather than consuming a feed. The honest answer is probably
-  > that the platforms expose no feed, but `PLAN.md` section 5.2 does not
-  > establish that, so it must not be asserted. Confirm whether Convertus VMS,
-  > LeadBox HQ and DealerEProcess offer any data feed to the dealer. If they do
-  > not, say so plainly and the objection disappears. If they do, this line needs
-  > rewriting entirely.
+- A scraper reads each client's own public inventory across three vendor platforms, including gallery photos.
 - 287 of 335 descriptions generated at zero API cost, because the rules do the
   work instead of a model.
 - Audited 1,069 real descriptions against AMVIC advertising regulation. It
@@ -240,12 +214,9 @@ Lead the chapter with it for exactly that reason.*
 *That last distinction is not pedantry. Claiming personal global reach he does
 not have is exactly the kind of unearned claim the old site died of.*
 
-**Contact surface, pending Adnan's answer**
+**Contact surface**
 
-- Variant A: email, plus phone number, plus copy to clipboard on both.
-- Variant B: email only, phone removed.
-
-Both keep a `mailto:` fallback link so the form is never the only route.
+> [adnanshakib888@gmail.com](mailto:adnanshakib888@gmail.com)
 
 **Live detail**
 
@@ -258,7 +229,5 @@ Computed client side, no dependency, no API.
 ## Still to do before this ships
 
 1. Run every final line through `/humanizer`.
-2. Confirm the TotalTex naming decision, then delete the losing variant.
-3. Confirm the phone decision, then delete the losing variant.
-4. Re-check every number against `PLAN.md` section 5 one more time at build time.
+2. Re-check every number against `PLAN.md` section 5 one more time at build time.
    Two numbers in the first delegated draft were wrong, so this is not paranoia.

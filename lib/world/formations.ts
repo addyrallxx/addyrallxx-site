@@ -1,3 +1,5 @@
+import { orientGlobePoint } from "./arc.ts";
+
 /** Packed particle data uses x, y, z, signed point size for every particle. */
 export const PARTICLE_STRIDE = 4;
 
@@ -211,15 +213,17 @@ export const createFieldNotesFormation: FormationGenerator = (particleCount) => 
   return target;
 };
 
-function latLonToSphere(latitude: number, longitude: number, radius: number): Point3 {
+export function latLonToSphere(latitude: number, longitude: number, radius: number): Point3 {
   const latitudeRadians = (latitude * Math.PI) / 180;
   const longitudeRadians = (longitude * Math.PI) / 180;
   const northSouthRadius = Math.cos(latitudeRadians) * radius;
-  return [
+  // Shared with the arc. Both must carry the same globe orientation or the two
+  // city markers drift off the ends of the line they are supposed to join.
+  return orientGlobePoint(
     northSouthRadius * Math.sin(longitudeRadians),
     Math.sin(latitudeRadians) * radius,
     northSouthRadius * Math.cos(longitudeRadians),
-  ];
+  );
 }
 
 // Seam: the great-circle arc is separate and must match this axis convention.
@@ -244,14 +248,12 @@ export const createContactFormation: FormationGenerator = (particleCount) => {
     const ringRadius = Math.sqrt(Math.max(0, 1 - y * y));
     const angle = sphereIndex * GOLDEN_ANGLE;
     const size = 0.038 + (sphereIndex % 7) * 0.004;
-    writePoint(
-      target,
-      index,
+    const shell = orientGlobePoint(
       Math.cos(angle) * ringRadius * radius,
       y * radius,
       Math.sin(angle) * ringRadius * radius,
-      size,
     );
+    writePoint(target, index, shell[0], shell[1], shell[2], size);
   }
 
   return target;

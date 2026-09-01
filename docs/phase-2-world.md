@@ -60,6 +60,30 @@ uniform. **Budget this as its own multi-hour task, not a detail.**
 If the arc overruns, chapter 6 falls back to `cobe` on a second canvas and we
 accept the seam cut. That is the documented escape hatch, not the plan.
 
+### 2.1 Chapter 6 arc, built 2026-09-01
+
+The arc uses the installed Three 0.185.1 `Line2`, `LineGeometry` and
+`LineMaterial` addons. The existing `THREE.LineSegments` edge path was checked
+first, but WebGL cannot portably render it wider than one device pixel. `Line2`
+keeps the signal legible on high density displays without adding a dependency.
+
+`lib/world/arc.ts` samples 64 spherical-linear-interpolation segments between
+the same radius-4 Dhaka and Calgary positions as the contact formation. A sine
+lift peaks at the midpoint and scales with the route's angular distance. The
+maximum lift for this route is 0.267285 world units.
+
+The geometry and line distances are uploaded once at init. Chapter 6 progress
+updates only the material's `dashOffset` and opacity uniforms. The arc stays
+transparent through world progress 4.5, sweeps to fully drawn at progress 5,
+and is therefore absent from chapter 5. The static tier snaps directly to the
+fully drawn state and schedules no animation frame. Line resolution is updated
+with the viewport during resize, in addition to the addon's visible-object
+render hook.
+
+Run the standalone numeric check with `node lib/world/verify-arc.mjs`. It checks
+both endpoints to `1e-6`, all intermediate radii against the surface and lift
+bound, and every buffer value for finiteness.
+
 ## 3. Technical spine
 
 One `THREE.Points`, one **separate** `THREE.LineSegments`, one

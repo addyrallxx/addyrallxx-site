@@ -76,10 +76,29 @@
   --dur-slow: 600ms;
 }
 
+/*
+  Only html carries the page background. body must stay transparent.
+
+  The world canvas is fixed inset-0 at z-index -10. In CSS painting order a
+  negative z-index descendant paints at step 2, before the backgrounds of
+  in-flow block level descendants at step 3. So an opaque background on body
+  paints straight over the canvas and hides the entire scene, with no console
+  error, a healthy frame counter and a perfectly valid WebGL context. That is
+  exactly what happened: the world drew nothing at any chapter and every
+  instrument still read green. html background propagates to the viewport, so
+  the page colour is unchanged.
+*/
+html {
+  background: var(--ink-0);
+}
+
 html,
 body {
-  background: var(--ink-0);
   color: var(--paper-0);
+}
+
+body {
+  background: transparent;
 }
 
 body {

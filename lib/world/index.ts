@@ -1,5 +1,9 @@
 import * as THREE from "three";
+import { Line2 } from "three/addons/lines/Line2.js";
+import { LineGeometry } from "three/addons/lines/LineGeometry.js";
+import { LineMaterial } from "three/addons/lines/LineMaterial.js";
 
+import { createGreatCircleArcData } from "./arc";
 import {
   FORMATION_GENERATORS,
   PARTICLE_STRIDE,
@@ -70,6 +74,13 @@ function createFallback(particleCount: number): WorldHandle {
       cameraPosition: () => [0, 0, 0] as const,
       isAnimating: () => false,
       frameCount: () => 0,
+      arc: () => ({
+        progress: 0,
+        opacity: 0,
+        dashOffset: 0,
+        resolution: [0, 0] as const,
+        visible: false,
+      }),
     },
   };
 }
@@ -226,6 +237,29 @@ function createRenderedWorld(
   edges.renderOrder = 1;
   scene.add(edges);
 
+  const arcData = createGreatCircleArcData();
+  const arcGeometry = new LineGeometry();
+  arcGeometry.setPositions(arcData.positions);
+  const arcMaterial = new LineMaterial({
+    color: SIGNAL_COLOR,
+    linewidth: 2.25,
+    dashed: true,
+    dashSize: arcData.totalLength,
+    gapSize: arcData.totalLength,
+    dashOffset: arcData.totalLength,
+    opacity: 0,
+    blending: THREE.NormalBlending,
+    depthTest: true,
+    depthWrite: false,
+    transparent: true,
+    toneMapped: false,
+  });
+  const arc = new Line2(arcGeometry, arcMaterial);
+  arc.computeLineDistances();
+  arc.frustumCulled = false;
+  arc.renderOrder = 2;
+  scene.add(arc);
+
   const cameraBase = new THREE.Vector3();
   const cameraTarget = new THREE.Vector3();
   const pointerTarget = new THREE.Vector2();
@@ -234,6 +268,7 @@ function createRenderedWorld(
   let cameraDolly = 1;
   let currentProgress = 0;
   let targetProgress = 0;
+  let arcProgress = 0;
   let staticChapter = 0;
   let frameCount = 0;
   let animationFrame: number | null = null;
@@ -257,6 +292,10 @@ function createRenderedWorld(
 
   function renderScene(progress: number, countFrame = true): void {
     progressUniform.value = progress;
+    arcProgress = clampUnit((progress - (FORMATION_MAX - 0.5)) * 2);
+    arcMaterial.dashOffset = arcData.totalLength * (1 - arcProgress);
+    arcMaterial.opacity = arcProgress > 0 ? 0.88 : 0;
+    arc.visible = arcProgress > 0;
     updateCamera(progress);
     renderer.render(scene, camera);
     if (countFrame) frameCount += 1;
@@ -274,6 +313,7 @@ function createRenderedWorld(
     renderer.getDrawingBufferSize(drawingBufferSize);
     pointUniforms.uViewportHeight.value = drawingBufferSize.y;
     pointUniforms.uPointScale.value = width < 768 ? 0.68 : width < 1024 ? 0.86 : 1;
+    arcMaterial.resolution.set(width, height);
     camera.aspect = aspect;
     camera.fov = 44 + Math.min(18, portraitPressure * 12);
     cameraDolly = 1 + Math.min(0.45, portraitPressure * 0.22);
@@ -354,6 +394,8 @@ function createRenderedWorld(
     pointMaterial.dispose();
     edgeGeometry.dispose();
     edgeMaterial.dispose();
+    arcGeometry.dispose();
+    arcMaterial.dispose();
     formationTexture.texture.dispose();
     renderer.dispose();
     scene.clear();
@@ -378,6 +420,13 @@ function createRenderedWorld(
       cameraPosition: () => [camera.position.x, camera.position.y, camera.position.z] as const,
       isAnimating: () => animationFrame !== null,
       frameCount: () => frameCount,
+      arc: () => ({
+        progress: arcProgress,
+        opacity: arcMaterial.opacity,
+        dashOffset: arcMaterial.dashOffset,
+        resolution: [arcMaterial.resolution.x, arcMaterial.resolution.y] as const,
+        visible: arc.visible,
+      }),
     },
   };
 }

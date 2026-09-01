@@ -5,9 +5,9 @@
 //
 // Pattern: passive scroll listener writes a target into a plain variable,
 // a requestAnimationFrame loop eases toward it and calls world.setProgress.
-// Under prefers-reduced-motion the rAF loop never starts at all; the scroll
-// handler calls setProgress directly instead, since the engine renders once
-// per change on the static tier (lib/world/index.ts, setProgress).
+// On the static tier the rAF loop never starts at all; the scroll handler calls
+// setProgress directly instead, since the engine renders once per change
+// (lib/world/index.ts, setProgress).
 //
 // React 19 StrictMode double-invokes this effect in dev (mount, cleanup,
 // mount). createWorld and the listeners are only ever created inside the
@@ -42,9 +42,7 @@ export default function WorldCanvas() {
     const world = createWorld(canvas);
     window.__world = world;
 
-    const reducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
+    const staticTier = world.tier === "static";
 
     let targetProgress = 0;
     let currentProgress = 0;
@@ -57,7 +55,7 @@ export default function WorldCanvas() {
 
     function handleScroll() {
       targetProgress = readProgress();
-      if (reducedMotion) world.setProgress(targetProgress);
+      if (staticTier) world.setProgress(targetProgress);
     }
 
     function damp() {
@@ -82,7 +80,7 @@ export default function WorldCanvas() {
     window.addEventListener("resize", handleResize, { passive: true });
 
     handleScroll();
-    if (!reducedMotion) rafId = window.requestAnimationFrame(damp);
+    if (!staticTier) rafId = window.requestAnimationFrame(damp);
 
     return () => {
       window.removeEventListener("scroll", handleScroll);

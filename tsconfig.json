@@ -6,6 +6,9 @@
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
+    // lib/world verifiers run the .ts sources under plain node, which needs an
+    // explicit extension on relative imports. Next resolves them the same way.
+    "allowImportingTsExtensions": true,
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",

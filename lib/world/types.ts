@@ -72,6 +72,18 @@ export interface WorldHandle {
     isAnimating(): boolean;
     /** Frames rendered since init. On the static tier this increments only on chapter change. */
     frameCount(): number;
+    /**
+     * Live state of the chapter 6 great-circle arc. A LineMaterial whose
+     * resolution uniform is zero renders nothing and logs no error, so the
+     * arc has to be asserted numerically rather than looked at.
+     */
+    arc(): {
+      readonly progress: number;
+      readonly opacity: number;
+      readonly dashOffset: number;
+      readonly resolution: readonly [number, number];
+      readonly visible: boolean;
+    };
   };
 }
 

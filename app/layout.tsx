@@ -16,9 +16,9 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Adnan Shakib",
+  title: "Adnan Shakib | Order management and listing automation",
   description:
-    "Builds order management for a Dhaka garment factory and listing automation for four Calgary dealerships, while studying computer science at the University of Calgary.",
+    "Order management for a garment factory in Dhaka. Listing automation for four Calgary dealerships. Computer science at the University of Calgary.",
 };
 
 export default function RootLayout({
