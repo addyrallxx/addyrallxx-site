@@ -17,9 +17,32 @@ for (let i = 0; i < 5; i += 1) {
   const info = await page.evaluate(() => ({
     tag: document.activeElement?.tagName,
     id: document.activeElement?.id,
+    href: document.activeElement?.getAttribute?.("href"),
     text: document.activeElement?.textContent?.trim()?.slice(0, 40),
   }));
   focusOrder.push(info);
 }
 console.log(JSON.stringify(focusOrder, null, 2));
+const expected = [
+  { tag: "A", href: "#main", text: "Skip to content" },
+  { tag: "A", href: "https://totaltex-bd.com", text: "totaltex-bd.com" },
+  {
+    tag: "A",
+    href: "https://addyrallxx.github.io/fittrack/fittrack.html",
+    text: "A workout and nutrition tracker you can ",
+  },
+  { tag: "A", href: "mailto:adnanshakib888@gmail.com", text: "adnanshakib888@gmail.com" },
+  { tag: "BODY", href: null, text: "Skip to contentI build the software two " },
+];
+for (let index = 0; index < expected.length; index += 1) {
+  const actual = focusOrder[index];
+  const wanted = expected[index];
+  if (actual.tag !== wanted.tag || actual.href !== wanted.href || actual.text !== wanted.text) {
+    await browser.close();
+    throw new Error(
+      `tab ${index + 1} focused ${JSON.stringify(actual)}, expected ${JSON.stringify(wanted)}`,
+    );
+  }
+}
 await browser.close();
+console.log("PASS keyboard focus follows the complete expected order");
