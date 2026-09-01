@@ -24,7 +24,7 @@ whether the **phone number** stays public.
 
 ---
 
-## 1. Arrival
+## Arrival
 
 **Headline**
 
@@ -38,16 +38,15 @@ whether the **phone number** stays public.
 **Body**
 
 > Two continents, two real businesses, and code running in production on both.
-> Everything below traces to a repository, a live URL, or a running system.
-> Where a claim could not be verified, it is not here.
+> Every claim below traces to a repository, a live URL, or a running system.
 
-*Note: that last line is a real differentiator and it is honest. The site it
-replaces claimed Solana, DeFi and Phantom with nothing shipped behind any of
-them.*
+*Note: the site this replaces claimed Solana, DeFi and Phantom with nothing
+shipped behind any of them. Traceability is the differentiator, so state it once
+and then prove it, rather than repeating the promise.*
 
 ---
 
-## 2. Ground
+## Ground
 
 **Headline**
 
@@ -60,14 +59,14 @@ them.*
 
 **Body**
 
-> I am a Bangladeshi citizen studying in Canada. The factory software runs
-> against a plant twelve time zones away. The dealership automation runs against
-> a city I can drive across. Both ship to people who notice immediately when
-> something breaks.
+> Studying in Canada as a Bangladeshi citizen. One system runs against a garment
+> factory in Dhaka. The other runs against four dealerships in this city. Both
+> are in production, and both are used by people who did not ask for software,
+> they asked for their work to get done.
 
 ---
 
-## 3. TotalTex Ops, the flagship
+## TotalTex Ops, the flagship
 
 ### Variant A, client named
 
@@ -87,15 +86,15 @@ throughout. Everything else below is identical.*
 **Subhead**
 
 > Order to job card to proforma invoice to production to delivery challan to
-> bill. One spine, eleven tables, and a schema that argues with itself in the
-> comments.
+> bill. Eleven tables, with the reasoning for each decision written inline in the
+> schema.
 
 **Body**
 
 > Generic ERPs model a product as a variant of a variant. A garment accessories
-> factory needs a spec sheet per product line, and the spec has to drive both the
-> data entry form and the printed description on the invoice. So the templates
-> generate both from one definition. That decision is the reason this is not a
+> factory needs a spec sheet per product line. That spec has to drive the data
+> entry form and the printed description on the invoice at the same time. So one
+> typed template generates both. That decision is the reason this is not a
 > configured Odoo instance.
 
 **Evidence lines**
@@ -110,6 +109,8 @@ throughout. Everything else below is identical.*
 - bcrypt at cost 12, with a dummy hash compare that closes the account existence
   timing oracle. Lockout is per account, ten attempts per fifteen minutes,
   deliberately not per IP because the office shares one NAT.
+- 21 runnable assertions across four check scripts, standing in for CI. There is
+  no build server, so the checks run by hand before anything ships.
 
 **The best story on the site, give it its own beat**
 
@@ -131,7 +132,7 @@ reasoned from source and never timed, so it stays off.*
 
 ---
 
-## 4. Puzzled
+## Puzzled
 
 **Headline**
 
@@ -145,15 +146,25 @@ reasoned from source and never timed, so it stays off.*
 **Body**
 
 > Vehicle listings are regulated advertising. Being wrong is not a user
-> experience problem, it is an AMVIC problem. So the generator states only facts
-> present in the scraped record, picks a sales angle from those facts, and
+> experience problem, it is an AMVIC problem. The generator states only facts
+> present in the scraped record. It picks a sales angle from those facts, then
 > attaches the disclaimer the jurisdiction requires. Constrained generation,
 > because the constraint is the law.
 
 **Evidence lines**
 
-- A `curl_cffi` scraper that defeats TLS fingerprinting across three dealer
-  platforms, including gallery photo extraction.
+- A `curl_cffi` scraper reads each client's own public inventory across three
+  vendor platforms, including gallery photos, past the TLS fingerprinting those
+  platforms apply.
+
+  > **NEEDS ADNAN'S CONFIRMATION BEFORE THIS SHIPS.** A reviewer pointed out that
+  > "defeats TLS fingerprinting" reads as adversarial and invites the question of
+  > why this scrapes rather than consuming a feed. The honest answer is probably
+  > that the platforms expose no feed, but `PLAN.md` section 5.2 does not
+  > establish that, so it must not be asserted. Confirm whether Convertus VMS,
+  > LeadBox HQ and DealerEProcess offer any data feed to the dealer. If they do
+  > not, say so plainly and the objection disappears. If they do, this line needs
+  > rewriting entirely.
 - 287 of 335 descriptions generated at zero API cost, because the rules do the
   work instead of a model.
 - Audited 1,069 real descriptions against AMVIC advertising regulation. It
@@ -166,7 +177,7 @@ ceiling, per PLAN.md section 7.*
 
 ---
 
-## 5. Field notes
+## Field notes
 
 **Headline**
 
@@ -174,8 +185,8 @@ ceiling, per PLAN.md section 7.*
 
 ### TotalTex Web
 
-> Live at totaltex-bd.com since August 2026. 83 files, 11,506 lines, 383 real
-> production photographs, custom domain, zero downtime DNS cutover.
+> Live at totaltex-bd.com since August 2026, on its own domain. 83 files, 11,506
+> lines, and 383 real production photographs.
 >
 > The structured data was emitting `"@type": "Factory"`. That type does not exist
 > in schema.org. The address, geo, opening hours and phone had been worth nothing
@@ -186,10 +197,13 @@ Lead the chapter with it for exactly that reason.*
 
 ### FitTrack
 
-> A workout and nutrition tracker you can open right now. 6,110 lines of vanilla
-> JavaScript in a single file. No framework, no bundler, no build step. Nutrition
-> data from Open Food Facts, weight history in Chart.js, and a service worker so
-> it works with no signal.
+> A workout and nutrition tracker you can open right now. It installs to a phone
+> home screen and works with no signal.
+>
+> The constraint was that it stay one file with no build step, so it can be
+> hosted anywhere and still run years from now. That costs modularity and it buys
+> permanence. 6,110 lines of vanilla JavaScript, nutrition data from Open Food
+> Facts, weight history in Chart.js, offline through a service worker.
 
 *Open it and use it in five seconds. That is the entire pitch.*
 
@@ -204,7 +218,7 @@ Lead the chapter with it for exactly that reason.*
 
 ---
 
-## 6. Contact
+## Contact
 
 **Headline**
 
