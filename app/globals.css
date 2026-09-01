@@ -1,0 +1,228 @@
+@import "tailwindcss";
+
+/*
+  Design system: "cold ground, warm signal". The narrative spine (Dhaka to
+  Calgary) carries the palette: warm paper text on a cold, near-black ground,
+  one warm amber signal color. Deliberately not the default AI dark-mode
+  look: no purple/cyan gradient, no colored glow (a zero-offset amber halo
+  was one of the old site's flagged anti-patterns, see PLAN.md section 1).
+*/
+@theme inline {
+  --color-ink-0: var(--ink-0);
+  --color-ink-1: var(--ink-1);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-paper-0: var(--paper-0);
+  --color-paper-1: var(--paper-1);
+  --color-paper-2: var(--paper-2);
+  --color-signal: var(--signal);
+  --color-signal-dim: var(--signal-dim);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+:root {
+  /* Color. Contrast verified with scripts/contrast-check (WCAG relative
+     luminance), see the Phase 1 build report for the measured ratios: all
+     four pairs pass on the starting values below, nothing was adjusted. */
+  --ink-0: #05070a; /* deepest ground */
+  --ink-1: #0a0e14; /* surface */
+  --ink-2: #121821; /* raised surface */
+  --ink-3: #1c2530; /* borders, hairlines */
+  --paper-0: #e8e6e1; /* primary text, warm off-white */
+  --paper-1: #a8aeb8; /* secondary text */
+  --paper-2: #6b7480; /* tertiary, muted: non-essential text only */
+  --signal: #f0873d; /* the one accent, warm amber */
+  --signal-dim: #89512b; /* signal mixed 45% toward --ink-1, for low-emphasis use */
+
+  /*
+    Type scale. Fluid via clamp(), interpolated between a 375px and a
+    1440px viewport. Ratio 1.2 at the small end opening to 1.333 at the
+    large end, so hierarchy sharpens as the viewport grows instead of every
+    step scaling uniformly. --step-0 (body) resolves 16px to 18px; nothing
+    in the scale drops below 13.3px at any viewport, comfortably above the
+    11px floor the old site broke (10px tags flagged in PLAN.md section 1).
+  */
+  --step--1: clamp(0.833rem, 0.830rem + 0.016vw, 0.844rem); /* 13.3px -> 13.5px: labels, kickers */
+  --step-0: clamp(1rem, 0.956rem + 0.188vw, 1.125rem); /* 16px -> 18px: body */
+  --step-1: clamp(1.2rem, 1.095rem + 0.45vw, 1.5rem); /* 19.2px -> 24px */
+  --step-2: clamp(1.44rem, 1.243rem + 0.84vw, 1.999rem); /* 23px -> 32px */
+  --step-3: clamp(1.728rem, 1.398rem + 1.407vw, 2.665rem); /* 27.6px -> 42.6px */
+  --step-4: clamp(2.074rem, 1.553rem + 2.221vw, 3.552rem); /* 33.2px -> 56.8px */
+  --step-5: clamp(2.488rem, 1.697rem + 3.375vw, 4.735rem); /* 39.8px -> 75.8px */
+
+  /* Spacing. 4px base: --space-N = N * 0.25rem. */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-7: 1.75rem;
+  --space-8: 2rem;
+  --space-9: 2.25rem;
+  --space-10: 2.5rem;
+  --space-11: 2.75rem;
+  --space-12: 3rem;
+  --space-13: 3.25rem;
+  --space-14: 3.5rem;
+  --space-15: 3.75rem;
+  --space-16: 4rem;
+
+  /* Motion. One easing family, matching lib/motion.ts EASE_SITE. */
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 150ms;
+  --dur-base: 300ms;
+  --dur-slow: 600ms;
+}
+
+html,
+body {
+  background: var(--ink-0);
+  color: var(--paper-0);
+}
+
+body {
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/*
+  Reduced motion, global floor. Neutralises every animation and transition
+  by default; components that need a deliberate static end state (reveal,
+  word-in, thread-divider, magnetic) additionally short-circuit their own
+  JS so nothing even attempts to animate, this is the CSS-only backstop for
+  anything that does not.
+*/
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+/* Ported behavior, from totaltex-web/app/globals.css. Generic tokens
+   swapped in (--ease-site -> --ease, brand colors -> ink/paper/signal). */
+/* ---------------------------------------------------------------------- */
+
+/*
+  Scroll reveal (components/reveal.tsx). Hidden state is scoped to `.js`,
+  rendered server-side on <html> in app/layout.tsx, so hydration matches and
+  a no-JS visit (the noscript rule in layout.tsx) is never trapped at
+  opacity 0.
+*/
+.js .reveal {
+  opacity: 0;
+  transform: translateY(24px);
+}
+.js .reveal.is-visible {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.85s var(--ease),
+    transform 0.85s var(--ease);
+}
+@media (prefers-reduced-motion: reduce) {
+  .js .reveal,
+  .js .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+/* Above-the-fold opt-out (<Reveal immediate>): see reveal.tsx for why this
+   has to kill the animation shorthand rather than just set opacity. */
+.reveal.is-immediate {
+  opacity: 1;
+  transform: none;
+  animation: none;
+  transition: none;
+}
+/* Scroll-bound upgrade where supported: real scroll position drives the
+   reveal instead of a one-shot IntersectionObserver trip. */
+@supports (animation-timeline: view()) {
+  .reveal {
+    animation: reveal-in linear both;
+    animation-timeline: view();
+    animation-range:
+      entry calc(0% + var(--reveal-shift, 0) * 1%)
+      entry calc(60% + var(--reveal-shift, 0) * 1%);
+    animation-duration: 1ms;
+  }
+}
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Word-by-word reveal (components/story/word-reveal.tsx). Pure CSS, no JS,
+   no hydration dependency. */
+@supports (animation-timeline: view()) {
+  .word-in {
+    display: inline-block;
+    animation: word-in linear both;
+    animation-timeline: view();
+    animation-range: entry calc(0% + var(--w, 0) * 3%) entry calc(55% + var(--w, 0) * 3%);
+    animation-duration: 1ms;
+  }
+}
+@keyframes word-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.4em);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .word-in {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+/* Press feedback (used by components/home/marquee-pause.tsx's pause
+   button). Named properties, not the `transition` shorthand: an unlayered
+   rule here would otherwise beat Tailwind's own layered `transition-colors`
+   utilities and silently strip them on any element that carries both. */
+.press {
+  transition-property: transform, color, background-color, border-color, outline-color, box-shadow;
+  transition-timing-function: var(--tw-ease, var(--ease));
+  transition-duration: var(--tw-duration, var(--dur-fast));
+}
+.press:active {
+  transform: scale(0.97);
+}
+
+/* WCAG 2.2.2 pause mechanism (components/home/marquee-pause.tsx). No
+   marquee track exists yet in Phase 1; this selector is the generic hook a
+   future marquee's `.marquee-track` rule attaches to. */
+.marquee-paused .marquee-track,
+.marquee-paused .marquee-track-slow,
+.marquee-paused .marquee-track-reverse {
+  animation-play-state: paused;
+}
+
+/* Thread divider (components/home/thread-divider.tsx). Scopes its paint
+   work to its own box. */
+.thread-divider {
+  contain: layout paint;
+}
