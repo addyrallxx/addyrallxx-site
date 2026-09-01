@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
-import SmoothScroll from "@/components/smooth-scroll";
+import WorldCanvas from "@/components/world/world-canvas";
 import "./globals.css";
 
 const inter = Inter({
@@ -44,7 +44,24 @@ export default function RootLayout({
         >
           Skip to content
         </a>
-        <SmoothScroll />
+        {/*
+          SmoothScroll (Lenis) is deliberately NOT mounted here.
+
+          Two reasons. Lenis calls preventDefault on every wheel event once
+          smoothWheel is on, and docs/phase-2-world.md section 5 bans hijacked
+          wheel events outright. More importantly it would double damp: the
+          world already eases toward the scroll target at 0.05 per frame in
+          components/world/world-canvas.tsx, so easing the scroll position
+          underneath that as well makes the world lag the wheel twice over and
+          feel disconnected.
+
+          Nothing breaks by leaving it out. lib/scroll.ts is Lenis-first but
+          falls back to native scrollIntoView with behavior smooth when
+          window.__lenis is absent, so anchor navigation still works.
+
+          The component stays in the repo for a future non-world page.
+        */}
+        <WorldCanvas />
         {children}
       </body>
     </html>
