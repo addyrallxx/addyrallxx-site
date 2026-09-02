@@ -7,11 +7,16 @@ state and the handoff.
 
 ## What this is
 
-One continuous scrolled Three.js world (Dhaka to Calgary, chapters as places
-not sections) replacing the old create-next-app-flavoured site at
-`addyrallxx-site.vercel.app`. Full reasoning, chapter list, content and
-rejected alternatives are in `PLAN.md` sections 1 to 6. Do not restate them
-here, read them there.
+Dhaka to Calgary, chapters as places not sections, replacing the old
+create-next-app-flavoured site at `addyrallxx-site.vercel.app`. The build was
+originally a continuous scrolled Three.js particle world; that build was
+rejected by Adnan on 2026-09-02 (bizarre, generic AI copy, assistant chatter
+reached the published page) and its code deleted. Current direction: a dark
+editorial spine with warm photographic chapters. See `NEXT-SESSION.md` for
+the chunk 0 reset and what happens next. `PLAN.md` sections 1 to 6 still
+carry the narrative spine and content reasoning (Dhaka to Calgary,
+confidentiality rules, chapter content); its Three.js-specific technical
+sections are superseded.
 
 ## Stack, chosen but not scaffolded
 
@@ -65,11 +70,11 @@ rules that bite hardest:
 
 **The Browser pane cannot verify this site.** Automation browsers on this
 machine (both the in-app Browser pane and subagent automation tabs) report
-`document.hidden = true`, which throttles `requestAnimationFrame`, so the
-Three.js scene, scroll choreography and the cobe globe never visibly run
-there. `loading="lazy"` images also come back `naturalWidth: 0` with zero
-network requests in that environment, which looks exactly like a broken
-build when it is not.
+`document.hidden = true`, which throttles `requestAnimationFrame`, so any
+scroll choreography, Lenis smoothing or framer-motion animation never
+visibly runs there. `loading="lazy"` images also come back `naturalWidth: 0`
+with zero network requests in that environment, which looks exactly like a
+broken build when it is not.
 
 **Drive real Chrome with `puppeteer-core`** for every motion or asset check,
 against `C:\Program Files\Google\Chrome\Application\chrome.exe`. This is
@@ -115,3 +120,17 @@ one gives and why.
 **Do not copy `totaltex-web/app/globals.css` design tokens.** That warm-paper
 palette is TotalTex's client-locked brand. This site needs its own design
 system, built fresh.
+
+## Known traps
+
+- **Check the 21st.dev stash before building any UI component from
+  scratch.** Index at
+  `C:\Users\adnan\second-brain\wiki\resources\21st-components\`. The chunk 0
+  reset found that Adnan's own bookmarked, already-pulled components matched
+  the reference sites he pointed to and had simply gone unused. Check the
+  stash first.
+- **Unlayered CSS element rules beat Tailwind 4 utilities regardless of
+  specificity.** Tailwind 4 puts its own utilities inside a cascade layer; a
+  bare `h1 { ... }` outside any `@layer` outranks every Tailwind utility
+  class no matter how specific that class is. Base type defaults belong
+  inside `@layer base` in `app/globals.css`, never left unlayered.

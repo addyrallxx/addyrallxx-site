@@ -51,6 +51,9 @@
     without a border doing all the work.
   */
   --canvas: #08090b;
+  /* Held separately and never overridden by a tone scope, so the seam
+     gradients in the warm section can still reach for the graphite. */
+  --canvas-dark: #08090b;
   --surface-1: #101216; /* cards, framed screenshots */
   --surface-2: #171a1f; /* raised, hover */
   --hairline: #23272e;
@@ -139,10 +142,24 @@
   --measure: 68ch;
   --gutter: var(--space-6);
 
-  /* Radii. Small and consistent. Nothing on this site is a pill. */
+  /*
+    Radii. Two registers, and the split is measured rather than chosen.
+
+    All five sites in the brief were walked and their computed radii tallied.
+    Every one of them pills its controls: buttons, nav bars and tag chips sit
+    at 999px or 9999px, while card and panel radii cluster in a 6px to 22px
+    band (dheerajakula.dev cards at 22px, cade.codes inputs at 5px,
+    sawad at 6 to 16px). Sharp corners appear essentially nowhere in the
+    sample.
+
+    An earlier version of this file said "nothing on this site is a pill",
+    which was my preference and was contradicted by every reference Adnan
+    actually picked. Controls are pills. Panels are not.
+  */
   --radius-sm: 4px;
   --radius-md: 8px;
-  --radius-lg: 14px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
 
   /* Motion. One easing family, matching lib/motion.ts EASE_SITE. */
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
@@ -209,6 +226,50 @@ body {
 [data-tone] {
   background: var(--canvas);
   color: var(--ink);
+}
+
+/*
+  The seam between graphite and paper.
+
+  A hard cut from #08090b to #f4f1ea mid scroll reads as a broken stylesheet
+  or a flash, particularly on a phone where the change fills the whole
+  screen at once. So the warm section carries a gradient band at its top
+  edge that lets the dark ground fall away over roughly a tenth of the
+  viewport, and the same in reverse at its bottom edge where the site
+  returns to graphite.
+
+  `isolation: isolate` creates a stacking context so the z-index -1 bands
+  paint above the section's own paper background but behind all of its
+  content, without either band escaping the section or covering text. The
+  bands are inert to the pointer.
+
+  --canvas-dark is deliberately declared only at :root and never inside the
+  warm scope, so it still resolves to the graphite value while everything
+  around it has been flipped to paper.
+*/
+[data-tone="warm"] {
+  position: relative;
+  isolation: isolate;
+}
+
+[data-tone="warm"]::before,
+[data-tone="warm"]::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  height: clamp(72px, 10vh, 144px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+[data-tone="warm"]::before {
+  top: 0;
+  background: linear-gradient(to bottom, var(--canvas-dark), transparent);
+}
+
+[data-tone="warm"]::after {
+  bottom: 0;
+  background: linear-gradient(to top, var(--canvas-dark), transparent);
 }
 
 /*

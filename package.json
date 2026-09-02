@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "copy-gate": "node scripts/copy-gate.mjs",
+    "verify": "node scripts/verify.mjs"
   },
   "dependencies": {
     "framer-motion": "^13.1.1",

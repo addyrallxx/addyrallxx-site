@@ -84,7 +84,7 @@ export default function Home() {
             <div className="mt-[var(--space-12)] flex flex-wrap items-center gap-[var(--space-6)]">
               <a
                 href="#currently"
-                className="press rounded-[var(--radius-sm)] bg-accent px-[var(--space-6)] py-[var(--space-3)] font-display text-[length:var(--step-0)] font-semibold text-white transition-colors hover:bg-accent-deep"
+                className="press rounded-[var(--radius-pill)] bg-accent px-[var(--space-8)] py-[var(--space-4)] font-display text-[length:var(--step-0)] font-semibold text-white transition-colors hover:bg-accent-deep"
               >
                 See the work
               </a>
