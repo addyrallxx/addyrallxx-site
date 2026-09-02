@@ -7,7 +7,7 @@ import { Hero } from "@/components/sections/hero";
 import { SiteFooter } from "@/components/sections/site-footer";
 import { Skills } from "@/components/sections/skills";
 import { Work } from "@/components/sections/work";
-import { SITE } from "@/lib/content";
+import { SiteHeader } from "@/components/ui/site-header";
 
 /*
   Section order, and why it is this one.
@@ -26,25 +26,7 @@ import { SITE } from "@/lib/content";
 export default function Home() {
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-40 border-b border-hairline/60 bg-canvas/80 backdrop-blur">
-        <nav
-          aria-label="Primary"
-          className="mx-auto flex max-w-[var(--content-max)] items-center justify-between px-[var(--gutter)] py-[var(--space-4)]"
-        >
-          <a
-            href="#main"
-            className="font-display text-[length:var(--step-0)] font-semibold tracking-[-0.02em]"
-          >
-            {SITE.name}
-          </a>
-          <a
-            href={`mailto:${SITE.email}`}
-            className="press label transition-colors hover:text-ink"
-          >
-            Email
-          </a>
-        </nav>
-      </header>
+      <SiteHeader />
 
       <main id="main">
         <Hero />

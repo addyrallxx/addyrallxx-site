@@ -1,11 +1,10 @@
-import Reveal from "@/components/reveal";
+import { WordReveal } from "@/components/story/word-reveal";
 import { HERO } from "@/lib/content";
 
 /*
   Hero.
 
-  Three fixes since chunk 0, all of them things that looked fine and were
-  not:
+  Fixes since chunk 0, all of them things that looked fine and were not:
 
   The button pointed at #currently while reading "See the work". Now it
   takes HERO.primary.href, which is #work, and that section exists.
@@ -21,46 +20,57 @@ import { HERO } from "@/lib/content";
   No font-semibold on the h1: @layer base already sets weight 600 for the
   display face, and a utility here would override the warm scope's serif
   weight if this pattern were ever reused inside one.
+
+  No <Reveal> here any more. Reveal is a scroll driven mechanism and
+  everything in the hero is already in the first viewport at load, so it
+  gets its own clock driven entrance instead: .hero-in and .hero-intro
+  .word-in in globals.css, staggered by the --stagger custom property below.
+  The headline keeps the word.reveal look (blur plus rise, per word) through
+  the same WordReveal component the fallback path already used, just driven
+  by animation-delay instead of animation-timeline.
 */
 export function Hero() {
   return (
-    <section className="mx-auto flex min-h-svh max-w-[var(--content-max)] flex-col justify-center px-[var(--gutter)] pt-[var(--space-32)] pb-[var(--space-24)]">
-      <Reveal immediate>
-        {/* The hero is not a numbered section. Numbering starts at
-            Currently, so the index reads as a table of contents rather
-            than as decoration. */}
-        <p className="label mb-[var(--space-8)] flex items-center gap-[var(--space-3)]">
-          <span aria-hidden className="inline-block size-[6px] rounded-full bg-accent" />
-          {HERO.eyebrow}
-        </p>
-      </Reveal>
+    <section className="hero-intro mx-auto flex min-h-svh max-w-[var(--content-max)] flex-col justify-center px-[var(--gutter)] pt-[var(--space-32)] pb-[var(--space-24)]">
+      {/* The hero is not a numbered section. Numbering starts at
+          Currently, so the index reads as a table of contents rather
+          than as decoration. */}
+      <p
+        className="hero-in label mb-[var(--space-8)] flex items-center gap-[var(--space-3)]"
+        style={{ "--stagger": 0 } as React.CSSProperties}
+      >
+        <span aria-hidden className="inline-block size-[6px] rounded-full bg-accent" />
+        {HERO.eyebrow}
+      </p>
 
-      <Reveal immediate>
-        <h1 className="max-w-[16ch] text-[length:var(--step-6)]">{HERO.headline}</h1>
-      </Reveal>
+      <h1 className="max-w-[16ch] text-[length:var(--step-6)]">
+        <WordReveal text={HERO.headline} />
+      </h1>
 
-      <Reveal immediate>
-        <p className="mt-[var(--space-10)] max-w-[52ch] text-[length:var(--step-1)] text-ink-muted">
-          {HERO.lead}
-        </p>
-      </Reveal>
+      <p
+        className="hero-in mt-[var(--space-10)] max-w-[52ch] text-[length:var(--step-1)] text-ink-muted"
+        style={{ "--stagger": 2 } as React.CSSProperties}
+      >
+        {HERO.lead}
+      </p>
 
-      <Reveal immediate>
-        <div className="mt-[var(--space-12)] flex flex-wrap items-center gap-[var(--space-6)]">
-          <a
-            href={HERO.primary.href}
-            className="press rounded-[var(--radius-pill)] bg-accent px-[var(--space-8)] py-[var(--space-4)] font-display text-[length:var(--step-0)] font-semibold text-canvas transition-colors hover:bg-accent-deep hover:text-white"
-          >
-            {HERO.primary.label}
-          </a>
-          <a
-            href={HERO.secondary.href}
-            className="press border-b border-hairline-strong pb-[2px] text-[length:var(--step-0)] text-ink-muted transition-colors hover:border-accent hover:text-ink"
-          >
-            {HERO.secondary.label}
-          </a>
-        </div>
-      </Reveal>
+      <div
+        className="hero-in mt-[var(--space-12)] flex flex-wrap items-center gap-[var(--space-6)]"
+        style={{ "--stagger": 3 } as React.CSSProperties}
+      >
+        <a
+          href={HERO.primary.href}
+          className="press rounded-[var(--radius-pill)] bg-accent px-[var(--space-8)] py-[var(--space-4)] font-display text-[length:var(--step-0)] font-semibold text-canvas transition-colors hover:bg-accent-deep hover:text-white"
+        >
+          {HERO.primary.label}
+        </a>
+        <a
+          href={HERO.secondary.href}
+          className="press border-b border-hairline-strong pb-[2px] text-[length:var(--step-0)] text-ink-muted transition-colors hover:border-accent hover:text-ink"
+        >
+          {HERO.secondary.label}
+        </a>
+      </div>
     </section>
   );
 }

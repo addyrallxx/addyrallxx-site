@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Archivo, Manrope, Instrument_Serif, JetBrains_Mono } from "next/font/google";
 import SmoothScroll from "@/components/smooth-scroll";
+import { Preloader } from "@/components/ui/preloader";
 import "./globals.css";
 
 /*
@@ -39,7 +40,10 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
-// Working metadata. Final wording lands with the rest of the copy in chunk 1.
+// One description string, declared once. It was written out twice, so the
+// two copies could drift apart silently.
+const DESCRIPTION =
+  "Computer science at the University of Calgary. I co-run Puzzled, which runs the online side of more than seven Calgary dealerships, and I built the order system TotalTex runs on in Dhaka.";
 export const metadata: Metadata = {
   metadataBase: new URL("https://addyrallxx-site.vercel.app"),
   title: {
@@ -47,11 +51,11 @@ export const metadata: Metadata = {
     template: "%s | Adnan Shakib",
   },
   description:
-    "Computer science at the University of Calgary. I co-run Puzzled, which handles vehicle listings for four Calgary-area dealerships, and I built the order system TotalTex runs on in Dhaka.",
+    DESCRIPTION,
   openGraph: {
     title: "Adnan Shakib",
     description:
-      "Computer science at the University of Calgary. I co-run Puzzled, which handles vehicle listings for four Calgary-area dealerships, and I built the order system TotalTex runs on in Dhaka.",
+      DESCRIPTION,
     type: "website",
     locale: "en_CA",
   },
@@ -91,6 +95,13 @@ export default function RootLayout({
           does the job it was ported for. It no-ops under reduced motion.
         */}
         <SmoothScroll />
+        {/*
+          An overlay, never a gate: children are server rendered right here
+          underneath it on every load, preloader or not. Preloader decides
+          for itself whether to show (see the reduced-motion and
+          sessionStorage checks inside it) and never controls this tree.
+        */}
+        <Preloader />
         {children}
       </body>
     </html>

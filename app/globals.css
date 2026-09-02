@@ -365,8 +365,30 @@ body {
     color: var(--ink-subtle);
   }
 
+  /*
+    border-color: transparent is not decorative, this class never draws a
+    border. Left unset, computed border-top-color still resolves to
+    currentColor (the CSS spec always resolves it, border-width or not),
+    which silently doubled every numeral in verify.mjs's accent budget
+    count. Pre-existing, not introduced by the motion pass: confirmed
+    against HEAD before touching it.
+  */
   .label-index {
     color: var(--accent);
+    border-color: transparent;
+  }
+
+  /*
+    Shared by the preloader ground (components/ui/preloader.tsx) and the
+    fixed header (components/ui/site-header.tsx), both of which borrow
+    [data-tone="warm"]'s token values to flip colour without a hardcoded
+    hex, on an element that is not a scroll section. The seam gradient
+    bands that selector paints for scroll sections are taller than either
+    of these elements and would spill past their edges, so this opts out.
+  */
+  .tone-surface[data-tone="warm"]::before,
+  .tone-surface[data-tone="warm"]::after {
+    content: none;
   }
 }
 
@@ -427,22 +449,29 @@ body {
   a no-JS visit (the noscript rule in layout.tsx) is never trapped at
   opacity 0.
 */
+/* Travel raised from a barely-there 24px to 32px, and a small blur added to
+   match .word-in's own language, so the reveal actually registers instead
+   of needing a second look to notice it happened at all. */
 .reveal-armed .reveal {
   opacity: 0;
-  transform: translateY(24px);
+  transform: translateY(32px);
+  filter: blur(6px);
 }
 .reveal-armed .reveal.is-visible {
   opacity: 1;
   transform: none;
+  filter: blur(0);
   transition:
     opacity 0.85s var(--ease),
-    transform 0.85s var(--ease);
+    transform 0.85s var(--ease),
+    filter 0.85s var(--ease);
 }
 @media (prefers-reduced-motion: reduce) {
   .reveal-armed .reveal,
   .reveal-armed .reveal.is-visible {
     opacity: 1;
     transform: none;
+    filter: none;
     transition: none;
     animation: none !important;
   }
@@ -471,11 +500,13 @@ body {
 @keyframes reveal-in {
   from {
     opacity: 0;
-    transform: translateY(24px);
+    transform: translateY(32px);
+    filter: blur(6px);
   }
   to {
     opacity: 1;
     transform: none;
+    filter: blur(0);
   }
 }
 
@@ -507,6 +538,52 @@ body {
 }
 @media (prefers-reduced-motion: reduce) {
   .word-in {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+/*
+  Hero load entrance (components/sections/hero.tsx). Everything in the hero
+  is already in the first viewport, so it gets a clock driven entrance
+  instead of the scroll driven .reveal/.word-in above: a view() timeline
+  never has scroll room to complete for content that starts fully in view
+  (see the `immediate` prop on components/reveal.tsx for the general
+  version of that bug), and a fixed delay is the correct tool for something
+  that plays once, on mount, regardless of scroll position.
+
+  .hero-intro .word-in reuses the existing @keyframes word-in (same blur and
+  rise, just driven by time instead of animation-timeline) and wins over the
+  plain .word-in rule above on specificity alone, so the headline still gets
+  the per-word cascade without needing scroll to drive it.
+*/
+@media (prefers-reduced-motion: no-preference) {
+  .hero-intro .word-in {
+    animation: word-in 0.7s var(--ease) both;
+    animation-delay: calc(180ms + var(--w, 0) * 40ms);
+  }
+
+  .hero-in {
+    animation: hero-in 0.8s var(--ease) both;
+    animation-delay: calc(var(--stagger, 0) * 180ms);
+  }
+}
+@keyframes hero-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-in {
     animation: none;
     opacity: 1;
     transform: none;
