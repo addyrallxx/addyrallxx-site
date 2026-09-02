@@ -1,11 +1,35 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
-import WorldCanvas from "@/components/world/world-canvas";
+import { Archivo, Manrope, Instrument_Serif, JetBrains_Mono } from "next/font/google";
+import SmoothScroll from "@/components/smooth-scroll";
 import "./globals.css";
 
-const inter = Inter({
+/*
+  Four faces, each with one job, and none of them Inter.
+
+  Archivo is the display face: an industrial grotesque with a width axis,
+  which is what lets a hero headline sit at 112px without looking like a
+  system font scaled up. Manrope carries body text, geometric enough to
+  pair with Archivo and warm enough to read at length. Instrument Serif
+  appears only inside the warm paper section, where it replaces Archivo for
+  headings and does half the work of the tonal break. JetBrains Mono is for
+  figures, tags and labels, never for prose.
+*/
+const archivo = Archivo({
+  variable: "--font-display",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const manrope = Manrope({
   variable: "--font-sans",
   subsets: ["latin"],
+  display: "swap",
+});
+
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-serif",
+  subsets: ["latin"],
+  weight: "400",
   display: "swap",
 });
 
@@ -15,10 +39,22 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+// Working metadata. Final wording lands with the rest of the copy in chunk 1.
 export const metadata: Metadata = {
-  title: "Adnan Shakib | Order management and listing automation",
+  metadataBase: new URL("https://addyrallxx-site.vercel.app"),
+  title: {
+    default: "Adnan Shakib",
+    template: "%s | Adnan Shakib",
+  },
   description:
-    "Order management for a garment factory in Dhaka. Listing automation for four Calgary dealerships. Computer science at the University of Calgary.",
+    "Computer science at the University of Calgary. I co-run Puzzled, which handles vehicle listings for four Calgary-area dealerships, and I built the order system TotalTex runs on in Dhaka.",
+  openGraph: {
+    title: "Adnan Shakib",
+    description:
+      "Computer science at the University of Calgary. I co-run Puzzled, which handles vehicle listings for four Calgary-area dealerships, and I built the order system TotalTex runs on in Dhaka.",
+    type: "website",
+    locale: "en_CA",
+  },
 };
 
 export default function RootLayout({
@@ -37,31 +73,24 @@ export default function RootLayout({
           <style>{`.js .reveal{opacity:1 !important;transform:none !important}`}</style>
         </noscript>
       </head>
-      <body className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}>
+      <body
+        className={`${archivo.variable} ${manrope.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable} antialiased`}
+      >
         <a
           href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-sm focus:bg-ink-2 focus:px-4 focus:py-2 focus:font-mono focus:text-[length:var(--step--1)] focus:text-paper-0"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-sm focus:bg-surface-2 focus:px-4 focus:py-2 focus:font-mono focus:text-[length:var(--step--1)] focus:text-ink"
         >
           Skip to content
         </a>
         {/*
-          SmoothScroll (Lenis) is deliberately NOT mounted here.
-
-          Two reasons. Lenis calls preventDefault on every wheel event once
-          smoothWheel is on, and docs/phase-2-world.md section 5 bans hijacked
-          wheel events outright. More importantly it would double damp: the
-          world already eases toward the scroll target at 0.05 per frame in
-          components/world/world-canvas.tsx, so easing the scroll position
-          underneath that as well makes the world lag the wheel twice over and
-          feel disconnected.
-
-          Nothing breaks by leaving it out. lib/scroll.ts is Lenis-first but
-          falls back to native scrollIntoView with behavior smooth when
-          window.__lenis is absent, so anchor navigation still works.
-
-          The component stays in the repo for a future non-world page.
+          Lenis is mounted now. The previous build deliberately left it out
+          because the Three.js world already eased toward the scroll target
+          at 0.05 per frame, so smoothing the scroll underneath that damped
+          the motion twice and made the world lag the wheel. That world has
+          been deleted, so the conflict is gone and the component finally
+          does the job it was ported for. It no-ops under reduced motion.
         */}
-        <WorldCanvas />
+        <SmoothScroll />
         {children}
       </body>
     </html>
