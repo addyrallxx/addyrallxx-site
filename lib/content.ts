@@ -24,7 +24,7 @@
  *
  * Confidentiality, from PLAN.md section 7 and binding: no TotalTex
  * financials, addresses or ownership split; client dealerships are never
- * named and stop at "four Calgary-area dealerships"; immigration detail
+ * named and stop at "Calgary dealerships", with a count but never a name; immigration detail
  * stops at "Bangladeshi citizen studying in Canada"; nothing sourced from
  * totaltex-ops/samples.
  */
@@ -55,7 +55,7 @@ export const SITE = {
 export const HERO = {
   eyebrow: "Calgary, Alberta",
   headline: "I sold cars, then I automated the part I hated.",
-  lead: "Puzzled is the company my roommate and I run. It handles the vehicle listings for four Calgary-area dealerships. In Dhaka, the order system I built runs my father's factory from the first order to the final bill. I am doing a computer science degree at the University of Calgary at the same time.",
+  lead: "Puzzled is the company my roommate and I run. We take over the online side of a dealership, from the inventory through to the ads, and we have done it for more than seven Calgary dealerships and dealer families. In Dhaka, the order system I built runs my father's factory from the first order to the final bill. I am doing a computer science degree at the University of Calgary at the same time.",
   primary: { label: "See the work", href: "#work" } satisfies Link,
   secondary: { label: SITE.email, href: `mailto:${SITE.email}` } satisfies Link,
 };
@@ -65,8 +65,8 @@ export const CURRENTLY = [
     label: "Company",
     name: "Puzzled",
     role: "Co-founder, and the one who writes the software",
-    place: "Calgary",
-    detail: "Vehicle listings for four Calgary-area dealerships.",
+    place: "Calgary, since 2023",
+    detail: "Inventory, listings, ads and the leads they bring in. More than seven dealerships so far.",
   },
   {
     label: "Family business",
@@ -80,7 +80,7 @@ export const CURRENTLY = [
     name: "University of Calgary",
     role: "Computer science, Faculty of Science",
     place: "Graduating April 2028",
-    detail: "AMVIC licensed on the side, which is how the dealership work started.",
+    detail: "Third year. I take the systems and databases courses first.",
   },
 ];
 
@@ -109,28 +109,29 @@ export const EDUCATION = [
 ];
 
 /**
- * Experience. Two entries, both automotive, which reads as a deliberate
+ * Experience. Three entries, and the shape of the list is the argument: two
+ * automotive businesses and a manufacturer, which reads as a deliberate
  * track rather than a student taking whatever came up.
  *
- * OPEN QUESTION for Adnan: Puzzled's start date is not recorded anywhere on
- * this machine. The name was coined in first year of university, the
- * software history begins in 2026. `period` below is deliberately vague
- * until he confirms a real date. Do not invent one.
+ * Puzzled started in 2023, confirmed by Adnan on 2026-09-02. It was
+ * previously written as "Current" because no start date existed anywhere on
+ * this machine and inventing one was not an option.
  */
 export const EXPERIENCE = [
   {
     company: "Puzzled",
     role: "Co-founder",
-    period: "Current",
+    period: "2023 to now",
     place: "Calgary, Alberta",
     summary:
-      "My roommate and I handle the Facebook Marketplace listings for four Calgary-area dealerships. He runs the accounts and the client relationships. I write everything behind them.",
+      "My roommate and I take over the online side of a dealership and run it end to end: inventory, listings, lead generation, finance applications, social media and paid boosting. More than seven Calgary dealerships and dealer families so far. He owns the accounts and the relationships. I write the software underneath all of it.",
     points: [
-      "Built the scraper and the description generator the whole operation runs on.",
+      "Built the inventory scraper and the listing generator the whole operation runs on.",
       "Audited every live description against the provincial advertising regulator's rules.",
+      "Handle the paid social and the lead routing that turns a listing into a conversation.",
       "Both of us are AMVIC licensed and registered with the dealerships we represent.",
     ],
-    tags: ["Python", "Automation", "AMVIC"],
+    tags: ["Python", "Automation", "Paid social", "AMVIC"],
   },
   {
     /*
@@ -181,10 +182,10 @@ export const WORK = [
   {
     id: "puzzled",
     name: "Puzzled",
-    kind: "Listing automation",
-    year: "2026",
-    headline: "Writes and checks the listings for four dealerships.",
-    body: "Three times a day a scraper reads each client's live inventory across three different dealer platforms. A rule driven generator then writes the listing copy. It states only what is in the record, picks a selling angle from those facts, and attaches the disclaimer that client's province requires, because the clients are not all in the same one.",
+    kind: "Dealership operations",
+    year: "2023 to now",
+    headline: "Three dealer platforms in, one listing out, three times a day.",
+    body: "Puzzled runs the online side of a dealership: inventory, listings, lead generation, finance applications, social media and paid boosting. This is the part I built. Three times a day a scraper reads each client's live inventory across three different dealer platforms. A rule driven generator then writes the listing copy. It states only what is in the record, picks a selling angle from those facts, and attaches the disclaimer that client's province requires, because the clients are not all in the same one.",
     detail: [
       "I audited 1,069 live descriptions against the provincial advertising regulator's rules. Two were violations, and both predated anything I wrote.",
       "A stale cache meant 58 cars were still listed after they sold, and 38 price changes had never gone out. Nobody had reported it.",
@@ -200,14 +201,14 @@ export const WORK = [
     kind: "Internal order system",
     year: "2026",
     headline: "Runs a Dhaka factory from first order to final bill.",
-    body: "Order, job card, proforma invoice, production, delivery challan, bill. All of it was paper. A generic ERP models a product as a variant of a variant, but a trims factory needs a spec sheet per product line, and that spec has to drive both the data entry form and the printed description on the invoice. One typed template generates both, which is the reason this is not a configured Odoo instance.",
+    body: "Order, job card, proforma invoice, production, delivery challan, bill. All of it was paper. A generic ERP models a product as a variant of a variant. A trims factory needs a spec sheet per product line, and that spec has to drive two things at once: the form a clerk types into, and the printed description on the invoice. One typed template generates both.",
     detail: [
       "Money and quantities are exact decimals, never floats. Challan and bill lines snapshot their values rather than joining, so editing a price later cannot rewrite a document that already shipped.",
-      "Editing a job used to delete its lines and reinsert them. The form never sent the line id, so a cascading foreign key quietly erased recorded production. Nobody reported it. I found it reading my own schema, replaced it with a diff based update, and changed the key to RESTRICT so the database refuses that shape of mistake even if I reintroduce the bug.",
+      "Editing a job used to delete its lines and reinsert them. The form never sent the line id, so a cascading foreign key quietly erased recorded production. I found it reading my own schema. The fix was a diff based update, and a key changed to RESTRICT so the database now refuses that shape of mistake even if I write the bug again.",
     ],
     tags: ["Next.js", "TypeScript", "PostgreSQL", "Drizzle"],
     links: [] satisfies Link[],
-    note: "Internal. No public URL.",
+    note: "Runs inside the factory. Screenshots are from seeded demo data.",
   },
   {
     id: "totaltex-web",
@@ -217,7 +218,7 @@ export const WORK = [
     headline: "The factory's site, on its own domain since August.",
     body: "Moved onto the real domain with no downtime and no interruption to mail. Built around real production photography rather than stock, because a trims factory selling to apparel brands is judged on what it actually makes.",
     detail: [
-      "Its structured data was declaring a type that does not exist in schema.org. The address, opening hours and phone number had been worth nothing to Google since the day it launched. I found it by auditing the markup rather than by noticing a symptom.",
+      "Its structured data declared a type that does not exist in schema.org. The address, opening hours and phone number had been invisible to search since the day it launched, and nothing on the page looked wrong.",
     ],
     tags: ["Next.js", "React Three Fiber", "GSAP"],
     links: [{ label: "totaltex-bd.com", href: "https://totaltex-bd.com" }] satisfies Link[],
@@ -284,7 +285,7 @@ export const SKILLS = {
   ],
   business: {
     title: "The other half",
-    body: "AMVIC licensed. I have run auction sourcing, inventory, and paid social for a dealership, and I keep the books for the business I co-own. Most of what I have built came out of doing that work by hand first.",
+    body: "I have run auction sourcing, inventory and paid social for a dealership, and I keep the books for the business I co-own. I did each of those by hand before I wrote anything to do them.",
   },
 };
 
@@ -302,7 +303,7 @@ export const ABOUT = {
   headline: "Dhaka, then Calgary.",
   paragraphs: [
     "I grew up in Dhaka and moved to Calgary for school. I go back every summer. There is no direct flight, so it is always two planes and most of two days.",
-    "My father started TotalTex in 2014. I am taking it over as managing director, which is a decision the two of us made out loud rather than something anyone assumed. Building its software was the first thing I could do that was actually useful to it.",
+    "My father started TotalTex in 2014. I am taking it over as managing director. We decided that together, and I am learning the business from him while I finish the degree. The software was where I could start.",
   ],
   /*
     The car. Deliberately three sentences and no parts list.
@@ -336,7 +337,7 @@ export const ABOUT = {
 export const CONTACT = {
   eyebrow: "Contact",
   headline: "Say hello.",
-  body: "I am looking for a software internship for summer 2027, and I graduate in April 2028. I also take on freelance builds. And if you run a dealership, I can show you what this does to your listing workload. Any of those, or none of them, my inbox is open.",
+  body: "I am looking for a software internship for summer 2027. I also take freelance builds. And if you run a dealership, I will show you what a week of listing work looks like once this is doing it. Email is the fastest way to reach me.",
   email: SITE.email,
 };
 

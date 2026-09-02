@@ -305,7 +305,7 @@ Violating any of these is worse than shipping nothing.
   under "Never publish" in `wiki/sources/totaltex/13-sensitive-data-registry.md`.
 - TotalTex street addresses (Uttara corporate office, Ashulia factory).
 - Adnan's father's phone number and email.
-- Puzzled client dealership names and contacts. Anonymise as "four Calgary-area dealerships."
+- Puzzled client dealership names and contacts. Anonymise as "Calgary dealerships", with a count but never a name.
 - Visa and immigration mechanics. "Bangladeshi citizen studying in Canada" is the ceiling.
   No permit type, no bond amounts.
 - Family emotional content from the vault.

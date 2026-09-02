@@ -1,33 +1,14 @@
 import Reveal from "@/components/reveal";
+import { CURRENTLY } from "@/lib/content";
 
 /*
-  Currently, moved out of app/page.tsx unchanged. Working copy from chunk 0,
-  not yet swapped for lib/content.ts's CURRENTLY export: that would be a
-  copy change, and this move is not the place for one.
+  Currently.
+
+  This file used to hold its own copy of the data, forked from chunk 0 and
+  never reconnected. That made lib/content.ts a claimed single source rather
+  than an actual one, and the fork silently kept saying "four Calgary-area
+  dealerships" after the real number moved past seven. It imports now.
 */
-const CURRENTLY = [
-  {
-    label: "Company",
-    name: "Puzzled",
-    role: "Co-founder, technical",
-    place: "Calgary",
-    detail: "Vehicle listings for four Calgary-area dealerships.",
-  },
-  {
-    label: "Family business",
-    name: "TotalTex",
-    role: "Built the order system",
-    place: "Dhaka",
-    detail: "Order to job card to challan to bill, on the factory floor.",
-  },
-  {
-    label: "School",
-    name: "University of Calgary",
-    role: "Computer science",
-    place: "Since 2022",
-    detail: "Faculty of Science.",
-  },
-];
 
 export function Currently() {
   return (

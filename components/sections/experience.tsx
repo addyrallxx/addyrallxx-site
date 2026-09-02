@@ -19,7 +19,9 @@ export function Experience() {
       <ol className="flex flex-col">
         {EXPERIENCE.map((job, i) => (
           <li key={job.company} className={i > 0 ? "border-t border-hairline pt-[var(--space-16)]" : ""}>
-            <Reveal>
+            {/* Staggered by index so the rows arrive in sequence rather
+                than as a block, same mechanism Selected work uses. */}
+            <Reveal delay={i * 80}>
               <article className="grid gap-[var(--space-6)] pb-[var(--space-16)] sm:grid-cols-[14rem_1fr]">
                 <div>
                   <p className="data text-ink-subtle">{job.period}</p>

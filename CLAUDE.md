@@ -64,8 +64,10 @@ rules that bite hardest:
 
 - Never publish TotalTex revenue, growth rate, CapEx, debt, ownership split,
   street addresses, or Adnan's father's contact details.
-- Anonymise Puzzled dealership clients as "four Calgary-area dealerships."
-  Never name them.
+- Anonymise Puzzled's dealership clients. A count is fine and a city is fine
+  ("more than seven Calgary dealerships and dealer families"), a name never
+  is. The count was "four" until 2026-09-02, when Adnan corrected it: four
+  was the active client list, more than seven is the number worked with.
 - Visa and immigration mechanics stay at "Bangladeshi citizen studying in
   Canada." No permit type, no bond amounts.
 - **`totaltex-ops/samples/` is real, unredacted third-party business data**

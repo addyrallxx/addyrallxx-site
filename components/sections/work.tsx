@@ -17,10 +17,12 @@ export function Work() {
       </Reveal>
 
       <ul className="grid gap-[var(--space-8)] sm:grid-cols-2">
-        {WORK.map((project) => (
+        {WORK.map((project, i) => (
           <li key={project.id}>
-            <Reveal>
-              <article className="flex h-full flex-col overflow-hidden rounded-[var(--radius-lg)] border border-hairline bg-surface-1">
+            {/* Staggered by index so the cards arrive in sequence rather
+                than as a block, same mechanism Experience uses. */}
+            <Reveal delay={i * 80}>
+              <article className="flex h-full flex-col overflow-hidden rounded-[var(--radius-lg)] border border-hairline bg-surface-1 transition-[transform,box-shadow,border-color] duration-[var(--dur-fast)] ease-[var(--ease)] hover:-translate-y-1 hover:border-accent hover:shadow-xl">
                 {/* No screenshot exists yet. Reserved at the real aspect
                     ratio so the layout does not shift once one lands. */}
                 <div className="flex aspect-[16/9] items-center justify-center border-b border-hairline bg-surface-2">
