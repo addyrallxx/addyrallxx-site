@@ -3,149 +3,173 @@
 Read this first, then `PLAN.md` (plan of record: the narrative spine and
 content sections 1 to 6 still apply, its Three.js-specific technical
 sections are superseded), then `CLAUDE.md` (operating rules).
-Last updated **2026-09-02, chunk 0 of the reset.**
+Last updated **2026-09-02, chunk 1 of the reset.**
 
-## The headline: Adnan rejected the Phase 2/3 build, reset to chunk 0
+## The headline: chunk 1 shipped, every section now has structure and real copy
 
-Adnan's own words: it looks bizarre, the copy is "pure 2023 AI", and
-assistant chatter reached the published page. He named five reference sites
-he likes (sawad.framer.website, redoyanulhaque.me, cade.codes,
-dheerajakula.dev, abdulmomin.dev) and asked why his own 21st.dev component
-stash was never used.
+Commit `8c74fc6` on branch `rebuild`, deployed and verified live at the
+Vercel preview for that branch (deployment protection still on, see
+`CLAUDE.md`/`PLAN.md` for the access route).
 
-### Three diagnosed failures
+The site now has every section as structure and copy: hero, currently,
+experience, selected work, skills, education, off the clock, contact,
+footer. All copy lives in `lib/content.ts`, no component holds a user
+facing string of its own. Section components are in `components/sections/`
+(`about.tsx`, `contact.tsx`, `currently.tsx`, `education.tsx`,
+`experience.tsx`, `hero.tsx`, `site-footer.tsx`, `skills.tsx`, `work.tsx`).
 
-1. 3,105 of the repo's 5,705 lines (54 percent) were the Three.js particle
-   world plus the verification scripts that existed only to prove it painted
-   pixels. Meanwhile the site had no skills section, no experience section,
-   no projects grid, no resume link and no photography.
-2. Every component Adnan praised was already in his own 21st.dev bookmarks
-   and had been ignored. Img Sphere (id 9464) is the abdulmomin.dev skill
-   sphere, already pulled to the vault with full source on 2026-08-31.
-   Preloader (2556) is the redoyanulhaque.me loading screen. Contact Card
-   (5689) is the cade.codes contact block.
-3. The copy was written to pass an audit rather than to be read. No em
-   dashes and no classic AI vocabulary (that rule was genuinely followed),
-   but every section closed with a manufactured aphorism of the form "X is
-   not a Y, it is a Z", every paragraph ended in a line-count stat dump, and
-   `components/chapter/chapter-content.tsx` lines 271 to 277 shipped a
-   sentence to the live page telling visitors that an AI had invented
-   revenue figures about the family business. Root cause: `PLAN.md`
-   optimised so hard against overclaiming that the site's entire personality
-   became "I am not lying".
+## Settled decisions, confirmed by Adnan 2026-09-02, do not re-ask
 
-## Decisions made this session
+- Graduates April 2028.
+- Public email is `adnanshakib.business@gmail.com`, written once in
+  `SITE.email` and derived everywhere else. No phone number on the site.
+- LinkedIn and GitHub only. No Instagram.
+- Staying on the vercel.app URL. No domain purchase.
+- His father knows TotalTex will be named and welcomes it. Adnan is taking
+  over as managing director, and naming the company is a decision the two
+  of them made together. TotalTex is now a third Experience entry, not only
+  a project.
 
-- Goal: summer 2027 internship, plus growing Puzzled, plus freelance and
-  contract work. Three audiences, one site.
-- Design: dark editorial spine with warm photographic chapters.
-- The car (a BMW E92 335xi) is woven into the about copy plus one striking
-  image and a light "off the clock" element, not given its own chapter.
-- Name both TotalTex and Puzzled outright. Client dealerships stay
-  anonymous.
-- Adnan will take a portrait photograph. He has car photos and video, and
-  will generate Calgary day-to-day imagery.
-- Work history on the site: Prime Autos Calgary only. Drop Vector
-  Marketing.
+## Still open, carry forward
 
-### The story that was missing, and is now the spine
+- **Puzzled's start date is recorded nowhere on this machine.** The name
+  dates to first year of university, the code history begins 2026-08. The
+  Experience entry currently says "Current" rather than a start year.
+- **The hero line is undecided.** Current copy: "I sold cars, then I
+  automated the part I hated." Candidate swap Adnan has not ruled on: "I
+  sold cars, then I wrote the software that does it for me."
 
-His 2024 resume (`C:\Users\adnan\Desktop\New folder\adnan shakib
-resume.pdf`) shows he was Sales and Inventory Manager at Prime Autos Calgary
-from October 2022 to February 2023, earned his AMVIC certification there,
-and overhauled that dealership's website and its listings on Facebook,
-Kijiji and Carfax. He then built Puzzled, which sells listing automation to
-dealerships. He did the job by hand, then automated it, then sold it back to
-the industry. The same resume confirms University of Calgary, Faculty of
-Science, Computer Science since 2022, which resolves an older CV's
-conflicting claim of Schulich School of Engineering.
+## Codex reviewed the chunk 0 to chunk 1 diff and found seven real defects, all now fixed
 
-## What chunk 0 shipped
+Record these, several are reusable traps beyond this repo.
 
-Commit `4848287` on branch `rebuild`.
+1. Reduced motion users could receive invisible content. The
+   `@supports (animation-timeline: view())` block reinstated an animation
+   that outranks the reduced motion declarations, so setting
+   `animation-duration: 0.01ms` did not disable a scroll timeline. Both view
+   timeline blocks now sit inside `@media (prefers-reduced-motion: no-preference)`.
+2. Reveals failed closed on a failed hydration. The hidden state came from a
+   `js` class rendered on the server, before any JavaScript had proven it
+   could run, so a dropped chunk left every section at `opacity: 0` over
+   correct markup. `components/reveal.tsx` now adds a `reveal-armed` class
+   from inside its own effect, only on the IntersectionObserver branch. The
+   `js` class and the `noscript` counter-rule are gone from `app/layout.tsx`.
+3. `.label` and `.data` were unlayered in `app/globals.css`, so
+   `hover:text-ink` on the header link was emitted and silently never
+   applied. Moved into `@layer components`. This is the SECOND instance of
+   the Tailwind 4 layering trap in that one file, the first pinned the hero
+   heading to 76px in chunk 0.
+4. Three WCAG contrast failures: `--ink-subtle` was 4.22:1 on the dark
+   ground and 3.62:1 on the warm ground, both under the 4.5:1 needed for
+   normal text, now `#747b85` at 4.66 and `#716b61` at 4.68. White on the
+   accent CTA was 3.91:1, the button now uses the canvas colour at 5.09:1
+   and keeps white on the deeper hover at 5.82:1. `::selection` had the same
+   fault.
+5. `--step-6` never reached its documented 112px. The clamp resolved to
+   about 102px at a 1440px viewport and only hit the cap near 1633px.
+   Corrected to `clamp(2.986rem, 1.573rem + 6.03vw, 7rem)`.
+6. Warm scope headings kept a `font-semibold` utility that beat the base
+   weight 400, so Instrument Serif would have been synthetically bolded.
+7. `calgary-time.tsx`, `marquee-pause.tsx` and `thread-divider.tsx` still
+   requested `text-paper-0`, `text-paper-2` and `text-signal`, tokens the
+   new theme deleted, so they would have rendered with inherited colours
+   when mounted. Renamed.
 
-- Deleted 20 files: all of `lib/world/`, `components/world/`,
-  `scripts/verify/`, plus `components/chapter/chapter-content.tsx`,
-  `docs/copy.md`, `docs/arc-reference.md`, `docs/phase-2-world.md`.
-- Installed framer-motion 13.1.1.
-- New design system in `app/globals.css`, "graphite spine, paper break":
-  canvas `#08090b`, surfaces `#101216` and `#171a1f`, hairlines `#23272e`
-  and `#333841`, ink `#f1f2f4`, ink-muted `#a4aab3`, ink-subtle `#6d747e`,
-  one accent `#e5484d` with `#b8353a` deep. A `[data-tone="warm"]` scope
-  flips to paper `#f4f1ea` with ink `#14130f` and accent `#c0392f`. M
-  tricolour tokens exist for a single 3px rule at the car moment. Modelled
-  on the design-md specs for BMW M and Linear.
-- Type scale gained `--step-6` reaching 112px at a 1440px viewport (the old
-  scale topped out at 75.8px).
-- Fonts: Archivo display, Manrope body, Instrument Serif for the warm band,
-  JetBrains Mono for figures and labels only. Deliberately not Inter.
-- Lenis is now mounted in `app/layout.tsx`. It had been left out because the
-  deleted world already damped scroll and the two fought.
-- `app/page.tsx` is header, hero and a "currently" strip only. Hero
-  headline: "I sold cars, then I automated the part I hated."
+Also fixed: the hero button read "See the work" and linked to `#currently`.
 
-## Two bugs the new verification harness caught, both real
+## Reference site study, findings worth keeping
 
-- The heading defaults in `app/globals.css` were unlayered, so the `h1`
-  element rule outranked every Tailwind utility (Tailwind 4 puts utilities
-  in a layer, and unlayered rules beat layered ones regardless of
-  specificity). The hero measured 76px where 112px was intended. Fixed by
-  moving the block into `@layer base`.
-- `Reveal` is a default export and was imported as a named one.
+A study of the five reference sites (sawad.framer.website,
+redoyanulhaque.me, cade.codes, dheerajakula.dev, abdulmomin.dev) measured
+their computed styles.
 
-## Verification approach, carry this forward
+- Every one of them pills its controls (buttons, nav, tag chips at 999px or
+  above) while card radii cluster between 6 and 22px. The design system had
+  said "nothing on this site is a pill", which was wrong and is reversed.
+- They run a bimodal type scale: hero type 40 to 110px against body 14 to
+  18px with almost nothing between, and negative letter spacing on display
+  sizes.
+- Four of five are dark with exactly one saturated accent.
+- Scroll heights run 3,600 to 8,200px. This site is now 8,469px.
+- The redoyanulhaque preloader is a light lavender-grey overlay with a
+  marquee of role titles behind a black pill, and a two phase fake progress
+  counter that runs fast to 50 percent, crawls to a hard cap of 91, then
+  snaps to 100 when the real asset load resolves. Exit is staged at 600ms,
+  1000ms then 900ms, with a GSAP background flip to dark.
+- The abdulmomin skill sphere is Three.js r182 via react-three-fiber,
+  OrbitControls limited to rotation, icons as billboarded Sprites on
+  Icosahedron vertices, an orange LineSegments wireframe, gated by
+  frameloop plus IntersectionObserver.
 
-19 checks driven through real Chrome with puppeteer-core (required from
-`C:\Users\adnan\projects\totaltex-web\node_modules`, since the portfolio does
-not have it installed), never the in-app Browser pane. Every check asserts
-something a human would see: the hero string, its box dimensions, its
-computed font family, the painted ground colour, a literal count of lit
-pixels above the fold, and zero em or en dashes in rendered text. All 19 pass
-against the live Vercel preview, not only localhost.
+## Verification
 
-The script currently lives outside the repo, at
-`C:\Users\adnan\AppData\Local\Temp\claude\C--Users-adnan-projects-portfolio\0e77ed02-eb8a-4696-84ee-003cedc87329\scratchpad\verify-chunk0.mjs`
-(a session scratchpad, may not survive). **Move it into the repo as
-`scripts/verify.mjs` in a later chunk** so it can be run without hunting for
-a session path.
+27 browser checks in real Chrome via puppeteer-core, passing against the
+live deployment, not only localhost. They assert every section id exists
+with non zero height, exactly one h1, no skipped heading level, every
+`aria-labelledby` resolving, the warm ground measured at
+`rgb(244, 241, 234)` with a real 400 weight Instrument Serif, exactly one
+M tricolour rule, numerals 01 through 07 in order, the CTA and ink-subtle
+colours at their new values, no reveal stuck invisible, and no em or en
+dashes in rendered text.
+
+Two gates now live in the repo:
+
+```
+npm run copy-gate
+npm run verify
+```
+
+The copy gate (`scripts/copy-gate.mjs`) strips comments before checking (a
+naive version flagged its own documentation) and runs every rule against a
+canary built from the rejected chunk-0 copy, exiting 2 if any rule matches
+nothing, because a gate that cannot fail is not a gate. `scripts/verify.mjs`
+is the 27-check puppeteer-core harness, now permanently in the repo (it
+lived in a session scratchpad through chunk 0).
+
+## Known cosmetic issue, not yet fixed
+
+The fixed header keeps its dark translucent background when scrolled over
+the warm paper section. It reads acceptably but was not a deliberate
+decision.
+
+## What is next, chunk 2
+
+The Preloader (component 2556, already pulled, source saved in the vault),
+the Img Sphere for the skills section (component 9464, already pulled),
+and the motion pass. Chunk 3 is photography and real assets. Chunk 4 is
+polish, humanizer, accessibility and performance. Chunk 5 is the cutover
+to production on `main`.
+
+## Asset pipeline, settled
+
+Gemini generation happens in the Gemini app on Adnan's Pro plan, which is
+free (roughly 100 Nano Banana images a day, 3 Veo clips a day). The Gemini
+and Veo APIs bill real money and are banned. Claude writes structured
+prompts, Adnan pastes them and drops the files in. Gemini's highest value
+use is colour grading his real car photos to one consistent look. It must
+never generate his portrait, product screenshots, factory photos or logos,
+all of which have real sources: 383 production photographs already in
+`totaltex-web`, TotalTex Ops via `npm run seed:demo`, FitTrack's live URL,
+and Iconify Simple Icons for logos.
 
 ## Deployment
 
 The portfolio repo's git origin is already
-`github.com/addyrallxx/addyrallxx-site.git`, so pushing the `rebuild` branch
-produces a Vercel preview at
-`addyrallxx-site-git-rebuild-addyrallxxs-projects.vercel.app` while
-production on `main` stays untouched. Vercel Deployment Protection is ON for
-that project, so the preview requires a Vercel login; a temporary shareable
-link can be minted with the Vercel MCP `get_access_to_vercel_url` tool and
-expires after 23 hours. **Do not disable deployment protection**, it is an
-account setting and was not authorised.
-
-## Operational trap to record
-
-21st.dev free tier allows 2 `get_component` retrievals per day, and the
-scheduled task `21st-daily-code-stash` spends both automatically on
-newest-first bookmarks. It will eat into the build's own budget if not
-watched. Today's quota is spent, 0 of 2 remaining, resets 2026-09-03, spent
-on Preloader 2556. Every other 21st tool is free and unmetered (search,
-list_bookmarks, list_bookmark_lists, get_usage).
+`github.com/addyrallxx/addyrallxx-site.git`, so pushing the `rebuild`
+branch produces a Vercel preview while production on `main` stays
+untouched. Vercel Deployment Protection is ON for that project, so the
+preview requires a Vercel login; a temporary shareable link can be minted
+with the Vercel MCP `get_access_to_vercel_url` tool and expires after 23
+hours. **Do not disable deployment protection**, it is an account setting
+and was not authorised.
 
 ## Remaining plan
 
-1. **Chunk 1, structure and real copy for every section.** The most
-   important chunk: Adnan judges the words and the bones before any polish.
+1. ~~Chunk 1, structure and real copy for every section.~~ Done, this
+   handoff.
 2. **Chunk 2, the Img Sphere, the Preloader, and the motion pass.**
 3. **Chunk 3, photography and the warm band.**
 4. **Chunk 4, contact, footer, humanizer, accessibility and performance.**
 5. **Chunk 5, the cutover to production.**
 
 Full plan: `C:\Users\adnan\.claude\plans\flickering-forging-trinket.md`.
-
-## Open questions still needing Adnan
-
-1. Expected graduation year.
-2. Whether the phone number 587-894-1429 goes public.
-3. Which socials to show: LinkedIn `/in/adnanshakib`, Instagram
-   `adnann____`, GitHub `addyrallxx`.
-4. Whether to register a real domain or keep the vercel.app URL.
-5. Whether his father knows TotalTex will be named on the site.

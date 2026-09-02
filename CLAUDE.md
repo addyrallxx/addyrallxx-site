@@ -18,12 +18,24 @@ carry the narrative spine and content reasoning (Dhaka to Calgary,
 confidentiality rules, chapter content); its Three.js-specific technical
 sections are superseded.
 
-## Stack, chosen but not scaffolded
+## Stack, scaffolded and building
 
 Next.js 16, React 19, TypeScript, Tailwind 4. Same versions as the old repo
-and as `totaltex-web`. **Nothing is scaffolded yet.** No `package.json`, no
-`node_modules`, no `app/` directory exists on disk as of 2026-08-31. Do not
-assume any of it is there without checking first.
+and as `totaltex-web`.
+
+Lenis is installed and mounted in `app/layout.tsx`. gsap is installed and
+loaded only by `components/smooth-scroll.tsx`, which drives Lenis.
+framer-motion is installed and **currently used by nothing**; it was added
+for the Preloader and the other 21st.dev components landing in chunk 2. Do
+not describe it as powering the reveals. Reveals are plain CSS
+(`animation-timeline: view()`) with an IntersectionObserver fallback in
+`components/reveal.tsx`, deliberately not a motion library, because they run
+on dozens of elements per page and must not block paint.
+
+Copy lives in `lib/content.ts` and no component holds a user facing string
+of its own. Section components are in `components/sections/`. Two
+verification gates live in the repo: `npm run copy-gate` and
+`npm run verify`. See `NEXT-SESSION.md` for exactly what has shipped.
 
 ## Hard constraints
 
@@ -133,4 +145,18 @@ system, built fresh.
   specificity.** Tailwind 4 puts its own utilities inside a cascade layer; a
   bare `h1 { ... }` outside any `@layer` outranks every Tailwind utility
   class no matter how specific that class is. Base type defaults belong
-  inside `@layer base` in `app/globals.css`, never left unlayered.
+  inside `@layer base` in `app/globals.css`, never left unlayered. This has
+  now bitten twice in the same file: chunk 0 pinned the hero heading to
+  76px, chunk 1 silently dropped `hover:text-ink` on the header link via
+  unlayered `.label`/`.data` rules. Any new element or component level CSS
+  rule in this file must go in `@layer base` or `@layer components`, never
+  left bare.
+- **A hidden state must never be applied from server rendered markup that
+  only client JavaScript can undo.** Chunk 1's `Reveal` component rendered a
+  `js` class on the server before any script had proven it could run, so a
+  dropped chunk or failed hydration left every section at `opacity: 0` over
+  otherwise-correct markup: it failed closed. The fix is to arm the hidden
+  state from inside the component's own client effect (a `reveal-armed`
+  class added only on the IntersectionObserver branch), never from
+  server-rendered output. Any reveal-on-scroll or hydration-gated visual
+  state in this repo must follow the same rule.
