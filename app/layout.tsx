@@ -63,16 +63,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    // "js" is rendered server-side (not injected by script) so hydration
-    // matches; the noscript block below re-reveals everything when
-    // scripting is off. See the .js .reveal rule in globals.css and the
-    // comment on components/reveal.tsx.
-    <html lang="en" className="js">
-      <head>
-        <noscript>
-          <style>{`.js .reveal{opacity:1 !important;transform:none !important}`}</style>
-        </noscript>
-      </head>
+    // No "js" class, and no noscript counter-rule.
+    //
+    // Both used to exist so scroll reveals could start hidden from the very
+    // first paint. The problem was that the hidden state applied before any
+    // JavaScript had proven it could run, so a failed hydration or a dropped
+    // chunk left every section at opacity 0 on top of correct server
+    // rendered markup. The noscript rule did not help, because scripting was
+    // enabled, it had just failed. Reveal now arms the hidden state itself
+    // on mount, so the page fails open. See components/reveal.tsx.
+    <html lang="en">
       <body
         className={`${archivo.variable} ${manrope.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable} antialiased`}
       >

@@ -31,14 +31,22 @@
 
 export type Link = { label: string; href: string };
 
+/*
+  Confirmed by Adnan 2026-09-02.
+
+  The public address is the business one, not the personal gmail the old
+  resumes carry. No phone number goes on the site. LinkedIn and GitHub only,
+  no Instagram. Staying on the vercel.app URL for now, no domain purchase.
+
+  This is the only place an address is written. Nothing may hardcode a
+  mailto anywhere else, so changing it stays a one line change.
+*/
 export const SITE = {
   name: "Adnan Shakib",
   location: "Calgary, Alberta",
-  email: "adnanshakib888@gmail.com",
-  // Open question for Adnan: Instagram (adnann____) is deliberately left out
-  // until he confirms. Phone number likewise.
+  email: "adnanshakib.business@gmail.com",
   links: [
-    { label: "Email", href: "mailto:adnanshakib888@gmail.com" },
+    { label: "Email", href: "mailto:adnanshakib.business@gmail.com" },
     { label: "GitHub", href: "https://github.com/addyrallxx" },
     { label: "LinkedIn", href: "https://www.linkedin.com/in/adnanshakib/" },
   ] satisfies Link[],
@@ -49,7 +57,7 @@ export const HERO = {
   headline: "I sold cars, then I automated the part I hated.",
   lead: "Puzzled is the company my roommate and I run. It handles the vehicle listings for four Calgary-area dealerships. In Dhaka, the order system I built runs my father's factory from the first order to the final bill. I am doing a computer science degree at the University of Calgary at the same time.",
   primary: { label: "See the work", href: "#work" } satisfies Link,
-  secondary: { label: "adnanshakib888@gmail.com", href: "mailto:adnanshakib888@gmail.com" } satisfies Link,
+  secondary: { label: SITE.email, href: `mailto:${SITE.email}` } satisfies Link,
 };
 
 export const CURRENTLY = [
@@ -63,16 +71,40 @@ export const CURRENTLY = [
   {
     label: "Family business",
     name: "TotalTex",
-    role: "Built the order system, and the website",
+    role: "Incoming managing director",
     place: "Dhaka",
-    detail: "A garment trims factory my father founded in 2014.",
+    detail: "A garment trims factory my father founded in 2014. I built the software it runs on.",
   },
   {
     label: "School",
     name: "University of Calgary",
     role: "Computer science, Faculty of Science",
-    place: "Since 2022",
+    place: "Graduating April 2028",
     detail: "AMVIC licensed on the side, which is how the dealership work started.",
+  },
+];
+
+/*
+  Education. Present because the primary reader is a recruiter filling a
+  summer 2027 internship, and the first thing that reader looks for is a
+  graduation date. Leaving it to be inferred from "since 2022" was making
+  them do arithmetic.
+*/
+export const EDUCATION = [
+  {
+    institution: "University of Calgary",
+    credential: "BSc Computer Science, Faculty of Science",
+    period: "2022 to April 2028",
+    place: "Calgary, Alberta",
+    detail:
+      "Coursework across data structures, algorithms, databases, operating systems, software engineering and computer networks.",
+  },
+  {
+    institution: "Mastermind English Medium School",
+    credential: "Edexcel GCSE and International A Levels",
+    period: "Completed 2022",
+    place: "Dhaka, Bangladesh",
+    detail: "Graduated with a 3.94 of 4 average.",
   },
 ];
 
@@ -99,6 +131,31 @@ export const EXPERIENCE = [
       "Both of us are AMVIC licensed and registered with the dealerships we represent.",
     ],
     tags: ["Python", "Automation", "AMVIC"],
+  },
+  {
+    /*
+      Added 2026-09-02. Adnan confirmed he is taking over as managing
+      director and that naming TotalTex is a decision he and his father made
+      together and both want on the site.
+
+      It sits in Experience rather than only in Work because "the reason a
+      computer science student wrote a factory order system" is the single
+      most useful piece of context on the page, and a project card cannot
+      carry it. Deliberately no start date for the directorship, because no
+      date has been given and inventing one is not an option.
+    */
+    company: "TotalTex Industry Limited",
+    role: "Incoming Managing Director",
+    period: "Current",
+    place: "Dhaka, Bangladesh",
+    summary:
+      "My father founded TotalTex in 2014 and I am taking it over. For now I advise, and I build the software the floor runs on.",
+    points: [
+      "Wrote the internal order system that replaced the paper chain from order to bill.",
+      "Built and shipped the company's public site onto its own domain.",
+      "Sit in on the operational decisions I will eventually be the one making.",
+    ],
+    tags: ["Operations", "Manufacturing", "Succession"],
   },
   {
     company: "Prime Autos Calgary",
@@ -245,7 +302,7 @@ export const ABOUT = {
   headline: "Dhaka, then Calgary.",
   paragraphs: [
     "I grew up in Dhaka and moved to Calgary for school. I go back every summer. There is no direct flight, so it is always two planes and most of two days.",
-    "My father started TotalTex in 2014, three years before I was old enough to have an opinion about it. I am the one who is expected to take it over eventually. Building its software was the first thing I could do that was actually useful to it.",
+    "My father started TotalTex in 2014. I am taking it over as managing director, which is a decision the two of us made out loud rather than something anyone assumed. Building its software was the first thing I could do that was actually useful to it.",
   ],
   /*
     The car. Deliberately three sentences and no parts list.
@@ -279,8 +336,8 @@ export const ABOUT = {
 export const CONTACT = {
   eyebrow: "Contact",
   headline: "Say hello.",
-  body: "I am looking for a software internship for summer 2027. I also take on freelance builds. And if you run a dealership, I can show you what this does to your listing workload. Any of those, or none of them, my inbox is open.",
-  email: "adnanshakib888@gmail.com",
+  body: "I am looking for a software internship for summer 2027, and I graduate in April 2028. I also take on freelance builds. And if you run a dealership, I can show you what this does to your listing workload. Any of those, or none of them, my inbox is open.",
+  email: SITE.email,
 };
 
 export const FOOTER = {

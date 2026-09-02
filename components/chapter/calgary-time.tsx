@@ -20,9 +20,9 @@ export function CalgaryTime() {
   }, []);
 
   return (
-    <p className="text-[length:var(--step-0)] text-paper-1">
+    <p className="text-[length:var(--step-0)] text-ink-muted">
       It is currently{" "}
-      <span className="font-mono tabular-nums text-paper-0">{time}</span> in
+      <span className="font-mono tabular-nums text-ink">{time}</span> in
       Calgary.
     </p>
   );

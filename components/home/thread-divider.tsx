@@ -1,7 +1,7 @@
 "use client";
 
 // Ported from totaltex-web/components/home/thread-divider.tsx. Only
-// change: text-accent (that repo's brand class) swapped for text-signal
+// change: text-accent (that repo's brand class) swapped for text-accent
 // (this repo's token). Logic is unchanged.
 
 import { useEffect, useRef } from "react";
@@ -74,7 +74,7 @@ export default function ThreadDivider({ className = "" }: { className?: string }
   }, []);
 
   return (
-    <div ref={wrapRef} aria-hidden className={`thread-divider w-full text-signal ${className}`}>
+    <div ref={wrapRef} aria-hidden className={`thread-divider w-full text-accent ${className}`}>
       <svg
         viewBox="0 0 1200 32"
         preserveAspectRatio="none"

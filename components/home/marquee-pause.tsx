@@ -2,7 +2,7 @@
 
 // Ported from totaltex-web/components/home/marquee-pause.tsx. Changes:
 // brand utility classes (text-muted, hover:text-accent-deep) swapped for
-// this repo's tokens (text-paper-2, hover:text-signal), and the button's
+// this repo's tokens (text-ink-subtle, hover:text-accent), and the button's
 // text-[10px] size swapped for --step--1 since 10px is below the 11px
 // floor this project enforces (the old site's flagged anti-pattern, see
 // PLAN.md section 1). Behavior is unchanged.
@@ -57,7 +57,7 @@ export function MarqueePause({
           aria-pressed={paused}
           aria-label={`${paused ? "Play" : "Pause"} ${label}`}
           onClick={() => setPaused((p) => !p)}
-          className="press text-[length:var(--step--1)] font-mono uppercase tracking-[0.18em] text-paper-2 transition-colors duration-200 hover:text-signal"
+          className="press text-[length:var(--step--1)] font-mono uppercase tracking-[0.18em] text-ink-subtle transition-colors duration-200 hover:text-accent"
         >
           {paused ? "Play" : "Pause"}
         </button>

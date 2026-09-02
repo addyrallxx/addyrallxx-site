@@ -61,7 +61,7 @@
 
   --ink: #f1f2f4; /* primary text, bone rather than pure white */
   --ink-muted: #a4aab3; /* secondary text, still passes AA on canvas */
-  --ink-subtle: #6d747e; /* metadata only, never load bearing */
+  --ink-subtle: #747b85; /* 4.66:1 on canvas. Was #6d747e at 4.22, which failed AA. */
 
   /*
     The one accent. Automotive red, because the through line of the whole
@@ -93,14 +93,22 @@
     largest size topped out at 75.8px. Every reference site in the brief runs
     its hero far past that. This reaches 112px at 1440.
   */
-  --step--1: clamp(0.833rem, 0.83rem + 0.016vw, 0.844rem); /* 13.3 -> 13.5, labels */
+  --step--1: clamp(
+    0.833rem,
+    0.83rem + 0.016vw,
+    0.844rem
+  ); /* 13.3 -> 13.5, labels */
   --step-0: clamp(1rem, 0.956rem + 0.188vw, 1.125rem); /* 16 -> 18, body */
   --step-1: clamp(1.2rem, 1.095rem + 0.45vw, 1.5rem); /* 19.2 -> 24, lead */
   --step-2: clamp(1.44rem, 1.243rem + 0.84vw, 1.999rem); /* 23 -> 32 */
   --step-3: clamp(1.728rem, 1.398rem + 1.407vw, 2.665rem); /* 27.6 -> 42.6 */
   --step-4: clamp(2.074rem, 1.553rem + 2.221vw, 3.552rem); /* 33.2 -> 56.8 */
   --step-5: clamp(2.488rem, 1.697rem + 3.375vw, 4.735rem); /* 39.8 -> 75.8 */
-  --step-6: clamp(2.986rem, 1.79rem + 5.104vw, 7rem); /* 47.8 -> 112, hero only */
+  --step-6: clamp(
+    2.986rem,
+    1.573rem + 6.03vw,
+    7rem
+  ); /* 47.8 -> 112 at 1440, hero only */
 
   /*
     Display type wants tight leading and negative tracking; body wants the
@@ -186,7 +194,7 @@
 
   --ink: #14130f;
   --ink-muted: #55514a;
-  --ink-subtle: #837d72;
+  --ink-subtle: #716b61; /* 4.68:1 on paper. Was #837d72 at 3.62, which failed AA. */
 
   --accent: #c0392f; /* the same red, darkened to hold contrast on paper */
   --accent-deep: #8f2a22;
@@ -330,24 +338,36 @@ body {
   for prose and never as decoration. Decorative mono on a dark ground is
   half of the look this site is running from.
 */
-.data {
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: var(--step--1);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0;
-}
+@layer components {
+  .data {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: var(--step--1);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0;
+  }
 
-/* Uppercase section label. The numeral carries the accent, the word does not. */
-.label {
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: var(--step--1);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-label);
-  color: var(--ink-subtle);
-}
+  /* Uppercase section label. The numeral carries the accent, the word does not. */
+  /*
+    In @layer components, not unlayered.
 
-.label-index {
-  color: var(--accent);
+    An unlayered .label { color } beats every Tailwind utility regardless of
+    specificity, because Tailwind 4 puts utilities in a cascade layer and
+    unlayered rules outrank layered ones. Written unlayered, this silently
+    killed hover:text-ink on the header link: the utility was emitted and
+    simply never applied. Same class of bug as the heading sizes, second
+    instance in one file.
+  */
+  .label {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: var(--step--1);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-label);
+    color: var(--ink-subtle);
+  }
+
+  .label-index {
+    color: var(--accent);
+  }
 }
 
 /*
@@ -360,9 +380,11 @@ body {
   border-radius: var(--radius-sm);
 }
 
+/* White on --accent is only 3.91:1. The canvas colour on it is 5.09:1,
+   and it passes in the warm scope too. */
 ::selection {
   background: var(--accent);
-  color: #ffffff;
+  color: var(--canvas);
 }
 
 /* The single M tricolour rule, for the car moment. Used once on the site. */
@@ -405,11 +427,11 @@ body {
   a no-JS visit (the noscript rule in layout.tsx) is never trapped at
   opacity 0.
 */
-.js .reveal {
+.reveal-armed .reveal {
   opacity: 0;
   transform: translateY(24px);
 }
-.js .reveal.is-visible {
+.reveal-armed .reveal.is-visible {
   opacity: 1;
   transform: none;
   transition:
@@ -417,11 +439,12 @@ body {
     transform 0.85s var(--ease);
 }
 @media (prefers-reduced-motion: reduce) {
-  .js .reveal,
-  .js .reveal.is-visible {
+  .reveal-armed .reveal,
+  .reveal-armed .reveal.is-visible {
     opacity: 1;
     transform: none;
     transition: none;
+    animation: none !important;
   }
 }
 /* Above-the-fold opt-out (<Reveal immediate>): see reveal.tsx for why this
@@ -434,14 +457,15 @@ body {
 }
 /* Scroll-bound upgrade where supported: real scroll position drives the
    reveal instead of a one-shot IntersectionObserver trip. */
-@supports (animation-timeline: view()) {
-  .reveal {
-    animation: reveal-in linear both;
-    animation-timeline: view();
-    animation-range:
-      entry calc(0% + var(--reveal-shift, 0) * 1%)
-      entry calc(60% + var(--reveal-shift, 0) * 1%);
-    animation-duration: 1ms;
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: reveal-in linear both;
+      animation-timeline: view();
+      animation-range: entry calc(0% + var(--reveal-shift, 0) * 1%) entry
+        calc(60% + var(--reveal-shift, 0) * 1%);
+      animation-duration: 1ms;
+    }
   }
 }
 @keyframes reveal-in {
@@ -457,13 +481,16 @@ body {
 
 /* Word-by-word reveal (components/story/word-reveal.tsx). Pure CSS, no JS,
    no hydration dependency. */
-@supports (animation-timeline: view()) {
-  .word-in {
-    display: inline-block;
-    animation: word-in linear both;
-    animation-timeline: view();
-    animation-range: entry calc(0% + var(--w, 0) * 3%) entry calc(55% + var(--w, 0) * 3%);
-    animation-duration: 1ms;
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .word-in {
+      display: inline-block;
+      animation: word-in linear both;
+      animation-timeline: view();
+      animation-range: entry calc(0% + var(--w, 0) * 3%) entry
+        calc(55% + var(--w, 0) * 3%);
+      animation-duration: 1ms;
+    }
   }
 }
 @keyframes word-in {
@@ -492,7 +519,8 @@ body {
    `transition-colors` utilities and silently strip them on any element that
    carries both. */
 .press {
-  transition-property: transform, color, background-color, border-color, outline-color, box-shadow;
+  transition-property:
+    transform, color, background-color, border-color, outline-color, box-shadow;
   transition-timing-function: var(--tw-ease, var(--ease));
   transition-duration: var(--tw-duration, var(--dur-fast));
 }

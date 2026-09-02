@@ -81,6 +81,19 @@ export default function Reveal({
       // layout thrash on every scroll.
       return;
     }
+    // Arm the hidden state ONLY now, from the client, and only on the branch
+    // that has an observer to undo it.
+    //
+    // This used to be a `js` class rendered into <html> on the server, which
+    // meant the hidden state applied before any JavaScript had proven it
+    // could run. A failed hydration or a dropped chunk then left every
+    // section at opacity 0 over correctly server rendered markup: a blank
+    // page with a healthy DOM, which is the exact failure this project
+    // already shipped once. Arming from inside the effect fails open
+    // instead. The cost is one frame of visible content before it hides, on
+    // the fallback branch only, which no current browser in the reference
+    // set even takes.
+    document.documentElement.classList.add("reveal-armed");
     const io = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
