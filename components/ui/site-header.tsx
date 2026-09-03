@@ -11,7 +11,7 @@
 */
 
 import { useEffect, useState } from "react";
-import { SITE } from "@/lib/content";
+import { NAV, SITE } from "@/lib/content";
 
 export function SiteHeader() {
   const [warm, setWarm] = useState(false);
@@ -68,7 +68,34 @@ export function SiteHeader() {
           >
             {SITE.name}
           </a>
-          <a href={`mailto:${SITE.email}`} className="press label transition-colors hover:text-ink">
+          {/*
+            Section navigation. Hidden below the medium breakpoint rather
+            than collapsed behind a menu button: this is one page, the
+            sections are a short scroll apart, and a hamburger to reach
+            anchors on the same document is a control that costs more than
+            it gives. The email link stays visible at every width, because
+            it is the only action on the site that matters.
+
+            The pills scroll horizontally instead of wrapping, so the header
+            keeps its single row height at any width the labels outgrow.
+          */}
+          <ul className="hidden items-center gap-[var(--space-1)] overflow-x-auto md:flex">
+            {NAV.map((item) => (
+              <li key={item.href}>
+                <a
+                  href={item.href}
+                  className="press label block whitespace-nowrap rounded-[var(--radius-pill)] px-[var(--space-4)] py-[var(--space-2)] text-ink-subtle transition-colors hover:bg-surface-1 hover:text-ink"
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+
+          <a
+            href={`mailto:${SITE.email}`}
+            className="press label rounded-[var(--radius-pill)] border border-hairline-strong px-[var(--space-4)] py-[var(--space-2)] transition-colors hover:border-accent hover:text-ink"
+          >
             Email
           </a>
         </nav>

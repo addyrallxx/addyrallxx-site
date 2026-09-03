@@ -41,16 +41,42 @@ export type Link = { label: string; href: string };
   This is the only place an address is written. Nothing may hardcode a
   mailto anywhere else, so changing it stays a one line change.
 */
+export type ContactLink = {
+  label: string;
+  href: string | null;
+  icon: "email" | "linkedin" | "github" | "whatsapp";
+};
+
 export const SITE = {
   name: "Adnan Shakib",
   location: "Calgary, Alberta",
   email: "adnanshakib.business@gmail.com",
+  /*
+    Adnan supplied this number himself on 2026-09-02, reversing his earlier
+    call that no phone number would appear on the site. wa.me wants the
+    country code with no plus, no spaces and no dashes.
+
+    No prefilled ?text= message. It would put an opening line in the
+    visitor own words before they have written one, and every consumer of
+    this list still skips an entry whose href is null, so the mechanism that
+    kept this row hidden is unchanged.
+  */
+  whatsapp: "15878941429" as string | null,
   links: [
-    { label: "Email", href: "mailto:adnanshakib.business@gmail.com" },
-    { label: "GitHub", href: "https://github.com/addyrallxx" },
-    { label: "LinkedIn", href: "https://www.linkedin.com/in/adnanshakib/" },
-  ] satisfies Link[],
+    { label: "Email", href: "mailto:adnanshakib.business@gmail.com", icon: "email" },
+    { label: "LinkedIn", href: "https://www.linkedin.com/in/adnanshakib/", icon: "linkedin" },
+    { label: "GitHub", href: "https://github.com/addyrallxx", icon: "github" },
+    { label: "WhatsApp", href: "https://wa.me/15878941429", icon: "whatsapp" },
+  ] satisfies ContactLink[],
 };
+
+export const NAV = [
+  { label: "Work", href: "#work" },
+  { label: "Experience", href: "#experience" },
+  { label: "Skills", href: "#skills" },
+  { label: "About", href: "#about" },
+  { label: "Contact", href: "#contact" },
+] satisfies Link[];
 
 export const HERO = {
   eyebrow: "Calgary, Alberta",
@@ -251,6 +277,13 @@ export const WORK = [
  * the half of this person a normal CS portfolio hides, and it is the half
  * that explains why the dealership work exists.
  */
+/**
+ * A slug of null means there is no brand mark to draw, so the sphere renders
+ * the name as a text tile instead. Three cases hit this: OpenAI was pulled
+ * from Simple Icons over trademark, and LLMs and RAG are whole categories
+ * rather than products with a logo. Inventing a mark for any of them would
+ * be worse than showing the words.
+ */
 export const SKILLS = {
   groups: [
     {
@@ -278,8 +311,33 @@ export const SKILLS = {
       items: [
         { name: "PostgreSQL", slug: "postgresql" },
         { name: "Drizzle", slug: "drizzle" },
+        { name: "Docker", slug: "docker" },
         { name: "Vercel", slug: "vercel" },
         { name: "Git", slug: "git" },
+      ],
+    },
+    {
+      title: "AI and automation",
+      items: [
+        { name: "Claude Code", slug: "claude" },
+        { name: "Codex", slug: null },
+        { name: "Gemini", slug: "googlegemini" },
+        { name: "MCP", slug: "modelcontextprotocol" },
+        { name: "LangChain", slug: "langchain" },
+        { name: "Hugging Face", slug: "huggingface" },
+        { name: "LLMs", slug: null },
+        { name: "RAG", slug: null },
+        { name: "n8n", slug: "n8n" },
+        { name: "Zapier", slug: "zapier" },
+      ],
+    },
+    {
+      title: "Machine learning and scientific",
+      items: [
+        { name: "PyTorch", slug: "pytorch" },
+        { name: "CUDA", slug: "nvidia" },
+        { name: "Kotlin", slug: "kotlin" },
+        { name: "LaTeX", slug: "latex" },
       ],
     },
   ],
@@ -343,4 +401,6 @@ export const CONTACT = {
 
 export const FOOTER = {
   line: "Built in Calgary.",
+  signature: "Built by Adnan Shakib",
+  year: 2026,
 };

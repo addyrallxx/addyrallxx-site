@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Archivo, Manrope, Instrument_Serif, JetBrains_Mono } from "next/font/google";
 import SmoothScroll from "@/components/smooth-scroll";
 import { Preloader } from "@/components/ui/preloader";
+import { Starfield } from "@/components/ui/starfield";
 import "./globals.css";
 
 /*
@@ -95,6 +96,16 @@ export default function RootLayout({
           does the job it was ported for. It no-ops under reduced motion.
         */}
         <SmoothScroll />
+        {/*
+          Fixed, z-index -1, aria-hidden: a background layer, not a gate.
+          html carries the page background and body stays transparent (see
+          the comment above the html rule in globals.css), so this paints
+          visibly behind every in-flow section instead of being painted over
+          by an opaque body. Do not change its z-index to "fix" a stacking
+          problem: if it ever goes invisible again the bug is a background
+          reappearing on body or html, not this element.
+        */}
+        <Starfield />
         {/*
           An overlay, never a gate: children are server rendered right here
           underneath it on every load, preloader or not. Preloader decides

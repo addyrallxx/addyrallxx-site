@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "./headings.css";
+@import "./media.css";
 
 /*
   Design system: "graphite spine, paper break".
@@ -80,9 +82,9 @@
     M tricolour. Used once, as a 3px rule at the single car moment. Never as
     a gradient, never as a background, never anywhere else on the site.
   */
-  --m-blue-light: #0066b1;
-  --m-blue-dark: #1c69d4;
-  --m-red: #e22718;
+  --m-blue-light: #6cb2e4;
+  --m-blue-dark: #1b4fa0;
+  --m-red: #e7222e;
 
   /*
     Type scale. Fluid clamp() interpolated between a 375px and a 1440px

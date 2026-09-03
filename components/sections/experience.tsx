@@ -1,4 +1,5 @@
 import Reveal from "@/components/reveal";
+import { SectionHeading } from "@/components/ui/section-heading";
 import { EXPERIENCE } from "@/lib/content";
 
 export function Experience() {
@@ -8,15 +9,9 @@ export function Experience() {
       aria-labelledby="experience-heading"
       className="mx-auto max-w-[var(--content-max)] border-t border-hairline px-[var(--gutter)] py-[var(--space-24)]"
     >
-      <Reveal>
-        <h2 id="experience-heading" className="label mb-[var(--space-12)]">
-          <span className="label-index">02</span>
-          <span className="mx-[var(--space-3)] text-hairline-strong">/</span>
-          Experience
-        </h2>
-      </Reveal>
+      <SectionHeading id="experience-heading">Experience</SectionHeading>
 
-      <ol className="flex flex-col">
+      <ol className="mt-[var(--space-12)] flex flex-col">
         {EXPERIENCE.map((job, i) => (
           <li key={job.company} className={i > 0 ? "border-t border-hairline pt-[var(--space-16)]" : ""}>
             {/* Staggered by index so the rows arrive in sequence rather

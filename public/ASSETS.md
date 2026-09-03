@@ -113,3 +113,96 @@ with a matching prefix and re-running it.
 The paper grain is an overlay for the warm section, drawn at low opacity over
 the paper ground. The share image is the Open Graph card, sized to the exact
 1200x630 every social platform reads.
+
+## Technology icons, full colour update
+
+Supersedes the currentColor claim in the "Technology icons" section above:
+the sphere now renders every brand's own colour instead of one flat grey.
+Adnan asked for this after seeing the sphere in monochrome.
+
+Source: `https://cdn.simpleicons.org/<slug>`, still the Simple Icons set,
+still MIT, still no API key. Unlike the Iconify endpoint used originally,
+this one ships the SVG with `fill` already set to the brand's own hex on
+the root `<svg>` element (inherited by the path), not `currentColor`, so no
+recolouring step was needed beyond the contrast fix below. Fetched by
+`scripts/fetch-icons.mjs`, run with `node scripts/fetch-icons.mjs`. That
+script is a plain copy of `lib/content.ts` `SKILLS.groups` (kept in sync by
+hand, since that file is TypeScript and owned by another agent); re-run it
+whenever the skill list changes.
+
+`lib/content.ts` now lists 29 items across 5 groups (up from 13), 25 with a
+non null slug and 3 with `slug: null` (Codex, LLMs, RAG). All 25 fetched
+200 and every response parsed as SVG (started with `<svg`, contained
+`</svg>`). None failed.
+
+### The near black problem
+
+Four brand colours resolved to pure or near black, which is invisible on
+the site's `#08090b` canvas. WCAG relative luminance contrast against that
+canvas was computed for all 25 and any ratio under 3:1 was substituted with
+`--ink` (`#f1f2f4`), the standard treatment other dark-mode sites give a
+black-on-white mark (Next.js, Vercel and Apple all go white on dark):
+
+| Slug | Brand hex | Substituted to |
+|---|---|---|
+| `openjdk` (Java) | `#000000` | `#f1f2f4` |
+| `nextdotjs` | `#000000` | `#f1f2f4` |
+| `vercel` | `#000000` | `#f1f2f4` |
+| `modelcontextprotocol` (MCP) | `#000000` | `#f1f2f4` |
+
+All four measured 1.05:1, far under the 3:1 floor. No other slug came
+close to the floor: the next lowest ratios were `typescript` at 4.39:1 and
+`python` at 4.12:1, both a comfortable margin above 3:1, so no other
+substitution was made. The opposite failure (a colour so dark or saturated
+it reads as a smudge at the sphere's smallest tile size) was checked for
+and not found: nothing else fell under roughly 4:1, and the sphere's own
+collision pass keeps every tile above a 0.25 minimum scale regardless.
+
+### Every icon, brand hex and contrast ratio against `#08090b`
+
+| File | Slug | Brand hex | Ratio | Substituted | Size |
+|---|---|---|---|---|---|
+| `python.svg` | python | `#3776AB` | 4.12:1 | no | 1,533 B |
+| `typescript.svg` | typescript | `#3178C6` | 4.39:1 | no | 1,309 B |
+| `javascript.svg` | javascript | `#F7DF1E` | 14.73:1 | no | 989 B |
+| `openjdk.svg` | openjdk | `#000000` | 1.05:1 | yes -> `#f1f2f4` | 1,789 B |
+| `postgresql.svg` | postgresql | `#4169E1` | 4.11:1 | no | 5,220 B |
+| `nextdotjs.svg` | nextdotjs | `#000000` | 1.05:1 | yes -> `#f1f2f4` | 337 B |
+| `react.svg` | react | `#61DAFB` | 12.26:1 | no | 2,941 B |
+| `tailwindcss.svg` | tailwindcss | `#06B6D4` | 8.20:1 | no | 617 B |
+| `nodedotjs.svg` | nodedotjs | `#5FA04E` | 6.28:1 | no | 1,623 B |
+| `greensock.svg` | greensock | `#88CE02` | 10.32:1 | no | 8,736 B |
+| `drizzle.svg` | drizzle | `#C5F74F` | 15.93:1 | no | 733 B |
+| `docker.svg` | docker | `#2496ED` | 6.32:1 | no | 1,780 B |
+| `vercel.svg` | vercel | `#000000` | 1.05:1 | yes -> `#f1f2f4` | 147 B |
+| `git.svg` | git | `#F03C2E` | 5.11:1 | no | 441 B |
+| `claude.svg` | claude | `#D97757` | 6.38:1 | no | 1,936 B |
+| `googlegemini.svg` | googlegemini | `#8E75B2` | 5.06:1 | no | 416 B |
+| `modelcontextprotocol.svg` | modelcontextprotocol | `#000000` | 1.05:1 | yes -> `#f1f2f4` | 954 B |
+| `langchain.svg` | langchain | `#7FC8FF` | 11.01:1 | no | 542 B |
+| `huggingface.svg` | huggingface | `#FFD21E` | 13.74:1 | no | 3,042 B |
+| `n8n.svg` | n8n | `#EA4B71` | 5.45:1 | no | 1,588 B |
+| `zapier.svg` | zapier | `#FF4F00` | 6.04:1 | no | 2,847 B |
+| `pytorch.svg` | pytorch | `#EE4C2C` | 5.41:1 | no | 466 B |
+| `nvidia.svg` | nvidia | `#76B900` | 8.26:1 | no | 896 B |
+| `kotlin.svg` | kotlin | `#7F52FF` | 4.32:1 | no | 145 B |
+| `latex.svg` | latex | `#008080` | 4.17:1 | no | 5,680 B |
+
+License: MIT (Simple Icons), same as before.
+
+### Null slug items: no file, a text tile instead
+
+Codex, LLMs and RAG carry `slug: null` in `lib/content.ts` and have no file
+under `public/icons/`. OpenAI's mark was pulled from Simple Icons over
+trademark, and LLMs/RAG are categories rather than products, so there was
+never a logo to fetch. `components/ui/img-sphere.tsx` renders these as a
+text tile instead: the full name, in `--font-mono`, `--ink-muted`, on the
+same circular surface as every image tile. Confirmed rendering the full
+name (not a single letter) in real Chrome across a full rotation cycle.
+
+### Regenerating
+
+`node scripts/fetch-icons.mjs`. It hardcodes the current `SKILLS.groups`
+slug list, fetches each non null slug fresh from `cdn.simpleicons.org`,
+reruns the contrast check, and overwrites `public/icons/<slug>.svg`. Update
+the list inside the script by hand first if `lib/content.ts` has changed.

@@ -1,0 +1,102 @@
+/*
+  Section heading motion. Owned by the heading work, kept out of globals.css
+  so that file stays the design system: tokens, base type, and the cascade
+  layer discipline documented at the top of it.
+
+  Cascade layer discipline still applies here: an unlayered element or class
+  rule beats every Tailwind utility regardless of specificity, because
+  Tailwind 4 puts its own utilities inside a layer. Everything below lives in
+  @layer components, matching the .label / .label-index precedent in
+  app/globals.css.
+*/
+
+@layer components {
+  .section-heading-top {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+  }
+
+  /* Base state is full width: fail open. The rule only ever collapses to
+     zero width from inside SectionHeading's own client effect (the
+     IntersectionObserver fallback below), never from server-rendered
+     markup, so a dropped chunk or failed hydration leaves it fully drawn
+     rather than invisible. */
+  .section-heading-rule {
+    display: block;
+    width: 48px;
+    height: 2px;
+    flex: none;
+    background: var(--accent);
+  }
+
+  .section-heading-eyebrow {
+    margin: 0;
+  }
+
+  /* h2 already gets the display face, weight 600 and --step-4 from the
+     base type rule in globals.css. This overrides size (rising to --step-5
+     at the lg breakpoint) and tightens tracking to match the hero's
+     display tracking, since the base heading tracking is meant for the
+     smaller h2/h3 register these no longer use. */
+  .section-heading-title {
+    font-size: var(--step-4);
+    letter-spacing: var(--tracking-display);
+  }
+
+  @media (min-width: 1024px) {
+    .section-heading-title {
+      font-size: var(--step-5);
+    }
+  }
+}
+
+/* Scroll-scrubbed draw where supported: real scroll position drives the
+   rule's width, same mechanism as .reveal and .word-in in globals.css. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .section-heading-rule {
+      animation: section-heading-rule-draw linear both;
+      animation-timeline: view();
+      animation-range: entry 10% entry 55%;
+      animation-duration: 1ms;
+    }
+  }
+}
+
+@keyframes section-heading-rule-draw {
+  from {
+    width: 0;
+  }
+  to {
+    width: 48px;
+  }
+}
+
+/* IntersectionObserver fallback (view() unsupported): arm the hidden state
+   only once JS has confirmed it can undo it, then transition on scroll into
+   view. Class order matters here: this must come after the base
+   .section-heading-rule rule above so the higher-specificity .rule-armed
+   state actually wins. */
+.section-heading-rule.rule-armed {
+  width: 0;
+}
+.section-heading-rule.rule-armed.is-visible {
+  width: 48px;
+  transition: width 600ms var(--ease);
+}
+
+/* Reduced motion: full heading, rule at full width, no animation, no
+   stagger, regardless of whether the fallback above ever armed or
+   intersected. Declared after the fallback rules above so it wins the
+   specificity tie on .rule-armed and .rule-armed.is-visible. */
+@media (prefers-reduced-motion: reduce) {
+  .section-heading-rule,
+  .section-heading-rule.rule-armed,
+  .section-heading-rule.rule-armed.is-visible {
+    width: 48px;
+    animation: none;
+    transition: none;
+  }
+}

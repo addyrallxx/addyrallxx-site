@@ -30,7 +30,7 @@ import { usePrefersReducedMotion } from "@/components/ui/use-reduced-motion";
 
 export interface SkillIcon {
   id: string;
-  slug: string;
+  slug: string | null;
   name: string;
 }
 
@@ -376,6 +376,12 @@ export function ImgSphere({
           const isHovered = hovered === item.id;
           const finalScale = isHovered ? Math.min(hoverScale, hoverScale / pos.scale) : 1;
           const isBroken = broken.has(item.id);
+          // A null slug (Codex, LLMs, RAG) has no logo to fetch at all: no
+          // OpenAI mark exists post-trademark-removal, and the other two are
+          // categories, not products. Render the full name as a text tile
+          // instead of ever hitting the network for it.
+          const isTextTile = item.slug === null;
+          const tileFontSize = Math.min(size * 0.26, (size * 0.85) / Math.max(item.name.length * 0.58, 1));
 
           return (
             <div
@@ -396,7 +402,19 @@ export function ImgSphere({
                 className="flex items-center justify-center overflow-hidden rounded-full border border-hairline bg-surface-1 p-[var(--space-2)]"
                 style={{ width: size, height: size }}
               >
-                {isBroken ? (
+                {isTextTile ? (
+                  // Deliberate text tile, same circular surface as every
+                  // image tile, full name (not one letter, that would read
+                  // as a failure state rather than a choice) in the mono
+                  // face used for data elsewhere on this site.
+                  <span
+                    aria-hidden="true"
+                    className="font-mono text-ink-muted"
+                    style={{ fontSize: Math.round(tileFontSize) }}
+                  >
+                    {item.name}
+                  </span>
+                ) : isBroken ? (
                   // A missing icon degrades to the first letter of its name,
                   // not to an empty ring. Failing open is a rule on this
                   // project: a hidden element over correct markup reads as a

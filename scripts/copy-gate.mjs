@@ -48,7 +48,22 @@ const RULES = [
   },
   {
     name: "assistant or model reference",
-    re: /\b(?:AI|LLM|Gemini|Codex|Claude|Opus|Sonnet|ChatGPT|hallucinat\w*|prompt(?:ed|ing)?)\b/g,
+    /*
+      The lookahead is what makes this rule mean what it was written to mean.
+
+      What the rejected build shipped was a SENTENCE about an assistant
+      inventing revenue figures, and prose about how the site was made is the
+      thing being banned. Naming a tool in a skills list is a different act,
+      and it is one Adnan asked for directly.
+
+      So a model name only trips the rule when six or more further words
+      follow it on the same line, which is prose rather than a label. A tile
+      reading "Claude Code" passes, a heading reading "AI and automation"
+      passes, and a sentence beginning "Claude helped me write this site"
+      does not. The canary still carries the original confession, so this
+      rule is still proved able to fail on the thing it exists to catch.
+    */
+    re: /\b(?:AI|LLM|Gemini|Codex|Claude|Opus|Sonnet|ChatGPT|hallucinat\w*|prompt(?:ed|ing)?)\b(?=(?:[^\n"]*?\s+\S+){6})/g,
     why: "The rejected build shipped a sentence about an AI inventing revenue figures. Nothing about how the site was made belongs in the site.",
   },
   {
