@@ -25,9 +25,10 @@ and as `totaltex-web`.
 
 Lenis is installed and mounted in `app/layout.tsx`. gsap is installed and
 loaded only by `components/smooth-scroll.tsx`, which drives Lenis.
-framer-motion is installed and **currently used by nothing**; it was added
-for the Preloader and the other 21st.dev components landing in chunk 2. Do
-not describe it as powering the reveals. Reveals are plain CSS
+framer-motion is installed and, as of chunk 2, is used by
+`components/ui/preloader.tsx` (confirmed by `grep -rn "framer-motion"
+components/ app/`). It does not power the reveals or the sphere. Reveals are
+plain CSS
 (`animation-timeline: view()`) with an IntersectionObserver fallback in
 `components/reveal.tsx`, deliberately not a motion library, because they run
 on dozens of elements per page and must not block paint.
@@ -56,6 +57,13 @@ verification gates live in the repo: `npm run copy-gate` and
 Adnan's standing global rule, applies to every file in this repo: code
 comments, commit messages, copy, docs. Periods, commas, colons, parentheses
 instead. No en dashes used as punctuation either.
+
+## Copy ownership
+
+Claude writes all copy on this project. Codex reviews it. Gemini is
+excluded from copy here; its role stays image colour grading and
+adversarial review of non-copy specs (see the machine CLAUDE.md's Gemini
+section).
 
 ## Confidentiality, summarised from PLAN.md section 7
 
@@ -102,6 +110,23 @@ over eyeballing a screenshot. Screenshots cost roughly 3,600 tokens each at
 **A run completing is not a task succeeding.** Re-run the actual claim
 yourself (the demo, the diff, the number) rather than trusting an agent's own
 summary of what it did.
+
+**Lenis hijacks programmatic scrolling.** `scrollIntoView` and
+`window.scrollTo` are both reverted on Lenis's next frame. Drive
+`window.__lenis.scrollTo(y, { immediate: true })` and then assert
+`window.scrollY` actually landed where you asked, rather than trusting the
+call resolved.
+
+**`page.screenshot({ clip })` captures DOCUMENT coordinates, not the
+viewport.** A scrolled screenshot taken with `clip` comes back identical to
+the top of the page every time. Omit `clip` to capture the viewport. The
+tell in chunk 3 was three screenshots with identical byte sizes.
+
+**Identity assertion in any browser harness must ABORT the run, not just
+record a failure.** A Vercel share token minted before a deployment finishes
+returns the login page. If identity is only logged as one failed check among
+many, every downstream check in that run reports meaningless numbers about a
+login page instead of the site.
 
 ## Parallel agent rules, from PLAN.md section 9
 
@@ -162,3 +187,20 @@ system, built fresh.
   class added only on the IntersectionObserver branch), never from
   server-rendered output. Any reveal-on-scroll or hydration-gated visual
   state in this repo must follow the same rule.
+- **A React key built from a field that can be null or shared collapses
+  distinct items onto one key.** The skill sphere keyed its items as
+  `${group.title}-${item.slug}`; three skills share a group and all carry
+  `slug: null`, so all three collapsed onto one key. The sphere re-renders
+  every animation frame, and React inserts rather than reconciles across a
+  duplicate key, so this leaked roughly 100 DOM nodes a second (558 to 817
+  in 2.5 seconds) with every prior verification agent reporting it passing.
+  Key list items on a field guaranteed unique per item (an id), never on a
+  field that can repeat or be absent.
+- **A fix applied to one instance of a pattern does not travel to instances
+  built later.** The hero button's white-on-accent contrast failure
+  (3.91:1, below WCAG AA) was fixed in an earlier chunk. The contact
+  section's email button used the identical pattern, was built after that
+  fix, and shipped with the same failure because nobody grepped for the
+  pattern elsewhere. When fixing a contrast, sizing, or colour bug tied to a
+  reusable class or token, grep every other place that class or token is
+  used before calling the fix done.
