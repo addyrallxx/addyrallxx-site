@@ -31,3 +31,9 @@ next-env.d.ts
 
 # Full resolution source assets. Optimised copies ship from public/.
 raw-assets/
+
+# Verification artifacts. scripts/verify.mjs writes a confirming screenshot on
+# every run; it is evidence for one run, not source, and it is large.
+/hero.png
+/hero-small.png
+/*.tmp.mjs
