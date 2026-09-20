@@ -1,5 +1,6 @@
 import Reveal from "@/components/reveal";
 import { SectionHeading } from "@/components/ui/section-heading";
+import { ScrollTilt } from "@/components/ui/scroll-tilt";
 import { CURRENTLY } from "@/lib/content";
 
 /*
@@ -20,7 +21,7 @@ export function Currently() {
     >
       <SectionHeading id="currently-heading">Currently</SectionHeading>
 
-      <ul className="mt-[var(--space-12)] grid gap-px overflow-hidden rounded-[var(--radius-md)] border border-hairline bg-hairline sm:grid-cols-3">
+      <ul className="mt-[var(--space-12)] grid gap-px rounded-[var(--radius-lg)] border border-hairline bg-hairline md:grid-cols-3">
         {CURRENTLY.map((item, i) => (
           // bg-canvas belongs here, on the grid cell, not on the article three
           // levels down. The ul paints bg-hairline and relies on gap-px to
@@ -28,9 +29,10 @@ export function Currently() {
           // cover shows up as a grey block. Reveal sits between the two and
           // collapses to content height, which is what h-full on the article
           // was measuring against.
-          <li key={item.name} className="bg-canvas">
+          <li key={item.name} className="min-w-0 bg-canvas first:rounded-t-[var(--radius-lg)] last:rounded-b-[var(--radius-lg)] md:first:rounded-l-[var(--radius-lg)] md:first:rounded-tr-none md:last:rounded-r-[var(--radius-lg)] md:last:rounded-bl-none">
             <Reveal delay={i * 80}>
-              <article className="flex h-full flex-col bg-canvas p-[var(--space-8)]">
+              <ScrollTilt intensity={0.35}>
+              <article className="flex flex-col rounded-[var(--radius-lg)] bg-canvas p-[var(--space-8)]">
                 <p className="label">{item.label}</p>
                 <h3 className="mt-[var(--space-4)] text-[length:var(--step-2)] font-semibold">
                   {item.name}
@@ -43,6 +45,7 @@ export function Currently() {
                 </p>
                 <p className="data mt-auto pt-[var(--space-8)] text-ink-subtle">{item.place}</p>
               </article>
+              </ScrollTilt>
             </Reveal>
           </li>
         ))}

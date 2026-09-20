@@ -4,6 +4,8 @@ import { Currently } from "@/components/sections/currently";
 import { Education } from "@/components/sections/education";
 import { Experience } from "@/components/sections/experience";
 import { Hero } from "@/components/sections/hero";
+import { Mindset } from "@/components/sections/mindset";
+import { NextUp } from "@/components/sections/next-up";
 import { SiteFooter } from "@/components/sections/site-footer";
 import { Skills } from "@/components/sections/skills";
 import { Work } from "@/components/sections/work";
@@ -31,8 +33,10 @@ export default function Home() {
       <main id="main">
         <Hero />
         <Currently />
+        <Mindset />
         <Experience />
         <Work />
+        <NextUp />
         <Skills />
         <Education />
         <About />

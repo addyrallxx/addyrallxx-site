@@ -1,103 +1,72 @@
-"use client";
+﻿"use client";
 
-/*
-  The fixed header. Only reason this is a client component and not the
-  markup that used to sit directly in app/page.tsx: it needs to know when
-  the warm About section is behind it, which needs an observer, which needs
-  a browser.
-
-  Known cosmetic issue this fixes, from NEXT-SESSION.md: the header kept its
-  dark translucent background over the warm paper section.
-*/
-
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NAV, SITE } from "@/lib/content";
 
 export function SiteHeader() {
+  const header = useRef<HTMLElement>(null);
   const [warm, setWarm] = useState(false);
+  const [active, setActive] = useState<string | null>(null);
 
   useEffect(() => {
+    if (typeof IntersectionObserver === "undefined") return;
+    const sections = Array.from(document.querySelectorAll<HTMLElement>("main > section[id]"));
     const about = document.getElementById("about");
-    if (!about || typeof IntersectionObserver === "undefined") return;
-
-    // rootMargin shrinks the observed root down to roughly the header's own
-    // band at the top of the viewport. A fixed header sits outside normal
-    // flow, so there is no element height to derive a real margin from; this
-    // reads correctly at any header height or content length without a
-    // resize listener, which comparing scrollY against a measured offset
-    // would need. The header flips warm exactly while #about occupies that
-    // band, and flips back the moment it scrolls past it, in either
-    // direction.
-    const io = new IntersectionObserver(([entry]) => setWarm(entry.isIntersecting), {
-      threshold: 0,
-      rootMargin: "0px 0px -92% 0px",
-    });
-    io.observe(about);
-    return () => io.disconnect();
+    const destinations = new Set<string>(NAV.map((item) => item.href));
+    let navigation: IntersectionObserver;
+    let tone: IntersectionObserver;
+    const configure = () => {
+      navigation?.disconnect();
+      tone?.disconnect();
+      const height = window.innerHeight;
+      const bandTop = Math.round(height * 0.2);
+      const visible = new Map<Element, number>();
+      navigation = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) visible.set(entry.target, entry.boundingClientRect.top);
+          else visible.delete(entry.target);
+        }
+        const current = [...visible].sort((a, b) => b[1] - a[1])[0]?.[0];
+        const href = current ? `#${current.id}` : null;
+        setActive(href && destinations.has(href) ? href : null);
+      }, {
+        // Pixel margins matter: percentage IO margins use viewport WIDTH.
+        rootMargin: `-${bandTop}px 0px -${height - bandTop - 1}px 0px`, threshold: 0,
+      });
+      sections.forEach((section) => navigation.observe(section));
+      const headerHeight = Math.ceil(header.current?.getBoundingClientRect().height ?? 64);
+      tone = new IntersectionObserver(([entry]) => setWarm(entry.isIntersecting), {
+        rootMargin: `0px 0px -${Math.max(0, height - headerHeight)}px 0px`, threshold: 0,
+      });
+      if (about) tone.observe(about);
+    };
+    configure();
+    window.addEventListener("resize", configure);
+    const resize = typeof ResizeObserver !== "undefined" ? new ResizeObserver(configure) : null;
+    if (header.current) resize?.observe(header.current);
+    return () => {
+      navigation.disconnect();
+      tone.disconnect();
+      resize?.disconnect();
+      window.removeEventListener("resize", configure);
+    };
   }, []);
 
   return (
-    <header className="fixed inset-x-0 top-0 z-40">
-      {/*
-        No position utility on this inner element. [data-tone="warm"] in
-        globals.css sets `position: relative` unlayered, which outranks a
-        Tailwind position utility on the same element regardless of
-        specificity (see the comment block near the top of globals.css). The
-        outer <header> above already carries the fixed positioning, so this
-        div only needs to fill it, which needs no position of its own.
-      */}
-      {/*
-        bg-canvas/80 stays translucent in the dark state, unchanged from
-        before. In the warm state the unlayered `[data-tone] { background:
-        var(--canvas) }` rule in globals.css (see its own comment) outranks
-        that utility's alpha value and the header goes fully opaque instead.
-        Still legible, still an eased transition on the same property, just
-        solid rather than glassy while it sits over the paper section.
-      */}
-      <div
-        data-tone={warm ? "warm" : undefined}
-        className="tone-surface border-b border-hairline/60 bg-canvas/80 backdrop-blur transition-colors duration-[var(--dur-base)] ease-[var(--ease)]"
-      >
-        <nav
-          aria-label="Primary"
-          className="mx-auto flex max-w-[var(--content-max)] items-center justify-between px-[var(--gutter)] py-[var(--space-4)]"
-        >
-          <a
-            href="#main"
-            className="font-display text-[length:var(--step-0)] font-semibold tracking-[-0.02em]"
-          >
-            {SITE.name}
-          </a>
-          {/*
-            Section navigation. Hidden below the medium breakpoint rather
-            than collapsed behind a menu button: this is one page, the
-            sections are a short scroll apart, and a hamburger to reach
-            anchors on the same document is a control that costs more than
-            it gives. The email link stays visible at every width, because
-            it is the only action on the site that matters.
-
-            The pills scroll horizontally instead of wrapping, so the header
-            keeps its single row height at any width the labels outgrow.
-          */}
-          <ul className="hidden items-center gap-[var(--space-1)] overflow-x-auto md:flex">
+    <header ref={header} className="fixed inset-x-0 top-0 z-40">
+      <div data-tone={warm ? "warm" : undefined} className="tone-surface bg-canvas/80 shadow-[0_8px_24px_-16px_var(--canvas-dark)] backdrop-blur">
+        <nav aria-label="Primary" className="mx-auto flex max-w-[var(--content-max)] items-center justify-between gap-[var(--space-3)] px-[var(--gutter)] py-[var(--space-4)]">
+          <a href="#main" className="shrink-0 font-display text-[length:var(--step-0)] font-semibold tracking-[-0.02em]">{SITE.name}</a>
+          <ul className="hidden min-w-0 items-center gap-[var(--space-1)] overflow-x-auto md:flex">
             {NAV.map((item) => (
               <li key={item.href}>
-                <a
-                  href={item.href}
-                  className="press label block whitespace-nowrap rounded-[var(--radius-pill)] px-[var(--space-4)] py-[var(--space-2)] text-ink-subtle transition-colors hover:bg-surface-1 hover:text-ink"
-                >
+                <a href={item.href} aria-current={active === item.href ? "location" : undefined} className="press label flex min-h-11 items-center whitespace-nowrap rounded-[var(--radius-pill)] px-[var(--space-3)] py-[var(--space-2)] text-ink-subtle hover:bg-surface-1 hover:text-ink aria-[current=location]:bg-surface-2 aria-[current=location]:text-ink">
                   {item.label}
                 </a>
               </li>
             ))}
           </ul>
-
-          <a
-            href={`mailto:${SITE.email}`}
-            className="press label rounded-[var(--radius-pill)] border border-hairline-strong px-[var(--space-4)] py-[var(--space-2)] transition-colors hover:border-accent hover:text-ink"
-          >
-            Email
-          </a>
+          <a href={`mailto:${SITE.email}`} className="press label inline-flex min-h-11 shrink-0 items-center rounded-[var(--radius-pill)] border border-hairline-strong px-[var(--space-4)] py-[var(--space-2)] hover:border-accent hover:text-ink">Email</a>
         </nav>
       </div>
     </header>

@@ -1,146 +1,185 @@
-/*
-  Project media and carousel motion. Separate file for the same reason as
-  headings.css: globals.css is the design system, not a dumping ground.
-
-  --carousel-dwell must stay in step with DWELL_MS in
-  components/ui/media-carousel.tsx: it drives how long the Ken Burns drift
-  and the progress fill take to finish, and the JS timer decides when the
-  slide actually advances. They are two separate mechanisms kept in sync by
-  hand rather than by a shared source, because CSS cannot read a JS
-  constant. Change one, change the other.
-*/
-
+/* Motion layers stay separate: card surface, scroll frame, slide, pointer plane. */
 @layer components {
-  .media-carousel {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
+  .work-list { display: grid; gap: var(--space-12); margin-top: var(--space-12); }
+  .work-card {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    align-items: center;
+    gap: var(--space-8);
+    padding: var(--space-8) 0;
+    view-timeline-name: --work-card;
+    view-timeline-axis: block;
   }
-
+  .work-card::before, .work-card::after {
+    content: "";
+    position: absolute;
+    inset: 0 calc(-1 * var(--space-4));
+    z-index: -1;
+    pointer-events: none;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--hairline);
+    transition: transform var(--dur-base) var(--ease), opacity var(--dur-base) var(--ease);
+  }
+  .work-card::before { background: var(--surface-1); opacity: 0.35; }
+  .work-card::after { border-color: color-mix(in srgb, var(--accent) 28%, var(--hairline)); opacity: 0; }
+  .work-card:focus-within::after { opacity: 1; }
+  .work-copy, .work-visual, .work-proof { min-width: 0; }
+  .work-meta { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; }
+  .work-meta .data { overflow-wrap: anywhere; }
+  .work-copy h3 { text-wrap: balance; }
+  .work-details { display: grid; gap: var(--space-3); margin-top: var(--space-6); color: var(--ink-muted); }
+  .work-details li { padding-inline-start: var(--space-4); position: relative; }
+  .work-details li::before { content: ""; position: absolute; inset-inline-start: 0; top: 0.65em; width: 4px; height: 4px; background: var(--hairline-strong); border-radius: var(--radius-pill); }
+  .work-links { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-6); margin-top: var(--space-6); }
+  .work-links a { display: inline-flex; align-items: center; min-height: 44px; color: var(--ink); text-decoration: underline; text-decoration-color: var(--hairline-strong); text-underline-offset: 0.35em; }
+  .work-links a:hover { text-decoration-color: var(--accent); }
+  .work-links a:focus-visible, .media-carousel:focus-visible, .carousel-control:focus-visible, .carousel-indicator:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+  .work-proof { padding: var(--space-6); border: 1px solid var(--hairline-strong); border-radius: var(--radius-sm); background: var(--surface-2); }
+  .work-proof-lines { display: grid; }
+  .work-proof-lines li { padding-block: var(--space-5); font-size: var(--step-1); line-height: 1.45; text-wrap: pretty; }
+  .work-proof-lines li + li { border-top: 1px solid var(--hairline); }
+  .work-proof-lines li:first-child { padding-top: 0; }
+  .work-proof-lines li:last-child { padding-bottom: 0; }
+  .media-carousel {
+    --pointer-x: 0px;
+    --pointer-y: 0px;
+    padding: var(--space-2);
+    border: 1px solid var(--hairline-strong);
+    border-radius: var(--radius-lg);
+    background: var(--surface-1);
+  }
   .media-carousel-frame {
     position: relative;
+    isolation: isolate;
     aspect-ratio: 16 / 10;
     overflow: hidden;
     border-radius: var(--radius-md);
     border: 1px solid var(--hairline);
-    background: var(--surface-1);
+    background: var(--canvas);
+    touch-action: pan-y pinch-zoom;
+    user-select: none;
+    cursor: grab;
   }
-
-  .carousel-slide {
+  .media-carousel-frame::after {
+    content: "";
     position: absolute;
-    inset: 0;
-    opacity: 0;
-    transition: opacity 900ms var(--ease);
-  }
-
-  .carousel-slide.is-active {
-    opacity: 1;
-    z-index: 1;
-  }
-
-  .carousel-slide-img {
-    object-fit: cover;
-    transform-origin: center center;
-  }
-
-  .carousel-slide.is-active .carousel-slide-img {
-    animation: carousel-kenburns var(--carousel-dwell, 5000ms) linear forwards;
-  }
-
-  .media-carousel:hover .carousel-slide.is-active .carousel-slide-img,
-  .media-carousel:focus-within .carousel-slide.is-active .carousel-slide-img,
-  .media-carousel:hover .carousel-progress-fill,
-  .media-carousel:focus-within .carousel-progress-fill {
-    animation-play-state: paused;
-  }
-
-  .carousel-controls {
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: var(--space-3);
+    inset: var(--space-2);
+    border-block: 1px solid var(--hairline);
+    border-radius: var(--radius-sm);
     pointer-events: none;
   }
-
-  .carousel-control {
-    pointer-events: auto;
-    display: grid;
-    place-items: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: var(--radius-pill);
+  .media-carousel[data-dragging="true"] .media-carousel-frame { cursor: grabbing; }
+  /* Clipping and opacity belong on the frame, never on the 3D track. */
+  .carousel-track { position: absolute; inset: 0; perspective: 900px; transform-style: preserve-3d; }
+  .carousel-slide {
+    position: absolute;
+    inset: 9% 13% 17%;
     border: 1px solid var(--hairline-strong);
-    background: color-mix(in srgb, var(--canvas) 55%, transparent);
-    color: var(--ink);
-    cursor: pointer;
-    transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
-  }
-
-  .carousel-control:hover {
-    background: color-mix(in srgb, var(--canvas) 75%, transparent);
-    border-color: var(--accent);
-  }
-
-  .carousel-control svg {
-    width: 1.1rem;
-    height: 1.1rem;
-  }
-
-  .carousel-progress {
-    height: 2px;
-    border-radius: var(--radius-pill);
-    background: var(--hairline);
+    border-radius: var(--radius-md);
     overflow: hidden;
+    backface-visibility: hidden;
+    opacity: var(--cover-visible);
+    transform: translateX(var(--cover-x)) translateZ(var(--cover-z)) rotateY(var(--cover-yaw)) scale(var(--cover-scale));
+    background: var(--surface-2);
+    box-shadow: 0 12px 24px color-mix(in srgb, var(--canvas) 65%, transparent);
   }
-
-  .carousel-progress-fill {
-    height: 100%;
-    width: 100%;
-    background: var(--accent);
-    transform: scaleX(0);
-    transform-origin: left;
-    animation: carousel-progress var(--carousel-dwell, 5000ms) linear forwards;
+  .carousel-image-plane { position: absolute; inset: -6px; transform: translate(var(--pointer-x), var(--pointer-y)); }
+  .carousel-slide-img { object-fit: cover; }
+  .carousel-slide::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--canvas);
+    opacity: var(--cover-dim);
+    pointer-events: none;
   }
+  .carousel-caption { display: flex; align-items: baseline; gap: var(--space-4); padding: var(--space-4) var(--space-2) var(--space-1); }
+  .carousel-caption p { flex: 1; min-width: 0; font-size: var(--step--1); line-height: 1.5; color: var(--ink-muted); overflow-wrap: anywhere; }
+  .carousel-counter { flex: none; color: var(--ink); white-space: nowrap; }
+  .media-carousel[data-single="true"] .carousel-slide[data-copy="true"] { display: none; }
+  .carousel-controls {
+    position: absolute;
+    bottom: var(--space-4);
+    right: var(--space-4);
+    z-index: 3;
+    display: flex;
+    gap: var(--space-1);
+    padding: var(--space-1);
+    border: 1px solid var(--hairline-strong);
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--surface-1) 85%, transparent);
+    backdrop-filter: blur(12px);
+    transition: opacity var(--dur-fast) var(--ease), transform var(--dur-base) var(--ease);
+  }
+  .carousel-control { display: grid; place-items: center; width: 44px; height: 44px; border-radius: var(--radius-pill); color: var(--ink); cursor: pointer; }
+  .carousel-control:hover { background: var(--surface-2); }
+  .carousel-control svg { width: 20px; height: 20px; }
+  .carousel-indicators { display: flex; gap: var(--space-2); }
+  .carousel-indicator { flex: 1; min-width: 0; min-height: 44px; display: flex; align-items: center; cursor: pointer; border-radius: var(--radius-sm); }
+  .carousel-segment { display: block; width: 100%; height: 3px; overflow: hidden; border-radius: var(--radius-pill); background: var(--hairline-strong); }
+  .carousel-segment-fill { display: block; width: 100%; height: 100%; background: var(--accent); transform: scaleX(0); transform-origin: left; }
+  .carousel-segment-fill.is-active { transform: scaleX(1); }
 
-  @keyframes carousel-kenburns {
-    from {
-      transform: scale(1) translate3d(0, 0, 0);
+  @media (min-width: 1024px) {
+    .work-card { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: var(--space-12); padding: var(--space-10) var(--space-4); }
+    .work-card-reversed { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+    .work-card-reversed .work-copy { grid-column: 2; grid-row: 1; }
+    .work-card-reversed .work-visual, .work-card-reversed .work-proof { grid-column: 1; grid-row: 1; }
+    .work-proof { padding: var(--space-8); }
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .carousel-controls { opacity: 0; }
+    .media-carousel:hover .carousel-controls, .media-carousel:focus-within .carousel-controls { opacity: 1; }
+    .work-card:hover::after { opacity: 1; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .work-card.work-armed { opacity: 0.35; transition: opacity var(--dur-slow) var(--ease); transition-delay: var(--work-stagger); }
+    .work-card.work-armed.is-visible, .work-card.work-armed:focus-within { opacity: 1; }
+    .work-visual { transform: translateY(var(--media-offset, 0px)); transition: transform var(--dur-slow) var(--ease); }
+    .media-carousel-frame { transform: scale(var(--frame-scale, 1)); transition: transform var(--dur-slow) var(--ease); }
+    .carousel-segment-fill.is-active { animation: carousel-dwell var(--carousel-dwell) linear both; }
+    .media-carousel[data-paused="true"] .carousel-segment-fill.is-active { animation-play-state: paused; }
+    @media (hover: hover) and (pointer: fine) {
+      /* Lift the surface, preserving untransformed text at every scroll position. */
+      .work-card:hover::before, .work-card:hover::after { transform: translateY(-4px); }
+      .carousel-controls { transform: translateY(4px); }
+      .media-carousel:hover .carousel-controls, .media-carousel:focus-within .carousel-controls { transform: translateY(0); }
     }
-    to {
-      transform: scale(1.06) translate3d(-1.5%, -1%, 0);
+    @supports (animation-timeline: view()) {
+      .work-card {
+        animation: work-arrive linear both;
+        animation-timeline: view();
+        animation-range: entry var(--work-entry) entry 45%;
+      }
+      .work-visual {
+        animation: work-media-travel linear both;
+        animation-timeline: --work-card;
+        animation-range: entry 0% exit 100%;
+        transition: none;
+      }
+      .media-carousel-frame {
+        animation: carousel-frame-travel linear both;
+        animation-timeline: view();
+        animation-range: entry 0% exit 100%;
+        transition: none;
+      }
+      .work-card:focus-within { animation: none; }
     }
   }
-
-  @keyframes carousel-progress {
-    from {
-      transform: scaleX(0);
-    }
-    to {
-      transform: scaleX(1);
-    }
+  @media (prefers-reduced-motion: reduce) {
+    .carousel-controls, .work-card::before, .work-card::after { transition: none; }
+    .carousel-image-plane { transform: none; }
+    .carousel-track { perspective: none; transform-style: flat; }
+    .carousel-slide { inset: 0; transform: none; box-shadow: none; opacity: 0; pointer-events: none !important; transition: opacity var(--dur-fast) linear; }
+    .carousel-slide[data-copy="true"] { display: none; }
+    .carousel-slide.is-active { opacity: 1; z-index: 2; }
+    .carousel-slide.is-outgoing { z-index: 1; }
+    .carousel-slide::after { opacity: 0; }
   }
 }
 
-/*
-  Reduced motion: no crossfade timing, no drift, no progress animation.
-  The slide that already has .is-active (always the current slide, set on
-  every render regardless of motion preference) simply shows at full
-  opacity with the image held at its rest scale, and manual paging swaps
-  which slide has the class instantly. Nothing here is layered, since
-  `animation: none` and `transition: none` must win outright.
-*/
-@media (prefers-reduced-motion: reduce) {
-  .carousel-slide,
-  .carousel-slide-img,
-  .carousel-progress-fill {
-    transition: none !important;
-    animation: none !important;
-  }
-
-  .carousel-progress-fill {
-    transform: scaleX(0);
-  }
-}
+@keyframes carousel-dwell { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes work-arrive { from { opacity: 0.35; } to { opacity: 1; } }
+@keyframes work-media-travel { from { transform: translateY(18px); } to { transform: translateY(-18px); } }
+@keyframes carousel-frame-travel { 0%, 100% { transform: scale(0.975); } 35%, 65% { transform: scale(1); } }

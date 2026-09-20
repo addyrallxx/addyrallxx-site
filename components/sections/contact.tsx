@@ -1,6 +1,7 @@
 import Reveal from "@/components/reveal";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { SocialIcon } from "@/components/ui/social-icon";
+import { ScrollTilt } from "@/components/ui/scroll-tilt";
 import { CONTACT, SITE, type ContactLink } from "@/lib/content";
 
 // A null href means the channel has no destination yet (WhatsApp before
@@ -29,10 +30,34 @@ export function Contact() {
         </p>
       </Reveal>
 
+      <ul className="mt-[var(--space-10)] grid gap-[var(--space-4)] lg:grid-cols-3">
+        {CONTACT.openers.map((opener, index) => (
+          <li key={opener.label} className="min-w-0">
+            <Reveal delay={index * 70} className="h-full">
+              <ScrollTilt tilt={false} className="h-full">
+                <a
+                  href={`mailto:${CONTACT.email}?subject=${encodeURIComponent(opener.label)}`}
+                  aria-labelledby={`contact-opener-${index}`}
+                  className="group relative flex h-full flex-col rounded-[var(--radius-lg)] bg-surface-1 p-[var(--space-6)] shadow-[var(--shadow-float)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-[var(--ease)] motion-safe:active:scale-[0.985]"
+                >
+                  <h3 id={`contact-opener-${index}`} className="pr-[var(--space-8)] text-[length:var(--step-1)] font-semibold">{opener.label}</h3>
+                  <p className="mt-[var(--space-4)] text-ink-muted">{opener.body}</p>
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="absolute top-[var(--space-6)] right-[var(--space-6)] size-5 text-ink-muted group-hover:text-ink">
+                    <path d="M6 18 18 6M6 6h12v12" />
+                  </svg>
+                </a>
+              </ScrollTilt>
+            </Reveal>
+          </li>
+        ))}
+      </ul>
+
+      <p className="mt-[var(--space-8)] max-w-[var(--measure)] text-ink-muted">{CONTACT.availability}</p>
+
       <Reveal>
         <a
           href={`mailto:${CONTACT.email}`}
-          className="press mt-[var(--space-10)] inline-block rounded-[var(--radius-pill)] bg-accent px-[var(--space-8)] py-[var(--space-4)] font-display text-[length:var(--step-0)] font-semibold text-canvas transition-colors hover:bg-accent-deep hover:text-white"
+          className="press mt-[var(--space-8)] inline-block max-w-full break-all rounded-[var(--radius-pill)] bg-accent px-[var(--space-6)] py-[var(--space-4)] font-display text-[length:var(--step-0)] font-semibold text-canvas hover:bg-accent-deep hover:text-white"
         >
           {CONTACT.email}
         </a>

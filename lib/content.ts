@@ -22,6 +22,13 @@
  *      the family business.
  *   6. First person, short sentences, no adjectives about himself.
  *
+ * Rule 6 is the one that carries the voice, and it is worth saying what it
+ * is doing. Adnan asked for copy that sounds capable and in command rather
+ * than studious. The way to get that is not to add adjectives, it is to
+ * remove hedges and state what he has actually done, in the order a person
+ * would say it out loud. "More than seven Calgary dealerships" outranks
+ * "highly experienced" every time, and it is checkable.
+ *
  * Confidentiality, from PLAN.md section 7 and binding: no TotalTex
  * financials, addresses or ownership split; client dealerships are never
  * named and stop at "Calgary dealerships", with a count but never a name; immigration detail
@@ -35,8 +42,8 @@ export type Link = { label: string; href: string };
   Confirmed by Adnan 2026-09-02.
 
   The public address is the business one, not the personal gmail the old
-  resumes carry. No phone number goes on the site. LinkedIn and GitHub only,
-  no Instagram. Staying on the vercel.app URL for now, no domain purchase.
+  resumes carry. LinkedIn and GitHub only, no Instagram. Staying on the
+  vercel.app URL for now, no domain purchase.
 
   This is the only place an address is written. Nothing may hardcode a
   mailto anywhere else, so changing it stays a one line change.
@@ -72,18 +79,30 @@ export const SITE = {
 
 export const NAV = [
   { label: "Work", href: "#work" },
-  { label: "Experience", href: "#experience" },
+  { label: "Next", href: "#next" },
   { label: "Skills", href: "#skills" },
   { label: "About", href: "#about" },
   { label: "Contact", href: "#contact" },
 ] satisfies Link[];
 
+/**
+ * The hero.
+ *
+ * The headline was open going into this pass. Two candidates were live: the
+ * shipped "I sold cars, then I automated the part I hated." and a swap to
+ * "I sold cars, then I wrote the software that does it for me."
+ *
+ * Called in favour of the swap, split into two sentences. The original is
+ * funnier but it centres a grievance, and the first thing a stranger reads
+ * should centre capability. Two sentences also lets the second one land on
+ * its own beat instead of trailing off a comma.
+ */
 export const HERO = {
-  eyebrow: "Calgary, Alberta",
-  headline: "I sold cars, then I automated the part I hated.",
-  lead: "Puzzled is the company my roommate and I run. We take over the online side of a dealership, from the inventory through to the ads, and we have done it for more than seven Calgary dealerships and dealer families. In Dhaka, the order system I built runs my father's factory from the first order to the final bill. I am doing a computer science degree at the University of Calgary at the same time.",
+  eyebrow: "Calgary, via Dhaka",
+  headline: "I sold cars. Then I built the software that does it for me.",
+  lead: "My roommate and I run Puzzled. A dealership hands us its entire online operation and we run it, from the inventory through to the ads, and we have done it for more than seven Calgary dealerships and dealer families. In Dhaka, the system I wrote runs my father's factory from the first order to the final bill. Third year computer science at the University of Calgary in between.",
   primary: { label: "See the work", href: "#work" } satisfies Link,
-  secondary: { label: SITE.email, href: `mailto:${SITE.email}` } satisfies Link,
+  secondary: { label: "Start a conversation", href: "#contact" } satisfies Link,
 };
 
 export const CURRENTLY = [
@@ -110,8 +129,45 @@ export const CURRENTLY = [
   },
 ];
 
+/**
+ * How I work.
+ *
+ * New this pass, and it is the section Adnan asked for by name: the skills,
+ * the mindset, the goals. A portfolio that only lists what someone shipped
+ * makes the reader reverse engineer how that person thinks, and most
+ * readers will not bother.
+ *
+ * Four principles rather than three, deliberately. Three reads as a slogan
+ * set. Every one of them is traceable to something already true elsewhere
+ * in this file, so none of them is a slogan he would have to live up to
+ * later.
+ */
+export const MINDSET = {
+  eyebrow: "How I work",
+  headline: "I do the job by hand before I write anything to do it.",
+  lead: "That is the whole method. Every piece of software on this page exists because I was already doing the work manually, badly, at volume, and I knew exactly which part was costing me the day.",
+  principles: [
+    {
+      title: "Do it by hand first",
+      body: "I sourced cars at auction and wrote listings by hand before I automated any of it. You cannot design the tool for a job you have never done.",
+    },
+    {
+      title: "Then go and measure it",
+      body: "I audited 1,069 live listings against the regulator's rules rather than assuming they were fine. The cache bug I found had been quietly wrong for weeks and nobody had reported it.",
+    },
+    {
+      title: "Own the whole problem",
+      body: "Scraper, listing copy, ad spend, the lead that comes back, the invoice at the end. I would rather own a problem end to end than a clean slice of one.",
+    },
+    {
+      title: "Money is part of the engineering",
+      body: "I keep the books for the business I co-own. If a system cannot pay for itself I want to know before I build it, not after.",
+    },
+  ],
+};
+
 /*
-  Education. Present because the primary reader is a recruiter filling a
+  Education. Present because one of the readers is a recruiter filling a
   summer 2027 internship, and the first thing that reader looks for is a
   graduation date. Leaving it to be inferred from "since 2022" was making
   them do arithmetic.
@@ -150,11 +206,11 @@ export const EXPERIENCE = [
     period: "2023 to now",
     place: "Calgary, Alberta",
     summary:
-      "My roommate and I take over the online side of a dealership and run it end to end: inventory, listings, lead generation, finance applications, social media and paid boosting. More than seven Calgary dealerships and dealer families so far. He owns the accounts and the relationships. I write the software underneath all of it.",
+      "We take a dealership's online operation off its hands and run the whole thing: inventory, listings, lead generation, finance applications, social media and paid boosting. More than seven Calgary dealerships and dealer families so far. My roommate owns the accounts and the relationships. I own everything underneath them.",
     points: [
       "Built the inventory scraper and the listing generator the whole operation runs on.",
       "Audited every live description against the provincial advertising regulator's rules.",
-      "Handle the paid social and the lead routing that turns a listing into a conversation.",
+      "Run the paid social and the lead routing that turns a listing into a conversation.",
       "Both of us are AMVIC licensed and registered with the dealerships we represent.",
     ],
     tags: ["Python", "Automation", "Paid social", "AMVIC"],
@@ -203,6 +259,11 @@ export const EXPERIENCE = [
 /**
  * Selected work. Ordered by how much of it a stranger can verify: the two
  * with public URLs are reachable right now, the internal one is not.
+ *
+ * Headlines carry the interesting claim and `body` carries the shape of the
+ * thing. `detail` is where the one hard technical fact per project lives.
+ * That split is deliberate: a reader skimming gets the story, a reader who
+ * stops gets the proof, and neither one has to wade through the other.
  */
 export const WORK = [
   {
@@ -211,7 +272,7 @@ export const WORK = [
     kind: "Dealership operations",
     year: "2023 to now",
     headline: "Three dealer platforms in, one listing out, three times a day.",
-    body: "Puzzled runs the online side of a dealership: inventory, listings, lead generation, finance applications, social media and paid boosting. This is the part I built. Three times a day a scraper reads each client's live inventory across three different dealer platforms. A rule driven generator then writes the listing copy. It states only what is in the record, picks a selling angle from those facts, and attaches the disclaimer that client's province requires, because the clients are not all in the same one.",
+    body: "Puzzled runs the online side of a dealership. This is the part I built. Three times a day a scraper reads each client's live inventory across three different dealer platforms. A rule driven generator then writes the listing copy. It states only what is in the record, picks a selling angle from those facts, and attaches the disclaimer that client's province requires, because the clients are not all in the same one.",
     detail: [
       "I audited 1,069 live descriptions against the provincial advertising regulator's rules. Two were violations, and both predated anything I wrote.",
       "A stale cache meant 58 cars were still listed after they sold, and 38 price changes had never gone out. Nobody had reported it.",
@@ -267,6 +328,45 @@ export const WORK = [
     note: "",
   },
 ];
+
+/**
+ * Up next.
+ *
+ * New this pass. Adnan asked for what is upcoming to be as visible as what
+ * is already shipped, which is the right instinct for someone whose most
+ * interesting item (running a manufacturer) has not happened yet.
+ *
+ * Every entry here is drawn from a fact already settled elsewhere in this
+ * file or already confirmed by Adnan. Nothing is a projection and nothing
+ * carries a date that was not given. If a plan is not in here it is because
+ * nobody has stated it, not because it was judged uninteresting.
+ */
+export const NEXT = {
+  eyebrow: "Up next",
+  headline: "What I am moving toward.",
+  items: [
+    {
+      when: "Summer 2027",
+      title: "A software internship",
+      body: "I want the one where somebody hands me a system that is already on fire and expects me to have opinions by Friday.",
+    },
+    {
+      when: "Ongoing",
+      title: "Taking over TotalTex",
+      body: "My father founded it in 2014 and I am stepping in as managing director. I am learning the business from him while I finish the degree.",
+    },
+    {
+      when: "Ongoing",
+      title: "More of Puzzled running itself",
+      body: "More dealerships, and more of the pipeline running unattended right up to the point where a person has to post. That last step stays human on purpose.",
+    },
+    {
+      when: "April 2028",
+      title: "The degree",
+      body: "Computer science at the University of Calgary. Systems and databases first, because that is what the rest of this needs.",
+    },
+  ],
+};
 
 /**
  * Skills. The technology list feeds the draggable sphere, so every entry
@@ -343,7 +443,7 @@ export const SKILLS = {
   ],
   business: {
     title: "The other half",
-    body: "I have run auction sourcing, inventory and paid social for a dealership, and I keep the books for the business I co-own. I did each of those by hand before I wrote anything to do them.",
+    body: "Auction sourcing, inventory, paid social and the books for the business I co-own. I ran every one of those by hand before I wrote a line of software to do it, which is why the software knows where the work actually is.",
   },
 };
 
@@ -385,17 +485,38 @@ export const ABOUT = {
 };
 
 /**
- * Contact. Modelled on cade.codes, which Adnan singled out: one warm line,
- * a direct ask, and no form theatre.
+ * Contact.
  *
- * It names all three things he actually wants, because the alternative is
- * "open to what is next", which was the weakest line on the old site and
- * asks the reader to guess.
+ * Rewritten this pass against a direct instruction from Adnan: he wants
+ * reaching out to feel easy and slightly irresistible, and he named the
+ * three doors he wants open. Something interesting, something to build,
+ * something with money in it.
+ *
+ * So the three `openers` are his own framing, tidied. They do the work a
+ * contact form pretends to do, which is telling a stranger what counts as a
+ * reasonable reason to write, without making them fill anything in. The old
+ * version listed the same three things inside one paragraph and every one
+ * of them got skimmed past.
  */
 export const CONTACT = {
   eyebrow: "Contact",
-  headline: "Say hello.",
-  body: "I am looking for a software internship for summer 2027. I also take freelance builds. And if you run a dealership, I will show you what a week of listing work looks like once this is doing it. Email is the fastest way to reach me.",
+  headline: "Tell me what you are building.",
+  body: "I answer everything. Email is the fastest way to reach me, and WhatsApp is there if it is urgent.",
+  openers: [
+    {
+      label: "Something interesting",
+      body: "If you have something good going on, I want to hear about it. You do not need a pitch and you do not need a budget yet.",
+    },
+    {
+      label: "Something to build",
+      body: "Tell me what it has to do. I will tell you how I would build it, what it costs you, and how long it takes.",
+    },
+    {
+      label: "Something with money in it",
+      body: "If it involves revenue or a business, put me in the conversation. That half of the room is not a mystery to me.",
+    },
+  ],
+  availability: "Open to a software internship for summer 2027, and taking freelance builds now.",
   email: SITE.email,
 };
 

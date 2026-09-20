@@ -3,6 +3,7 @@ import { Archivo, Manrope, Instrument_Serif, JetBrains_Mono } from "next/font/go
 import SmoothScroll from "@/components/smooth-scroll";
 import { Preloader } from "@/components/ui/preloader";
 import { Starfield } from "@/components/ui/starfield";
+import { Cosmos } from "@/components/ui/cosmos";
 import "./globals.css";
 
 /*
@@ -97,14 +98,12 @@ export default function RootLayout({
         */}
         <SmoothScroll />
         {/*
-          Fixed, z-index -1, aria-hidden: a background layer, not a gate.
-          html carries the page background and body stays transparent (see
-          the comment above the html rule in globals.css), so this paints
-          visibly behind every in-flow section instead of being painted over
-          by an opaque body. Do not change its z-index to "fix" a stacking
-          problem: if it ever goes invisible again the bug is a background
-          reappearing on body or html, not this element.
+          Fixed, inert, aria-hidden roots at z-index 0. Cosmos paints first,
+          then the stars. Body stays transparent; the content gets its own
+          positioned context above both layers. Never restore an opaque body
+          or the old negative background z-index (see globals.css).
         */}
+        <Cosmos />
         <Starfield />
         {/*
           An overlay, never a gate: children are server rendered right here
@@ -113,7 +112,7 @@ export default function RootLayout({
           sessionStorage checks inside it) and never controls this tree.
         */}
         <Preloader />
-        {children}
+        <div className="relative z-[1]">{children}</div>
       </body>
     </html>
   );

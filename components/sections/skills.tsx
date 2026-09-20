@@ -41,9 +41,9 @@ export function Skills() {
         {/* The content: a recruiter skimming needs the flat list, and it
             doubles as what a screen reader or a failed sphere mount falls
             back to. */}
-        <div className="grid gap-[var(--space-10)] sm:grid-cols-3">
+        <div className="grid gap-[var(--space-10)] sm:grid-cols-2 xl:grid-cols-3">
           {SKILLS.groups.map((group, i) => (
-            <Reveal key={group.title} delay={i * 80}>
+            <Reveal key={group.title} delay={i * 100}>
               <div>
                 <h3 className="text-[length:var(--step-1)] font-semibold">{group.title}</h3>
                 <ul className="mt-[var(--space-4)] flex flex-wrap gap-[var(--space-2)]">

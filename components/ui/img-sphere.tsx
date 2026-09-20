@@ -10,23 +10,20 @@
 
   - "use client" added, missing entirely in the pulled source.
   - autoRotate and momentum both gate on prefers-reduced-motion.
-  - loading="lazy" removed: this machine's automation browsers never fire it
-    (naturalWidth stays 0 with zero network requests), and it buys nothing
-    for a sphere of 14 local SVGs anyway.
+  - Vendored SVG artwork is inlined, with no icon network requests.
   - Photos and the click-to-enlarge modal are gone. This sphere carries
     skill icons, not a gallery, and enlarging an SVG logo has no purpose.
     Dropping the modal also drops the only reason the original needed
     lucide-react, which this repo does not have installed.
   - Every icon renders next to a permanent, visible text label (item.name).
-    An `alt=""` on the <img> avoids double announcing it to a screen reader,
-    and the label is what's left standing if public/icons/<slug>.svg 404s,
-    which is expected to happen for a while: another agent owns that folder
-    and is filling it in on its own schedule.
+    Decorative SVGs are hidden from screen readers to avoid duplicate labels.
+    Unknown slugs fall back to initials; null slugs remain full text tiles.
 */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useIsClient } from "@/components/ui/use-is-client";
 import { usePrefersReducedMotion } from "@/components/ui/use-reduced-motion";
+import { ICONS } from "@/lib/icon-data";
 
 export interface SkillIcon {
   id: string;
@@ -106,13 +103,13 @@ export function ImgSphere({
   containerSize = 420,
   sphereRadius = 170,
   dragSensitivity = 0.45,
-  momentumDecay = 0.95,
+  momentumDecay = 0.97,
   maxRotationSpeed = 5,
   baseImageScale = 0.24,
   hoverScale = 1.25,
   perspective = 1000,
   autoRotate = true,
-  autoRotateSpeed = 0.25,
+  autoRotateSpeed = 0.12,
   className = "",
 }: ImgSphereProps) {
   const isMounted = useIsClient();
@@ -121,7 +118,6 @@ export function ImgSphere({
   const [velocity, setVelocity] = useState<VelocityState>({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [hovered, setHovered] = useState<string | null>(null);
-  const [broken, setBroken] = useState<Set<string>>(new Set());
 
   const containerRef = useRef<HTMLDivElement>(null);
   const lastPointer = useRef({ x: 0, y: 0 });
@@ -137,11 +133,8 @@ export function ImgSphere({
 
   // Fibonacci sphere distribution: even coverage without the poles bunching
   // up. A derived value from items/actualRadius, not state to synchronise:
-  // useMemo instead of the original's useEffect+useState, which needed a
-  // client mount gate of its own for exactly the reason useIsClient above
-  // now covers instead. The Math.random() jitter differs between the
-  // server's one render and the client's, but nothing reads `positions`
-  // until isMounted flips true, so that mismatch never reaches the screen.
+  // useMemo instead of the original's useEffect+useState. Seeded jitter
+  // gives SSR and hydration the same visible icons without a mount gate.
   const positions = useMemo<SphericalPosition[]>(() => {
     const goldenRatio = (1 + Math.sqrt(5)) / 2;
     const angleIncrement = (2 * Math.PI) / goldenRatio;
@@ -325,15 +318,6 @@ export function ImgSphere({
     };
   }, [isMounted, handleMouseMove, handleMouseUp, handleTouchMove, handleTouchEnd]);
 
-  if (!isMounted) {
-    return (
-      <div
-        className="animate-pulse rounded-full border border-hairline bg-surface-1"
-        style={{ width: containerSize, height: containerSize }}
-      />
-    );
-  }
-
   const world = worldPositions();
 
   return (
@@ -375,7 +359,7 @@ export function ImgSphere({
           const size = baseSize * pos.scale;
           const isHovered = hovered === item.id;
           const finalScale = isHovered ? Math.min(hoverScale, hoverScale / pos.scale) : 1;
-          const isBroken = broken.has(item.id);
+          const entry = item.slug && Object.hasOwn(ICONS, item.slug) ? ICONS[item.slug] : undefined;
           // A null slug (Codex, LLMs, RAG) has no logo to fetch at all: no
           // OpenAI mark exists post-trademark-removal, and the other two are
           // categories, not products. Render the full name as a text tile
@@ -414,7 +398,7 @@ export function ImgSphere({
                   >
                     {item.name}
                   </span>
-                ) : isBroken ? (
+                ) : !entry ? (
                   // A missing icon degrades to the first letter of its name,
                   // not to an empty ring. Failing open is a rule on this
                   // project: a hidden element over correct markup reads as a
@@ -428,17 +412,14 @@ export function ImgSphere({
                     {item.name.charAt(0)}
                   </span>
                 ) : (
-                  // next/image expects stable dimensions; this size is
-                  // recomputed every animation frame from the sphere's own
-                  // depth math (pos.scale), which is the entire point of
-                  // the drag. A plain <img> is correct here, not a shortcut.
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={`/icons/${item.slug}.svg`}
-                    alt=""
-                    draggable={false}
-                    className="h-full w-full object-contain"
-                    onError={() => setBroken((prev) => new Set(prev).add(item.id))}
+                  // Trusted generated markup from our vendored MIT Simple
+                  // Icons, never user input. The generated group keeps brand fills.
+                  <svg
+                    viewBox={entry.viewBox}
+                    aria-hidden="true"
+                    focusable="false"
+                    className="h-full w-full"
+                    dangerouslySetInnerHTML={{ __html: entry.path }}
                   />
                 )}
               </div>

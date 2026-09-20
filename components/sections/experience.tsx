@@ -17,7 +17,7 @@ export function Experience() {
             {/* Staggered by index so the rows arrive in sequence rather
                 than as a block, same mechanism Selected work uses. */}
             <Reveal delay={i * 80}>
-              <article className="grid gap-[var(--space-6)] pb-[var(--space-16)] sm:grid-cols-[14rem_1fr]">
+              <article className="grid gap-[var(--space-6)] pb-[var(--space-16)] motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-[var(--ease)] motion-safe:hover:-translate-y-1 sm:grid-cols-[14rem_1fr]">
                 <div>
                   <p className="data text-ink-subtle">{job.period}</p>
                   <p className="data mt-[var(--space-1)] text-ink-subtle">{job.place}</p>

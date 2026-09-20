@@ -1,0 +1,107 @@
+@layer components {
+  /* Default/SSR wrappers do not transform, clip, or establish containing blocks. */
+  .scroll-tilt,
+  .scroll-tilt__track,
+  .scroll-tilt__surface {
+    display: contents;
+  }
+
+  .scroll-tilt[data-sticky-content] {
+    display: contents !important;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .scroll-tilt[data-motion-enabled] {
+      display: block;
+    }
+
+    .scroll-tilt[data-motion-enabled] > .scroll-tilt__track,
+    .scroll-tilt[data-motion-enabled] > .scroll-tilt__track > .scroll-tilt__surface {
+      display: block;
+      min-height: inherit;
+      height: 100%;
+    }
+
+    /* Perspective lives on the parent of the pointer surface, separate from
+       its scroll transform. Cost: compositor layers only while interacting. */
+    .scroll-tilt[data-motion-enabled][data-interacting] > .scroll-tilt__track {
+      perspective: 900px;
+    }
+
+    .scroll-tilt[data-motion-enabled][data-interacting] > .scroll-tilt__track > .scroll-tilt__surface {
+      transform-style: preserve-3d;
+    }
+
+    .scroll-tilt[data-parallax-fallback] > .scroll-tilt__track {
+      transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @supports (animation-timeline: view()) {
+      .scroll-tilt[data-motion-enabled][data-parallax] {
+        view-timeline: --scroll-tilt-view block;
+      }
+
+      .scroll-tilt[data-motion-enabled][data-parallax] > .scroll-tilt__track {
+        animation: scroll-tilt-parallax linear both;
+        animation-timeline: --scroll-tilt-view;
+        animation-range: cover 0% cover 100%;
+      }
+
+      /* Fade and rise on entry. Cost: opacity + transform, no JS. The partial
+         fade keeps content readable at every scroll position, including SSR.
+         Use below the fold; --motion-rise controls travel (default 24px). */
+      .motion-fade-rise {
+        animation: motion-fade-rise linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 100%;
+      }
+
+      /* Horizontal drift across the viewport. Cost: transform only, no JS.
+         --motion-drift controls signed travel (default 24px). */
+      .motion-drift-x {
+        animation: motion-drift-x linear both;
+        animation-timeline: view();
+        animation-range: cover 0% cover 100%;
+      }
+
+      /* Draw a dedicated decorative hairline from its left edge. Cost:
+         transform only, no JS or width animation. Supply height/background
+         on the element; keep text and interactive content outside it. */
+      .motion-hairline-draw {
+        transform-origin: left center;
+        animation: motion-hairline-draw linear both;
+        animation-timeline: view();
+        animation-range: entry 0% cover 35%;
+      }
+    }
+  }
+
+  /* A preference change is immediate, including before the JS listener runs. */
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-tilt__track,
+    .scroll-tilt__surface {
+      transform: none !important;
+      perspective: none !important;
+    }
+  }
+
+  @keyframes scroll-tilt-parallax {
+    from { transform: translateY(var(--scroll-tilt-distance, 0px)); }
+    to { transform: translateY(calc(-1 * var(--scroll-tilt-distance, 0px))); }
+  }
+
+  @keyframes motion-fade-rise {
+    from { opacity: 0.65; transform: translateY(var(--motion-rise, 24px)); }
+    to { opacity: 1; transform: none; }
+  }
+
+  @keyframes motion-drift-x {
+    from { transform: translateX(var(--motion-drift, 24px)); }
+    to { transform: translateX(calc(-1 * var(--motion-drift, 24px))); }
+  }
+
+  @keyframes motion-hairline-draw {
+    from { transform: scaleX(0.08); }
+    to { transform: scaleX(1); }
+  }
+}

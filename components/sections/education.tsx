@@ -1,4 +1,3 @@
-import Reveal from "@/components/reveal";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { EDUCATION } from "@/lib/content";
 
@@ -20,16 +19,14 @@ export function Education() {
       aria-labelledby="education-heading"
       className="mx-auto max-w-[var(--content-max)] border-t border-hairline px-[var(--gutter)] py-[var(--space-24)]"
     >
-      <SectionHeading id="education-heading">Education</SectionHeading>
+      <SectionHeading id="education-heading" quiet>Education</SectionHeading>
 
       <ul className="mt-[var(--space-12)] flex flex-col">
         {EDUCATION.map((entry, i) => (
           <li key={entry.institution}>
-            <Reveal delay={i * 80}>
+            {i > 0 ? <span aria-hidden="true" className="motion-hairline-draw block h-px bg-hairline" /> : null}
               <article
-                className={`grid gap-[var(--space-4)] py-[var(--space-8)] sm:grid-cols-[16rem_1fr] sm:gap-[var(--space-10)] ${
-                  i > 0 ? "border-t border-hairline" : ""
-                }`}
+                className="grid gap-[var(--space-4)] py-[var(--space-8)] sm:grid-cols-[16rem_1fr] sm:gap-[var(--space-10)]"
               >
                 <div>
                   <p className="data text-ink-subtle">{entry.period}</p>
@@ -43,7 +40,6 @@ export function Education() {
                   </p>
                 </div>
               </article>
-            </Reveal>
           </li>
         ))}
       </ul>

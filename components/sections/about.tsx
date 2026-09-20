@@ -1,4 +1,3 @@
-import Reveal from "@/components/reveal";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { ABOUT } from "@/lib/content";
 
@@ -11,25 +10,20 @@ export function About() {
   return (
     <section id="about" aria-labelledby="about-heading" data-tone="warm">
       <div className="mx-auto max-w-[var(--content-max)] border-t border-hairline px-[var(--gutter)] py-[var(--space-24)]">
-        <SectionHeading id="about-heading" eyebrow={ABOUT.eyebrow}>
+        <SectionHeading id="about-heading" eyebrow={ABOUT.eyebrow} quiet>
           {ABOUT.headline}
         </SectionHeading>
 
-        <Reveal>
           <div className="mt-[var(--space-8)] flex w-24 aspect-square items-center justify-center border border-hairline bg-surface-2 p-[var(--space-2)]">
             <span className="label text-center">Portrait pending</span>
           </div>
-        </Reveal>
 
         {ABOUT.paragraphs.map((paragraph) => (
-          <Reveal key={paragraph}>
-            <p className="mt-[var(--space-6)] max-w-[var(--measure)] text-ink-muted">{paragraph}</p>
-          </Reveal>
+          <p key={paragraph} className="mt-[var(--space-6)] max-w-[var(--measure)] text-ink-muted">{paragraph}</p>
         ))}
 
         <hr className="m-rule my-[var(--space-16)]" />
 
-        <Reveal>
           <div className="grid gap-[var(--space-8)] sm:grid-cols-[3fr_2fr] sm:items-start">
             <div>
               <h3 className="text-[length:var(--step-2)]">{ABOUT.car.heading}</h3>
@@ -41,7 +35,6 @@ export function About() {
               <span className="label">Photograph pending</span>
             </div>
           </div>
-        </Reveal>
       </div>
     </section>
   );
