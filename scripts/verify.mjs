@@ -38,7 +38,7 @@ try {
   process.exit(2);
 }
 
-const URL = process.argv[2] || "http://localhost:3000/";
+const TARGET_URL = process.argv[2] || "http://localhost:3000/";
 const OUT = process.argv[3] || "./hero.png";
 
 const fails = [];
@@ -77,7 +77,7 @@ try {
   const requestUrls = [];
   page.on("request", (r) => requestUrls.push(r.url()));
 
-  await page.goto(URL, { waitUntil: "domcontentloaded", timeout: 60000 });
+  await page.goto(TARGET_URL, { waitUntil: "domcontentloaded", timeout: 60000 });
   // Let next/font settle so we measure the real family, not the fallback.
   await page.evaluate(() => document.fonts.ready);
   await new Promise((r) => setTimeout(r, 600));
@@ -165,15 +165,40 @@ try {
   check("labels use JetBrains Mono", /JetBrains/i.test(label || ""), label);
 
   // ---- 3. The graphite ground actually painted.
-  const ground = await page.evaluate(() => {
-    const htmlBg = getComputedStyle(document.documentElement).backgroundColor;
-    const bodyBg = getComputedStyle(document.body).backgroundColor;
-    return { htmlBg, bodyBg };
-  });
+  /*
+    Resolve design tokens through the browser's own colour parser rather than
+    hardcoding hex values in this file.
+
+    This check used to assert the literal string "rgb(8, 9, 11)". When the
+    palette was deepened to #05060b the check failed, and it was reporting a
+    stale expectation rather than a defect. A harness that has to be edited
+    every time a token legitimately changes will eventually be edited to agree
+    with a bug. Reading the token means it can only ever fail when html and the
+    token genuinely disagree, which is the thing worth knowing.
+  */
+  const resolveToken = (name) =>
+    page.evaluate((prop) => {
+      const probe = document.createElement("span");
+      probe.style.color = getComputedStyle(document.documentElement)
+        .getPropertyValue(prop)
+        .trim();
+      document.body.appendChild(probe);
+      const rgb = getComputedStyle(probe).color;
+      probe.remove();
+      return rgb;
+    }, name);
+
+  const canvasToken = await resolveToken("--canvas");
+  const accentToken = await resolveToken("--accent");
+
+  const ground = await page.evaluate(() => ({
+    htmlBg: getComputedStyle(document.documentElement).backgroundColor,
+    bodyBg: getComputedStyle(document.body).backgroundColor,
+  }));
   check(
-    "html carries the canvas colour",
-    ground.htmlBg === "rgb(8, 9, 11)",
-    ground.htmlBg
+    "html carries the canvas colour token",
+    ground.htmlBg === canvasToken,
+    `${ground.htmlBg}, token is ${canvasToken}`
   );
   check(
     "body stays transparent (the blank-screen bug)",
@@ -181,18 +206,35 @@ try {
     ground.bodyBg
   );
 
-  // ---- 4. The accent budget. Red should be rare, not a theme.
-  const accentCount = await page.evaluate(() => {
+  /*
+    ---- 4. The accent budget. Red should be rare, not a theme.
+
+    Counted among elements actually INTERSECTING THE VIEWPORT, because that is
+    what the rule in app/globals.css actually says: "if it appears more than
+    about six times in a viewport, something has gone wrong". The previous
+    version of this check counted every element in the whole document, so it
+    grew every time a section was added and measured page length as much as it
+    measured restraint.
+  */
+  const accentCount = await page.evaluate((accent) => {
     let n = 0;
     for (const el of document.querySelectorAll("*")) {
+      const r = el.getBoundingClientRect();
+      const onScreen =
+        r.bottom > 0 && r.top < window.innerHeight && r.width > 0 && r.height > 0;
+      if (!onScreen) continue;
       const cs = getComputedStyle(el);
       for (const v of [cs.color, cs.backgroundColor, cs.borderTopColor]) {
-        if (v === "rgb(229, 72, 77)") n++;
+        if (v === accent) n++;
       }
     }
     return n;
-  });
-  check("accent is used and is rare (1..12)", accentCount >= 1 && accentCount <= 12, `${accentCount} uses`);
+  }, accentToken);
+  check(
+    "accent is rare in a viewport (1..12)",
+    accentCount >= 1 && accentCount <= 12,
+    `${accentCount} uses in the first viewport`
+  );
 
   // ---- 5. Literal pixel count. Not a frame counter. Actual painted pixels.
   const shot = await page.screenshot({ encoding: "base64" });
@@ -320,18 +362,38 @@ try {
     const sphereIcons = await page.evaluate(() => {
       const wrap = document.querySelector("[data-sphere]");
       if (!wrap) return null;
-      const svgCount = wrap.querySelectorAll("[data-sphere-item] svg").length;
-      const imgCount = wrap.querySelectorAll("[data-sphere-item] img").length;
-      return { svgCount, imgCount };
+      const items = wrap.querySelectorAll("[data-sphere-item]");
+      return {
+        itemCount: items.length,
+        svgCount: wrap.querySelectorAll("[data-sphere-item] svg").length,
+        imgCount: wrap.querySelectorAll("[data-sphere-item] img").length,
+      };
     });
     const slugCounts = countSkillSlugs();
     check("skill sphere found", !!sphereIcons);
     if (sphereIcons) {
       check("sphere icons are inline svg, not img", sphereIcons.imgCount === 0, `${sphereIcons.imgCount} img tags`);
+      /*
+        The sphere culls by z depth, so the DOM holds only the items currently
+        facing the viewer, not all of them. An earlier version of this check
+        asserted the rendered svg count equalled every non-null slug in the
+        content file, which could only ever pass if culling were broken.
+
+        The invariant that actually matters is that nothing renders as a blank
+        or a letter when it should have artwork. Three items legitimately carry
+        slug: null (Codex, LLMs and RAG have no usable brand mark) and render
+        their name as text instead. So among the items on screen, the number
+        WITHOUT an svg must never exceed that known allowance. One more than
+        that means a slug failed to resolve against lib/icon-data.ts and
+        degraded to its first letter, which is exactly the silent failure this
+        is here to catch.
+      */
+      const withoutArtwork = sphereIcons.itemCount - sphereIcons.svgCount;
       check(
-        "sphere icon count matches non-null slugs in lib/content.ts",
-        sphereIcons.svgCount === slugCounts.nonNull,
-        `sphere has ${sphereIcons.svgCount}, content.ts has ${slugCounts.nonNull} non-null slugs`
+        "every sphere item with a slug rendered real artwork",
+        sphereIcons.itemCount > 0 && withoutArtwork <= slugCounts.nullCount,
+        `${sphereIcons.itemCount} on screen, ${sphereIcons.svgCount} with artwork, ` +
+          `${withoutArtwork} without (at most ${slugCounts.nullCount} allowed)`
       );
     }
     const iconRequests = requestUrls.filter((u) => /\/icons\/.*\.svg(\?|$)/i.test(u));
@@ -351,19 +413,37 @@ try {
       const cs = getComputedStyle(el);
       return { pointerEvents: cs.pointerEvents, ariaHidden: el.getAttribute("aria-hidden") };
     }
-    const canvas = document.querySelector("canvas");
+    /*
+      Prefer the starfield's own class over "the first canvas on the page".
+      There are two canvases now, the 2D starfield and the WebGL hero rotor,
+      and document order is not a contract worth depending on.
+    */
+    const canvas =
+      document.querySelector("canvas.space-starfield") ||
+      document.querySelector("canvas");
     const cosmos = document.querySelector(".cosmos");
     let painting = null;
+    let coverage = 0;
     if (canvas) {
       try {
         const ctx = canvas.getContext("2d");
-        const w = Math.min(canvas.width || 0, 64);
-        const h = Math.min(canvas.height || 0, 64);
-        if (ctx && w > 0 && h > 0) {
-          const data = ctx.getImageData(0, 0, w, h).data;
+        /*
+          Scan the WHOLE canvas, not a corner.
+
+          This used to read a 64 by 64 patch of the top left, which is 4,096 of
+          roughly 1,296,000 pixels. A star field paints about 0.1 percent of its
+          area, so the expected number of hits in that patch is about four and
+          the check was effectively a coin flip: it passed on one run and failed
+          on the next with nothing in between having changed. A full scan is a
+          few milliseconds once and gives a number that means something.
+        */
+        if (ctx && canvas.width > 0 && canvas.height > 0) {
+          const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+          const total = data.length / 4;
           let nonTransparent = 0;
           for (let i = 3; i < data.length; i += 4) if (data[i] > 0) nonTransparent++;
           painting = nonTransparent;
+          coverage = nonTransparent / total;
         } else {
           painting = 0;
         }
@@ -371,16 +451,26 @@ try {
         painting = -1;
       }
     }
-    return { canvas: info(canvas), cosmos: info(cosmos), painting };
+    return { canvas: info(canvas), cosmos: info(cosmos), painting, coverage };
   });
   check("starfield canvas exists", !!layers.canvas, layers.canvas ? "" : "no <canvas> found on the page");
   if (layers.canvas) {
     check("starfield is pointer-events none", layers.canvas.pointerEvents === "none", layers.canvas.pointerEvents);
     check("starfield is aria-hidden", layers.canvas.ariaHidden === "true", layers.canvas.ariaHidden);
+    /*
+      An upper bound as well as a lower one. Zero lit pixels means the sky is
+      not painting. But a coverage anywhere near solid means something is
+      filling the canvas with a background, which would be the old blank-screen
+      bug wearing a disguise: the instrument would read "painting" while the
+      stars themselves were gone. A real star field lands well under one
+      percent.
+    */
     check(
-      "starfield canvas is actually painting stars",
-      layers.painting > 0,
-      layers.painting === -1 ? "could not read canvas pixels" : `${layers.painting} non-transparent px sampled`
+      "starfield canvas is painting stars, and only stars",
+      layers.painting > 0 && layers.coverage < 0.05,
+      layers.painting === -1
+        ? "could not read canvas pixels"
+        : `${layers.painting} lit px, ${(layers.coverage * 100).toFixed(3)}% coverage`
     );
   }
   check("cosmos layer exists", !!layers.cosmos, layers.cosmos ? "" : "no .cosmos found on the page");

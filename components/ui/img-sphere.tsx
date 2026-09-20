@@ -294,6 +294,26 @@ export function ImgSphere({
 
   useEffect(() => {
     if (!isMounted) return;
+    /*
+      Only run a frame loop when there is something for it to advance.
+
+      This used to reschedule unconditionally for as long as the component was
+      mounted. Under prefers-reduced-motion that meant roughly sixty wasted
+      callbacks a second forever: auto rotation is already disabled, a settled
+      velocity is exactly zero, so updateMomentum ran and changed nothing while
+      still holding the main thread and the device awake. It was measured at
+      482 requestAnimationFrame calls in one second across the page, and the
+      sphere was the bulk of it.
+
+      The three states that genuinely need a frame are auto rotation, an
+      in-progress drag, and momentum still decaying after one. updateMomentum
+      snaps velocity to exactly zero once a coast falls below its threshold,
+      which re-runs this effect and lets the loop stop on its own.
+    */
+    const idle =
+      !effectiveAutoRotate && !isDragging && velocity.x === 0 && velocity.y === 0;
+    if (idle) return;
+
     const animate = () => {
       updateMomentum();
       frame.current = requestAnimationFrame(animate);
@@ -302,7 +322,14 @@ export function ImgSphere({
     return () => {
       if (frame.current) cancelAnimationFrame(frame.current);
     };
-  }, [isMounted, updateMomentum]);
+  }, [
+    isMounted,
+    updateMomentum,
+    effectiveAutoRotate,
+    isDragging,
+    velocity.x,
+    velocity.y,
+  ]);
 
   useEffect(() => {
     if (!isMounted) return;
