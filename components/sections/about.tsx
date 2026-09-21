@@ -8,23 +8,23 @@ import { ABOUT } from "@/lib/content";
 // actually works instead of fighting a hardcoded colour.
 export function About() {
   return (
-    <section id="about" aria-labelledby="about-heading" data-tone="warm">
+    <section id="about" aria-labelledby="about-heading" data-tone="warm" className="motion-morph-edge">
       <div className="mx-auto max-w-[var(--content-max)] border-t border-hairline px-[var(--gutter)] py-[var(--space-24)]">
         <SectionHeading id="about-heading" eyebrow={ABOUT.eyebrow} quiet>
           {ABOUT.headline}
         </SectionHeading>
 
-          <div className="mt-[var(--space-8)] flex w-24 aspect-square items-center justify-center border border-hairline bg-surface-2 p-[var(--space-2)]">
+          <div className="motion-drift-x [--motion-drift:-18px] mt-[var(--space-8)] flex w-24 aspect-square items-center justify-center border border-hairline bg-surface-2 p-[var(--space-2)]">
             <span className="label text-center">Portrait pending</span>
           </div>
 
         {ABOUT.paragraphs.map((paragraph) => (
-          <p key={paragraph} className="mt-[var(--space-6)] max-w-[var(--measure)] text-ink-muted">{paragraph}</p>
+          <p key={paragraph} className="motion-fade-rise mt-[var(--space-6)] max-w-[var(--measure)] text-ink-muted">{paragraph}</p>
         ))}
 
-        <hr className="m-rule my-[var(--space-16)]" />
+        <hr className="motion-hairline-draw m-rule my-[var(--space-16)]" />
 
-          <div className="grid gap-[var(--space-8)] sm:grid-cols-[3fr_2fr] sm:items-start">
+          <div className="motion-fade-rise [--motion-rise:36px] grid gap-[var(--space-8)] sm:grid-cols-[3fr_2fr] sm:items-start">
             <div>
               <h3 className="text-[length:var(--step-2)]">{ABOUT.car.heading}</h3>
               <p className="mt-[var(--space-4)] max-w-[var(--measure)] text-ink-muted">

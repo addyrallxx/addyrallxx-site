@@ -73,7 +73,7 @@
   .cosmos-bloom {
     border-radius: 50%;
     opacity: 0.7;
-    will-change: transform;
+    will-change: transform, translate;
     background-repeat: no-repeat;
     animation-duration: 54s;
     animation-timing-function: ease-in-out;
@@ -84,21 +84,27 @@
   .cosmos-bloom-indigo {
     background-image: radial-gradient(ellipse at 28% 38%, rgba(52, 61, 126, 0.075) 0%, rgba(30, 37, 82, 0.035) 25%, transparent 58%);
     animation-name: cosmos-drift-indigo;
-    translate: calc(var(--cosmos-progress, 0) * -9px) calc(var(--cosmos-progress, 0) * 6px);
+    translate: calc(var(--cosmos-progress, 0) * -150px) calc(var(--cosmos-progress, 0) * 104px);
+    rotate: calc(var(--cosmos-progress, 0) * 26deg);
+    scale: calc(1 + var(--cosmos-progress, 0) * 0.38);
   }
 
   .cosmos-bloom-teal {
     background-image: radial-gradient(ellipse at 74% 28%, rgba(38, 100, 103, 0.06) 0%, rgba(23, 64, 67, 0.028) 27%, transparent 60%);
     animation-duration: 67s;
     animation-name: cosmos-drift-teal;
-    translate: calc(var(--cosmos-progress, 0) * 6px) calc(var(--cosmos-progress, 0) * -7px);
+    translate: calc(var(--cosmos-progress, 0) * 128px) calc(var(--cosmos-progress, 0) * -162px);
+    rotate: calc(var(--cosmos-progress, 0) * -19deg);
+    scale: calc(1 - var(--cosmos-progress, 0) * 0.16);
   }
 
   .cosmos-bloom-ember {
     background-image: radial-gradient(ellipse at 68% 78%, rgba(152, 45, 42, 0.05) 0%, rgba(95, 30, 30, 0.022) 24%, transparent 55%);
     animation-duration: 81s;
     animation-name: cosmos-drift-ember;
-    translate: calc(var(--cosmos-progress, 0) * -5px) calc(var(--cosmos-progress, 0) * -5px);
+    translate: calc(var(--cosmos-progress, 0) * -118px) calc(var(--cosmos-progress, 0) * -136px);
+    rotate: calc(var(--cosmos-progress, 0) * 33deg);
+    scale: calc(1 + var(--cosmos-progress, 0) * 0.26);
   }
 
   .cosmos-vignette {
@@ -140,6 +146,8 @@
       animation: none;
       transform: none;
       translate: none;
+      rotate: none;
+      scale: none;
       will-change: auto;
     }
   }

@@ -32,7 +32,7 @@ export function Currently() {
           <li key={item.name} className="min-w-0 bg-canvas first:rounded-t-[var(--radius-lg)] last:rounded-b-[var(--radius-lg)] md:first:rounded-l-[var(--radius-lg)] md:first:rounded-tr-none md:last:rounded-r-[var(--radius-lg)] md:last:rounded-bl-none">
             <Reveal delay={i * 80}>
               <ScrollTilt intensity={0.35}>
-              <article className="flex flex-col rounded-[var(--radius-lg)] bg-canvas p-[var(--space-8)]">
+              <article className={`motion-drift-x ${i === 1 ? "[--motion-drift:-26px]" : "[--motion-drift:20px]"} flex flex-col rounded-[var(--radius-lg)] bg-canvas p-[var(--space-8)]`}>
                 <p className="label">{item.label}</p>
                 <h3 className="mt-[var(--space-4)] text-[length:var(--step-2)] font-semibold">
                   {item.name}

@@ -26,7 +26,7 @@ export function Education() {
           <li key={entry.institution}>
             {i > 0 ? <span aria-hidden="true" className="motion-hairline-draw block h-px bg-hairline" /> : null}
               <article
-                className="grid gap-[var(--space-4)] py-[var(--space-8)] sm:grid-cols-[16rem_1fr] sm:gap-[var(--space-10)]"
+                className="motion-fade-rise [--motion-rise:18px] grid gap-[var(--space-4)] py-[var(--space-8)] sm:grid-cols-[16rem_1fr] sm:gap-[var(--space-10)]"
               >
                 <div>
                   <p className="data text-ink-subtle">{entry.period}</p>

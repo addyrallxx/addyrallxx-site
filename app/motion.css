@@ -73,6 +73,21 @@
         animation-timeline: view();
         animation-range: entry 0% cover 35%;
       }
+
+      /* A genuine shape change, not a move or a fade. The warm band arrives
+         as a wedge and settles flat, so the paper edge is cut at an angle
+         while it is coming up and square once it has landed. Cost: clip-path
+         only, interpolated by the compositor.
+
+         The wedge is measured in vh and only ever eats into the band's own
+         top padding, so it cannot clip text at any viewport height, and it
+         resolves to a full rectangle, so stopping mid scroll never leaves
+         content cut off. */
+      .motion-morph-edge {
+        animation: motion-morph-edge linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 18%;
+      }
     }
   }
 
@@ -103,5 +118,10 @@
   @keyframes motion-hairline-draw {
     from { transform: scaleX(0.08); }
     to { transform: scaleX(1); }
+  }
+
+  @keyframes motion-morph-edge {
+    from { clip-path: polygon(0% 3.2vh, 100% 0%, 100% 100%, 0% 100%); }
+    to { clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%); }
   }
 }
