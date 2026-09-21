@@ -11,12 +11,18 @@ Dhaka to Calgary, chapters as places not sections, replacing the old
 create-next-app-flavoured site at `addyrallxx-site.vercel.app`. The build was
 originally a continuous scrolled Three.js particle world; that build was
 rejected by Adnan on 2026-09-02 (bizarre, generic AI copy, assistant chatter
-reached the published page) and its code deleted. Current direction: a dark
-editorial spine with warm photographic chapters. See `NEXT-SESSION.md` for
-the chunk 0 reset and what happens next. `PLAN.md` sections 1 to 6 still
-carry the narrative spine and content reasoning (Dhaka to Calgary,
-confidentiality rules, chapter content); its Three.js-specific technical
-sections are superseded.
+reached the published page) and its code deleted. It was rebuilt as a dark
+editorial spine, then, per Adnan's own stated acceptance bar ("a cinematic
+experience that is visually pleasing and addictive to scroll thru," see
+`GOAL.md`), pushed further: current direction is a deep space piece, a real
+3D star volume and a procedural galaxy behind an editorial spine with warm
+photographic chapters, not a flat dark background behind static content.
+Read `GOAL.md` first now, every session: it is the cold-start plan of record
+and carries the current "level" (Adnan grades progress as Level 1/2/3, not
+chunk numbers). See `NEXT-SESSION.md` for exactly what has shipped. `PLAN.md`
+sections 1 to 6 still carry the narrative spine and content reasoning (Dhaka
+to Calgary, confidentiality rules, chapter content); its Three.js-specific
+technical sections are superseded.
 
 ## Stack, scaffolded and building
 
@@ -25,10 +31,14 @@ and as `totaltex-web`.
 
 Lenis is installed and mounted in `app/layout.tsx`. gsap is installed and
 loaded only by `components/smooth-scroll.tsx`, which drives Lenis.
-framer-motion is installed and, as of chunk 2, is used by
-`components/ui/preloader.tsx` (confirmed by `grep -rn "framer-motion"
-components/ app/`). It does not power the reveals or the sphere. Reveals are
-plain CSS
+**`framer-motion` is installed but no longer used anywhere in `components/`
+or `app/`** (confirmed by `grep -rn "framer-motion" components/ app/`, which
+now returns only a comment in `components/reveal.tsx` explaining why
+`Reveal` deliberately avoids it). It powered `components/ui/preloader.tsx`
+as of chunk 2; the Level 3 galaxy work (2026-09-20) rewrote the preloader to
+share the Galaxy WebGL canvas instead and dropped the import. The package is
+still in `package.json` (`^13.1.1`), unused until something reaches for it
+again. Reveals are plain CSS
 (`animation-timeline: view()`) with an IntersectionObserver fallback in
 `components/reveal.tsx`, deliberately not a motion library, because they run
 on dozens of elements per page and must not block paint.
@@ -204,3 +214,47 @@ system, built fresh.
   pattern elsewhere. When fixing a contrast, sizing, or colour bug tied to a
   reusable class or token, grep every other place that class or token is
   used before calling the fix done.
+- **`git add -A` while a subagent is mid-write stages a half-finished
+  state.** Level 3 (2026-09-20) had a commit sweep up an in-progress
+  `scripts/capture-fittrack.mjs` run and delete screenshots mid-flight,
+  leaving `work.tsx` pointing at two image paths that no longer existed on
+  disk. Caught before push only by manually diffing every referenced image
+  path against what actually exists in `public/`. Never `git add -A` while
+  any agent, background or foreground, still has files open.
+- **A 404ing image is invisible to every other check.** `next/image` takes a
+  string and never validates it, TypeScript passes because a path is just a
+  string, and a visual check passes if it happens to look elsewhere on the
+  page. `scripts/verify.mjs` now listens for every network response and
+  fails on any status >= 400. Any new verification harness in this repo
+  needs the same check.
+- **A check placed before the thing it verifies has happened will pass by
+  construction, not by correctness.** The 404 check above was first placed
+  near the top of `verify.mjs`, before the harness scrolls the page; every
+  project image on this site is lazy loaded, so it observed zero requests
+  and passed trivially. Moved to the end of the run, where it now observes
+  real traffic. A green check that cannot fail is worse than no check.
+- **Contrast against a design token is not contrast against what actually
+  gets painted.** A 390x844 capture showed the hero galaxy sitting directly
+  behind the lead paragraph; `--ink-muted` measures a clean ratio against
+  the flat canvas colour but far less against a bright star rendered behind
+  a letter. Only a real screenshot caught it, not the numeric contrast
+  check. When a background layer moves (a galaxy, a starfield, a bloom
+  layer) and text sits over it, check a real capture, not just the token
+  pair.
+- **A verification threshold can be miscalibrated and fail a correct
+  build.** The starfield paint check in `scripts/verify.mjs` originally
+  capped ANY non-zero alpha at 5 percent and failed a correct, working
+  build at 5.121 percent, because a dense glow field spreads faint alpha
+  over a lot of pixels without that being a fill bug. It now checks two
+  things: at least one lit pixel exists, and coverage at 50 percent alpha or
+  higher stays under a 25 percent ceiling. If a new visual check starts
+  failing a build that looks correct, suspect the threshold before the
+  build.
+- **A CSS override fighting a Tailwind utility via `:has()` is a
+  silent-failure trap.** `hero-object.css` used to match a compound
+  `:has()` selector to defeat a `hidden md:block` utility on a parent
+  element; any change to that parent's nesting would have silently stopped
+  the selector matching, with the overridden element just vanishing on
+  phones and nothing failing anywhere. Fix this class of bug at the cause
+  (give the parent a class or attribute the child can target directly), not
+  by hardening the `:has()` selector.
