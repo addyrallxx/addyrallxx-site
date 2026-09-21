@@ -6,12 +6,138 @@ rules. Then `PLAN.md` sections 1 to 7 for the narrative spine and
 confidentiality rules (its Three.js-specific technical sections are
 superseded).
 
-Last updated **2026-09-20, Level 3.** Branch `rebuild`, HEAD `19c7692`
-("Level 3: a real galaxy, and the red is gone"). Not yet deployed to a
-checked preview by this checkpoint, verification below ran against a local
-production build.
+Last updated **2026-09-20, Level 3 (complete pending photography).** Branch
+`rebuild`, HEAD `f4a5627` ("Stop the harness measuring the intro overlay
+instead of the page"), on top of `b9aea76` ("Two real shape morphs, and a
+background that actually reacts"). Both are deployed. Production is
+`addyrallxx-site.vercel.app`, publicly reachable, serving `b9aea76` as
+`dpl_5Adw1ftDjN2QL2b377oQWRGMGNt7`, state READY. **The verification below
+ran against that live URL, not against localhost.**
 
-## The headline: Level 3 shipped, a real galaxy replaced a spinning rotor, and the red accent is gone for good
+## The headline: Agent J's unfinished motion pass is closed, two real shape morphs shipped, and the nebula finally has visible depth
+
+Commit `b9aea76`, later the same day as `19c7692` below, did three things.
+
+**First, it closed out Agent J's motion pass from the previous session.**
+Agent J died to the Codex usage limit partway through a brief covering
+motion and morphing across every remaining section, and never wrote a
+report. Checked directly against the diffs rather than trusted from any
+summary: Agent J had finished `experience.tsx`, `next-up.tsx`, `skills.tsx`
+and `work.tsx`, and never started `about.tsx`, `currently.tsx` or
+`education.tsx`. This session covered those three. `about.tsx` had
+literally zero scroll motion of any kind before this commit. `education.tsx`
+and `currently.tsx` were close behind. `section-heading.tsx` was checked and
+needed nothing, it already had `motion-hairline-draw` from an earlier pass.
+`mindset.tsx` needed nothing either, and the reason matters: it already
+carries a third shape morph, older than either of the two below. Each
+principle card's backing animates `inset(12% 5% round 48px)` to
+`inset(0% 0% round 16px)` on a real `ViewTimeline`, with an
+IntersectionObserver fallback, and only the backing moves so the text can
+never clip. Verified running on the live deployment, 6 distinct
+intermediate shapes across its entry.
+
+**Second, two more genuine scroll driven shape morphs shipped**, the thing the
+Level 3 brief asked for. Counting the `mindset.tsx` backing morph above, the
+page now has three. Before this commit it had one, and nothing
+real shape morphs on the page, only translate/opacity/blur reveals.
+
+- `.motion-morph-edge` in `app/motion.css`, applied to the warm About band.
+  Animates `clip-path: polygon(...)` so the band's top edge arrives as a
+  wedge and settles flat. Range `entry 0% entry 18%`.
+- A `carousel-frame-morph` keyframe in `app/media.css` on
+  `.media-carousel-frame`. Animates `clip-path: inset(9% 0% 9% 0% round
+  40px)` to `inset(0% round var(--radius-md))`, so the project media frame
+  opens from a rounded letterbox slit into a full rectangle. Written as a
+  second comma separated entry inside the frame's existing `animation`
+  rule rather than a new utility class, because a second class would set
+  `animation` again and silently drop whichever rule the cascade put
+  second (see `CLAUDE.md`'s "Known traps").
+
+Measured in real Chrome, not eyeballed: at **1440x900**, a fine sweep of the
+About band's own entry window read 6 distinct intermediate `clip-path`
+values, the wedge peaking at 28.8px and closing to a full rectangle; the
+carousel frame read 11 distinct intermediate values, settling at
+`inset(0% round 8px)`. At **390x844 (phone)**, the same sweep read 6 and 10
+distinct intermediate values, wedge peaking at 26.9px, so phone parity on
+both morphs is confirmed numerically, in real Chrome, not assumed from the
+desktop pass. A separate wedge safety probe confirms the wedge only ever
+cuts into the band's own top padding, never text: at 1440x900 the first
+content inside the About band sits 97px below the band's top edge while the
+wedge peaks at 26px; at 390x844 the same clearance is 97px against a 24px
+wedge.
+
+**The first probe of these morphs read as a failure and was not.** It swept
+the whole page in 13 scroll steps; both morphs run over short ranges, so a
+whole-page sweep stepped straight over them and observed only the two
+keyframe endpoints, which reads identically to "the animation is not
+attached." Re-run at fine resolution over each element's own entry window,
+it read the 6 and 11 intermediate shapes above. Full trap writeup in
+`CLAUDE.md`.
+
+**These probe scripts live in the session scratchpad, not in this repo.**
+They are not committed and not part of `npm run verify`. If the morphs need
+re-checking in a future session, the sweep has to be rebuilt; the technique
+(fine-step sweep over the element's own entry window, not the whole page)
+is what to reuse, not any specific script file.
+
+**Third, the nebula bloom layer now genuinely reacts to scroll.** In
+`app/space.css` the three `.cosmos-bloom` elements previously translated
+5px to 9px across the entire page height, driven by `--cosmos-progress`.
+That is imperceptible. They now translate up to 150px, rotate up to 33
+degrees, and scale with scroll depth, each bloom at its own rate and
+direction so the field reads as having depth rather than sliding as one
+sheet. Measured: the nebula moves from `-3px 2.08px | 0.52deg | 1.0076` at
+the top of the page to `-135px 93.6px | 23.4deg | 1.342` at the bottom,
+across 12 distinct measured states. The `prefers-reduced-motion: reduce`
+block was extended to reset `rotate` and `scale` as well as `translate`.
+
+**Verification for this commit**, all real, all re-run rather than taken on
+faith: `npx tsc --noEmit` clean, `npm run build` clean, `npm run copy-gate`
+clean (it reported "every rule proved it can still fail"), and `node
+scripts/verify.mjs https://addyrallxx-site.vercel.app/` at **58 passed, 0
+failed**, including "every request succeeded, no missing assets :: 0 failed
+across 81 requests," driven by real Chrome via puppeteer-core.
+
+The count is 58, not 57, because `f4a5627` added a check. If a later commit
+message or doc says 57, it predates that commit rather than contradicting
+this one. Same shape as the 56 vs 57 note further down: **when a check is
+added, grep the docs for the old number in the same commit.**
+
+**`f4a5627` fixed a harness bug the live run exposed, and it is worth
+reading before writing any new visual check.** The first live run failed
+"above the fold is not blank" at 6,091 lit pixels of 1,296,000 (0.47%),
+while the deployed hero was in fact rendering perfectly. Those 6,091 pixels
+were the single word of greeting text on the intro overlay, which is
+`position: fixed; inset: 0` over the whole viewport and only unmounts once
+it has played. Locally it cleared inside the existing 600ms settle, so the
+check passed. Over the network it did not, so the harness screenshotted the
+overlay and counted it. Same family as the identity check: measuring before
+the thing under test is on screen. The harness now waits for `.galaxy-intro`
+to leave the DOM before anything visual is measured, and reports that wait
+as its own check so a stuck intro says so instead of producing a spread of
+blank page failures with no obvious cause. The gate was proved both
+directions before being trusted (a selector that never clears returns false,
+the real overlay returns true). Same check, same deployment, with the wait
+in place: **174,280 lit pixels (13.45%) instead of 6,091 (0.47%).**
+
+**The three shape morphs were confirmed on the live deployment at both
+widths**, not just locally: at 1440x900 the About wedge shows 6 distinct
+intermediate `clip-path` values and the carousel frame 11; at 390x844,
+6 and 10. The `mindset.tsx` backing morph shows 6. The wedge safety margin
+holds at both widths: first content sits 97px below the band edge against a
+wedge peaking at 26px.
+
+**A verification trap paid for again this session, not a new one.** A
+backgrounded `npm run start` hit `EADDRINUSE` against a stale `next start`
+left running from an earlier session, died, and the harness then measured
+the stale server instead, which was serving a rebuilt `.next` directory out
+from under it. That produced 14 failures that all looked like real
+regressions (wrong fonts, `h1` at 32px, the accent appearing 90 times, a 500
+on a CSS chunk) before it was traced to the stale process. Confirm the
+listening PID is the one you just started before trusting any measurement.
+Full writeup in `CLAUDE.md`'s "Known traps".
+
+## Level 3, the galaxy and palette: shipped earlier the same day, still true
 
 Adnan's own verdict on the Level 2 hero object was that it "looks like an
 image in the back." He was right, so it was replaced rather than tuned.
@@ -111,14 +237,12 @@ New this session:
   Level 3 (this session) is the galaxy, the palette fix, and phone parity
   for both. The commit history still says "chunk" through `13012b6`; treat
   "Level" as the live vocabulary going forward.
-- **`framer-motion` is installed but no longer used anywhere in
-  `components/` or `app/`.** Confirmed by `grep -rn "framer-motion"
-  components/ app/`, which now returns only a comment in `components/reveal.tsx`
-  explaining why `Reveal` deliberately avoids it. It powered `preloader.tsx`
-  as of chunk 2; this session's galaxy work rewrote the preloader to share
-  the Galaxy WebGL canvas instead and dropped the framer-motion import. The
-  package is still in `package.json` (`^13.1.1`), just dead weight until
-  something uses it again or it gets removed.
+- **`framer-motion` was uninstalled in commit `31ffdc4`, later the same
+  day.** It had zero imports left anywhere in `components/`, `app/`, `lib/`
+  or `scripts/` once the galaxy work rewrote `preloader.tsx` to share the
+  Galaxy WebGL canvas instead of framer-motion. `package.json` dependencies
+  are now exactly `gsap`, `lenis`, `next`, `react`, `react-dom`, `three`,
+  confirmed by reading the file directly.
 
 ## Lessons from this session, the valuable part
 
@@ -185,21 +309,27 @@ New this session:
    canvas; both are fixed, confirmed in `components/ui/site-header.tsx:72`
    (`backdrop-blur-[20px] backdrop-saturate-[1.8]`).
 
-## What Agent J did and did not finish
+## Agent J's motion pass: CLOSED
 
-Agent J's brief was motion and morphing across every remaining section
-(`currently`, `experience`, `skills`, `education`, `next-up`, `mindset`,
-`work`, `section-heading`). It hit Codex's usage limit partway through and
-never wrote `J-report.md`. Checked directly against `git show --stat
-19c7692` rather than trusted from any summary: **it touched
-`experience.tsx`, `next-up.tsx`, `skills.tsx`, and `work.tsx`. It did NOT
-touch `currently.tsx`, `education.tsx`, `mindset.tsx`, or
-`section-heading.tsx`** (none of those four appear in the commit's changed
-file list). `currently.tsx` needed no change per its own brief (already had
-tilt and press from an earlier pass). `education.tsx`, `mindset.tsx`, and
-`section-heading.tsx` are genuinely untouched this session and still carry
-whatever motion they had going in. File ownership being disjoint from every
-other agent is why the tree still built cleanly despite J dying mid-task.
+Agent J's original brief (previous session) was motion and morphing across
+every remaining section (`currently`, `experience`, `skills`, `education`,
+`next-up`, `mindset`, `work`, `section-heading`). It hit Codex's usage limit
+partway through and never wrote `J-report.md`. Checked directly against
+`git show --stat 19c7692` rather than trusted from any summary: **it
+touched `experience.tsx`, `next-up.tsx`, `skills.tsx`, and `work.tsx`. It
+did NOT touch `currently.tsx`, `education.tsx`, `mindset.tsx`, or
+`section-heading.tsx`.**
+
+**This session (commit `b9aea76`) finished it.** `about.tsx` (which Agent J
+was never briefed on but which had zero scroll motion of any kind),
+`currently.tsx`, and `education.tsx` are done. `section-heading.tsx` was
+checked and needed no change, it already had `motion-hairline-draw` from an
+earlier pass. **`mindset.tsx` needed no change either**: it already had the strongest
+motion on the page, a `ViewTimeline` driven backing morph, confirmed
+running live. This pass is now CLOSED with no files left over. Do not
+re-run it on `about.tsx`, `currently.tsx`, `education.tsx`,
+`section-heading.tsx` or `mindset.tsx`,
+they are done.
 
 ## What is still outstanding, none of this is done
 
@@ -211,19 +341,15 @@ other agent is why the tree still built cleanly despite J dying mid-task.
   that app exists on disk; when it happens it must come from
   `npm run seed:demo` or `seed:play`, never real data.
 - **Mobile has only been checked at 390x844 in Chrome emulation**, never on
-  physical hardware. The phone measurements in this session's verification
-  (starfield/galaxy frame timing, DPR handling) are Chrome touch/viewport
-  emulation on a laptop, not a real phone.
+  physical hardware. The phone measurements in every checkpoint so far
+  (starfield/galaxy frame timing, DPR handling, this session's shape-morph
+  sweep) are Chrome touch/viewport emulation on a laptop, not a real phone.
 - **FitTrack's own live app has two display quirks visible in the new
   `public/fittrack/` screenshots captured this session**: a workout pill
   reading "1/7 done" when 3 exercises are actually complete, and a water
   widget reading 0% next to a visibly filled bar. These were reported as the
   live app's own behaviour, not a capture artifact; not independently
   re-verified pixel-by-pixel for this checkpoint, flagging as-is.
-- `education.tsx`, `mindset.tsx`, and `section-heading.tsx` have not
-  received the motion/morphing pass the rest of the sections got (see
-  above). Section-heading in particular is shared by every section on the
-  page, so it is the single highest-leverage element still untouched.
 
 ## Deployment
 
@@ -242,9 +368,10 @@ build only.
 2. ~~Level 2, the 3D star volume, Cosmos bloom, coverflow, ScrollTilt, the
    first procedural hero object.~~ Done.
 3. ~~Level 3, the real galaxy, the palette fix, the sphere jitter fix, phone
-   parity.~~ Done, this handoff.
-4. **Finish the motion pass Agent J did not reach**: `education.tsx`,
-   `mindset.tsx`, `section-heading.tsx`.
+   parity.~~ Done.
+4. ~~Finish the motion pass Agent J did not reach, and ship the two shape
+   morphs the Level 3 brief asked for.~~ Done, this handoff (`b9aea76`),
+   with no files left over.
 5. **Photography and the warm band.** Blocked on Adnan's portrait and car
    photographs, and on the Postgres service for TotalTex Ops screenshots.
 6. **Cutover to production**, once the above lands and is verified against a

@@ -31,14 +31,12 @@ and as `totaltex-web`.
 
 Lenis is installed and mounted in `app/layout.tsx`. gsap is installed and
 loaded only by `components/smooth-scroll.tsx`, which drives Lenis.
-**`framer-motion` is installed but no longer used anywhere in `components/`
-or `app/`** (confirmed by `grep -rn "framer-motion" components/ app/`, which
-now returns only a comment in `components/reveal.tsx` explaining why
-`Reveal` deliberately avoids it). It powered `components/ui/preloader.tsx`
-as of chunk 2; the Level 3 galaxy work (2026-09-20) rewrote the preloader to
-share the Galaxy WebGL canvas instead and dropped the import. The package is
-still in `package.json` (`^13.1.1`), unused until something reaches for it
-again. Reveals are plain CSS
+**`framer-motion` was uninstalled in commit `31ffdc4` (2026-09-20).** It had
+zero imports left anywhere in `components/`, `app/`, `lib/` or `scripts/`
+once the Level 3 galaxy work rewrote its last user, the preloader, to share
+the Galaxy WebGL canvas instead. `package.json` dependencies are now exactly
+`gsap`, `lenis`, `next`, `react`, `react-dom`, `three`, confirmed by reading
+the file directly. Reveals are plain CSS
 (`animation-timeline: view()`) with an IntersectionObserver fallback in
 `components/reveal.tsx`, deliberately not a motion library, because they run
 on dozens of elements per page and must not block paint.
@@ -258,3 +256,57 @@ system, built fresh.
   phones and nothing failing anywhere. Fix this class of bug at the cause
   (give the parent a class or attribute the child can target directly), not
   by hardening the `:has()` selector.
+- **A stale `next start` from an earlier session can own port 3000 and
+  silently invalidate an entire verification run.** This happened again in
+  the Level 3 shape-morph session (2026-09-20). A backgrounded `npm run
+  start` failed with `EADDRINUSE`, died, and the harness then measured a
+  server left over from a previous session that was serving a `.next`
+  directory which had just been rebuilt underneath it. The run reported 14
+  failures that all looked like real regressions: fonts reading "Times New
+  Roman" instead of Archivo and Manrope, `h1` at 32px instead of 90px, body
+  copy at 16px, the accent appearing 90 times in one viewport, and a 500 on
+  a CSS chunk. Every one of those was the stale server, not the code. The
+  tell was that the failing chunk hash belonged to the previous build. What
+  to do: after starting a server, confirm with `netstat -ano | grep ":3000"`
+  that the listening PID is the process you just started, or read the
+  server log for `EADDRINUSE`, BEFORE trusting any measurement. A curl
+  returning 200 proves only that something is listening, not that it is
+  yours.
+- **A verification sweep can sample too coarsely and report a false
+  failure.** The first pass at probing the two shape morphs (2026-09-20)
+  walked the whole page in 13 scroll steps. Both morphs run over short
+  ranges (`entry 0% entry 18%` and `entry 0% cover 24%`), so a whole-page
+  sweep stepped straight over them and observed only the two keyframe
+  endpoints, which reads identically to "the animation is not attached".
+  The fix was to sweep each element's own entry window (from one viewport
+  height above the element to its settled position) in fine steps, which
+  then read 6 and 11 distinct intermediate shapes. This is the mirror image
+  of the trap already documented about a check placed where it cannot
+  fail: one cannot fail, this one cannot pass. When a new visual check
+  fails, confirm the sampling resolution can actually resolve the thing
+  being measured before changing the code.
+- **Two rules that both set the `animation` shorthand on one element
+  silently drop one of them.** `.media-carousel-frame` already had
+  `animation: carousel-frame-travel`. Adding the morph as a separate
+  utility class would have set `animation` again, and whichever rule the
+  cascade put second would have won, dropping the other with no error
+  anywhere. The morph was written as a second comma separated entry inside
+  the existing rule instead, with matching comma separated
+  `animation-timeline` and `animation-range`. When an element needs two
+  scroll driven animations, they belong in one declaration, not in two
+  rules.
+- **A full page overlay that unmounts on a timer will be measured instead of
+  the page, and only over a real network.** The intro is
+  `position: fixed; inset: 0` across the whole viewport and only unmounts
+  once it has played. Locally it was gone inside the harness's existing
+  600ms settle, so every visual check passed. Against the live deployment it
+  was not, so the harness screenshotted the overlay and reported "above the
+  fold is not blank" at 6,091 lit pixels of 1,296,000 while the deployed
+  hero was rendering perfectly. `scripts/verify.mjs` now waits for
+  `.galaxy-intro` to leave the DOM before anything visual is measured, and
+  reports that wait as its own check, so a stuck intro says so rather than
+  producing a spread of blank page failures with no obvious cause. With the
+  wait in place the same check on the same deployment reads 174,280 lit
+  pixels. This is the same family as the identity assertion: measure nothing
+  until the thing under test is actually on screen. **A check that passes
+  locally and fails live is more often a race than a regression.**

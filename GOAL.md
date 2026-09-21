@@ -48,10 +48,22 @@ He grades the site in levels and expects each session to move it up one.
 - **Level 2**, 2026-09-20: 3D projected star volume, a Cosmos bloom layer, a
   coverflow slideshow, ScrollTilt, a procedural hero object, the How I work and
   Up next sections, and copy rewritten to lead with capability.
-- **Level 3**, in progress: a real galaxy asset that rotates and morphs, the
-  preloader built around it, a palette that is not red, 60fps everywhere,
-  slideshow chrome replaced with star navigation, full colour contact marks,
-  and phone parity.
+- **Level 3**, essentially complete as of commit `b9aea76` (2026-09-20): a
+  real galaxy asset that rotates via differential rotation, the preloader
+  built around it, a palette that is not red (ion blue `#7b8cff`), 60fps
+  everywhere, slideshow chrome replaced with star navigation, full colour
+  contact marks, phone parity, three genuine scroll driven shape morphs (the
+  About band's edge wedge and the project media frame's letterbox open, both
+  new in `b9aea76`, plus the older `mindset.tsx` card backing driven by a real
+  `ViewTimeline`), and a
+  nebula bloom layer that now visibly parallaxes, rotates and scales with
+  scroll depth instead of drifting a few pixels. The remaining Level 3 gap
+  is real photography and the TotalTex Ops screenshots, both blocked on
+  Adnan, not on engineering. See "Standing backlog" below.
+
+  Commit `f4a5627` follows it and touches only `scripts/verify.mjs`: the live
+  run exposed that the harness was measuring the intro overlay rather than
+  the page. Live production now reads 58 passed, 0 failed.
 
 ### Standing feedback from Adnan, carried forward
 
@@ -253,3 +265,8 @@ Update this list every session. Do not let it go stale.
    confidential by design and will stay that way; TotalTex Ops is item 2.
 4. Keep the motion budget honest. A reader should feel the page is alive and
    should not be able to point at one element and say "that is animating at me".
+5. **Phone has been verified only in Chrome emulation at 390x844, never on
+   real hardware.** Every phone number in every checkpoint since Level 2
+   (starfield and galaxy frame timing, DPR handling, the shape morph sweep)
+   is Chrome touch and viewport emulation on a laptop, not a physical phone.
+   Still honest, still open.
