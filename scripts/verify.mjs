@@ -101,6 +101,23 @@ try {
   await page.evaluate(() => document.fonts.ready);
   await new Promise((r) => setTimeout(r, 600));
 
+  // The intro overlay is position:fixed inset:0 over the whole page and only
+  // unmounts once it has played. Locally it is gone within the 600ms settle
+  // above; over the network it is not, and every visual measurement taken
+  // before it clears is a measurement of the overlay. That is how the live
+  // run once reported "above the fold is not blank :: 6091 lit of 1296000",
+  // which was the single word of greeting text on an otherwise black screen,
+  // while the deployed hero was in fact rendering perfectly.
+  //
+  // Reported as its own check so a stuck intro says so, instead of showing up
+  // as a spread of blank-page failures with no obvious cause.
+  const introCleared = await page
+    .waitForFunction(() => !document.querySelector(".galaxy-intro"), { timeout: 20000 })
+    .then(() => true)
+    .catch(() => false);
+  check("intro overlay cleared before anything was measured", introCleared,
+    introCleared ? "" : "still present after 20s, every visual check below is measuring it");
+
   // ---- Identity first. A share link minted before the deployment finished
   // returns Vercel's own login page, and every check below would then be
   // reporting on that login page instead of the site. Abort the whole run
