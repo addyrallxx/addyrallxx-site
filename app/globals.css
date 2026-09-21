@@ -5,25 +5,28 @@
 @import "./motion.css";
 
 /*
-  Design system: "graphite spine, paper break".
+  Design system: "deep field, paper break".
 
-  Two tones, one system. Most of the site is a cool graphite dark, set in a
-  wide industrial sans, where the only colour on screen comes from real
-  photography and product screenshots. At the personal chapter the ground
-  flips to warm paper and the display face switches to a high contrast
-  serif. That tonal break is the storytelling: the site turns warm exactly
-  where the subject does.
+  Two tones, one system. Most of the site is a near black navy, set in a
+  wide industrial sans, sitting in front of a real 3D star volume and an
+  atmospheric bloom layer. Colour on screen comes from three places and no
+  others: real photography, product screenshots, and the stars themselves.
+  At the personal chapter the ground flips to warm paper and the display
+  face switches to a high contrast serif. That tonal break is the
+  storytelling: the site turns warm exactly where the subject does.
 
-  The model is BMW M's own system, which states its principle plainly: no
-  decorative voltage, the energy comes from full bleed photography, and the
-  tricolor appears sparingly as a signature rather than as decoration.
-  Linear's is the second reference, for the discipline of one chromatic
-  accent that appears on focus rings and a small number of intentional calls
-  to action and nowhere else.
+  The governing idea is a two temperature system taken from the spiral
+  galaxy photography Adnan picked as the reference. Everything structural is
+  cold. Everything warm is a point of light in the background that cannot be
+  clicked. The interface never competes with the sky for attention.
+
+  Linear is the second reference, for the discipline of one chromatic accent
+  that appears on focus rings and a small number of intentional calls to
+  action and nowhere else.
 
   What this deliberately is not: near black plus amber plus Inter plus a
   decorative monospace. That combination is the default look of an AI built
-  portfolio and it is what the previous version of this site shipped.
+  portfolio and it is what the first version of this site shipped.
 */
 
 @theme inline {
@@ -46,39 +49,65 @@
 
 :root {
   /*
-    Colour, graphite spine.
+    Colour, the deep field.
 
-    Cool cast, not a warm near black and not a pure OLED void. #08090b sits
-    between Linear's #010102 (too absolute, kills panel separation) and The
-    Verge's #131313 (warm, reads as newsprint). Panels step up in small
-    increments so a screenshot framed in a panel separates from the page
-    without a border doing all the work.
+    Navy cast, not a warm near black and not a pure OLED void. It has to be
+    dark enough that a sparse star field reads against it and light enough
+    that panels still separate. Linear's #010102 is too absolute and kills
+    panel separation; The Verge's #131313 is warm and reads as newsprint.
+    Panels step up in small increments so a screenshot framed in a panel
+    separates from the page without a border doing all the work.
   */
-  --canvas: #05060b;
+  --canvas: #04050f;
   /* Held separately and never overridden by a tone scope, so the seam
      gradients in the warm section can still reach for the graphite. */
-  --canvas-dark: #05060b;
-  --surface-1: #0d0f16; /* cards, framed screenshots */
-  --surface-2: #141722; /* raised, hover */
-  --hairline: #1f2230;
-  --hairline-strong: #2e3242;
+  --canvas-dark: #04050f;
+  --surface-1: #0b0e1c; /* cards, framed screenshots */
+  --surface-2: #121629; /* raised, hover */
+  --hairline: #1b2036;
+  --hairline-strong: #2a3050;
 
-  --ink: #f1f2f4; /* primary text, bone rather than pure white */
-  --ink-muted: #a6acb9; /* 8.89:1 on canvas */
-  --ink-subtle: #79808f; /* 5.10:1 on canvas. Anything lighter in tone fails AA. */
+  --ink: #f1f2f7; /* 18.17:1 on canvas. Bone, not pure white. */
+  --ink-muted: #a4a9c2; /* 8.74:1 on canvas */
+  --ink-subtle: #767b96; /* 4.88:1 on canvas. Anything lighter in tone fails AA. */
 
   /*
-    The one accent. Automotive red, because the through line of the whole
-    site is cars: a dealership job, then listing automation sold back to
-    dealerships, then the E92. It is also the cleanest possible break from
-    the amber the previous build used.
+    The one accent. Ion blue, and the reasoning is worth keeping because the
+    obvious choice was wrong twice in a row.
 
-    Budget: focus rings, section numerals, link underlines, and exactly one
-    primary call to action per screen. If it appears more than about six
-    times in a viewport, something has gone wrong.
+    It was amber, which is the default look of an AI built portfolio and was
+    rejected with the rest of that build. It was then automotive red, on the
+    argument that the through line of the site is cars. Adnan rejected that
+    too, and he was right for a reason the car argument missed: the site is
+    now a galaxy. The reference photography he picked is emotionally and
+    chromatically COLD, deep navy with blue white cores, and the only warm
+    things in frame are individual stars. A warm accent puts the interface in
+    direct competition with the one thing the background does well.
+
+    So the entire interactive layer goes cold and the warmth lives only in
+    the star field, where it cannot be clicked. That is the strictest reading
+    of the two temperature system in the reference: a cold vast ground, a
+    cold vast interface, warm points of light you cannot touch.
+
+    Not the Tailwind violet that every AI product ships. This is pushed
+    deliberately bluer, off that centroid, so it reads as star light rather
+    than as branding.
+
+    Measured, not estimated: 6.81:1 on canvas, and canvas coloured text ON
+    the accent is the same 6.81:1, which is what the primary button uses.
+
+    WHITE ON THE DEFAULT ACCENT IS 2.98:1 AND FAILS. Do not "fix" a button
+    into white text without re-measuring. White is only legal on
+    --accent-deep, where it measures 6.08:1, which is exactly what the hover
+    state already does.
+
+    Budget: focus rings, rules, link underlines, and exactly one primary call
+    to action per screen. If it appears more than about six times in a single
+    viewport, something has gone wrong. scripts/verify.mjs enforces that
+    count against the live page.
   */
-  --accent: #e5484d;
-  --accent-deep: #b8353a;
+  --accent: #7b8cff;
+  --accent-deep: #4a56c8;
 
   /*
     M tricolour. Used once, as a 3px rule at the single car moment. Never as
@@ -102,9 +131,9 @@
     anything sits on top of at readable opacity. If one of these shows up as
     a recognisable shape rather than as depth, the alpha is too high.
   */
-  --bloom-indigo: #2a3b8f;
-  --bloom-teal: #1a5f6b;
-  --bloom-ember: #6b1f22; /* the site accent, pushed deep enough to sit behind text */
+  --bloom-indigo: #2d3f9e;
+  --bloom-teal: #1d6672;
+  --bloom-ember: #7a3a2e; /* the only warm thing in the system, and it is unclickable */
 
   /*
     Elevation, for panels that are meant to read as floating in that space
@@ -112,13 +141,13 @@
     the drop, a tight one for the contact edge, which is what stops a large
     blur reading as fog.
   */
-  --glass-bg: rgba(13, 15, 22, 0.55);
+  --glass-bg: rgba(11, 14, 28, 0.55);
   --glass-border: rgba(255, 255, 255, 0.08);
   --shadow-float: 0 24px 60px -20px rgba(0, 0, 0, 0.8),
     0 2px 8px -2px rgba(0, 0, 0, 0.6);
   --shadow-lift: 0 40px 90px -28px rgba(0, 0, 0, 0.85),
     0 4px 12px -4px rgba(0, 0, 0, 0.7);
-  --glow-accent: 0 0 40px -8px rgba(229, 72, 77, 0.35);
+  --glow-accent: 0 0 40px -8px rgba(123, 140, 255, 0.35);
 
   /*
     Type scale. Fluid clamp() interpolated between a 375px and a 1440px
@@ -232,8 +261,8 @@
   --ink-muted: #55514a;
   --ink-subtle: #716b61; /* 4.68:1 on paper. Was #837d72 at 3.62, which failed AA. */
 
-  --accent: #c0392f; /* the same red, darkened to hold contrast on paper */
-  --accent-deep: #8f2a22;
+  --accent: #4a56c8; /* 5.39:1 on paper, and paper text ON it is the same */
+  --accent-deep: #333d96; /* paper text on it: 8.28:1 */
 }
 
 /*

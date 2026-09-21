@@ -77,6 +77,25 @@ try {
   const requestUrls = [];
   page.on("request", (r) => requestUrls.push(r.url()));
 
+  /*
+    Every response that failed, so a missing asset cannot ship silently.
+
+    This exists because it nearly did. A concurrent agent replaced the
+    FitTrack screenshots while another commit was being staged, and the
+    project card was left pointing at two filenames that no longer existed.
+    Nothing caught it: the build passed, because next/image takes a string
+    path and never checks it; TypeScript passed, because a path is just a
+    string; and every visual check passed, because they were all looking at
+    the hero. The card would have rendered two empty frames in production.
+
+    A 404 is the one failure that is invisible to every other check in this
+    file, so it gets its own.
+  */
+  const failedResponses = [];
+  page.on("response", (r) => {
+    if (r.status() >= 400) failedResponses.push(`${r.status()} ${r.url()}`);
+  });
+
   await page.goto(TARGET_URL, { waitUntil: "domcontentloaded", timeout: 60000 });
   // Let next/font settle so we measure the real family, not the fallback.
   await page.evaluate(() => document.fonts.ready);
@@ -264,6 +283,8 @@ try {
 
   // ---- 6. No console errors.
   check("no console errors", consoleErrors.length === 0, consoleErrors.slice(0, 3).join(" | "));
+  // The failed-response assertion deliberately does NOT live here. See the
+  // note where it is actually made, near the end of the run.
 
   // ---- 7. Copy gates: no em dash, no en dash anywhere in rendered text.
   const dashes = await page.evaluate(() => {
@@ -424,6 +445,7 @@ try {
     const cosmos = document.querySelector(".cosmos");
     let painting = null;
     let coverage = 0;
+    let solidCoverage = 0;
     if (canvas) {
       try {
         const ctx = canvas.getContext("2d");
@@ -441,9 +463,14 @@ try {
           const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
           const total = data.length / 4;
           let nonTransparent = 0;
-          for (let i = 3; i < data.length; i += 4) if (data[i] > 0) nonTransparent++;
+          let solid = 0;
+          for (let i = 3; i < data.length; i += 4) {
+            if (data[i] > 0) nonTransparent++;
+            if (data[i] >= 128) solid++;
+          }
           painting = nonTransparent;
           coverage = nonTransparent / total;
+          solidCoverage = solid / total;
         } else {
           painting = 0;
         }
@@ -451,26 +478,36 @@ try {
         painting = -1;
       }
     }
-    return { canvas: info(canvas), cosmos: info(cosmos), painting, coverage };
+    return { canvas: info(canvas), cosmos: info(cosmos), painting, coverage, solidCoverage };
   });
   check("starfield canvas exists", !!layers.canvas, layers.canvas ? "" : "no <canvas> found on the page");
   if (layers.canvas) {
     check("starfield is pointer-events none", layers.canvas.pointerEvents === "none", layers.canvas.pointerEvents);
     check("starfield is aria-hidden", layers.canvas.ariaHidden === "true", layers.canvas.ariaHidden);
     /*
-      An upper bound as well as a lower one. Zero lit pixels means the sky is
-      not painting. But a coverage anywhere near solid means something is
-      filling the canvas with a background, which would be the old blank-screen
-      bug wearing a disguise: the instrument would read "painting" while the
-      stars themselves were gone. A real star field lands well under one
-      percent.
+      An upper bound as well as a lower one, but measured at an alpha that
+      means something.
+
+      Zero lit pixels means the sky is not painting at all. A canvas that is
+      close to opaque everywhere means something is filling it with a
+      background, which is the old blank-screen bug wearing a disguise: the
+      instrument reads "painting" while the stars themselves are gone.
+
+      The first version of this bound counted ANY non-zero alpha and capped it
+      at 5 percent, which was miscalibrated and then immediately failed a
+      correct build at 5.121 percent. A dense field of glowing stars spreads a
+      very faint halo over a lot of pixels: that is the glow working, not a
+      fill. The honest test is how much of the canvas is at least HALF opaque.
+      Stars and their bright cores clear that; a background wash would take
+      almost the whole canvas with it.
     */
     check(
       "starfield canvas is painting stars, and only stars",
-      layers.painting > 0 && layers.coverage < 0.05,
+      layers.painting > 0 && layers.solidCoverage < 0.25,
       layers.painting === -1
         ? "could not read canvas pixels"
-        : `${layers.painting} lit px, ${(layers.coverage * 100).toFixed(3)}% coverage`
+        : `${layers.painting} lit px, ${(layers.coverage * 100).toFixed(2)}% any alpha, ` +
+          `${(layers.solidCoverage * 100).toFixed(2)}% at half opacity or more`
     );
   }
   check("cosmos layer exists", !!layers.cosmos, layers.cosmos ? "" : "no .cosmos found on the page");
@@ -630,6 +667,31 @@ try {
     "no-js: no section is invisible (fails open)",
     blankWithNoJs.length === 0,
     blankWithNoJs.map((s) => s.id || "(no id)").join(", ")
+  );
+
+  /*
+    Missing assets, asserted LAST and deliberately so.
+
+    This started life next to the console-error check near the top of the
+    run, where it passed immediately and proved nothing: the harness does
+    not scroll until much later, and every project screenshot is lazily
+    loaded, so at that point in the run the browser had never asked for one.
+    A green check that cannot fail is worse than no check, because it reads
+    as coverage.
+
+    By here the run has scrolled to 20, 50 and 80 percent depth and reloaded
+    twice, so anything the page actually fetches has been fetched. The count
+    is cumulative across the whole session, which is what we want.
+
+    Note the reloads mean a genuinely broken asset can be counted more than
+    once. That inflates the number, never the verdict, so it is left alone.
+  */
+  check(
+    "every request succeeded, no missing assets",
+    failedResponses.length === 0,
+    failedResponses.length
+      ? `${failedResponses.length} failed: ${[...new Set(failedResponses)].slice(0, 4).join(" | ")}`
+      : `0 failed across ${requestUrls.length} requests`
   );
 
   console.log("\nPASS");

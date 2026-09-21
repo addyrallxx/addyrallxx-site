@@ -65,14 +65,26 @@ confidentiality violation.
 Source: live capture of `https://addyrallxx.github.io/fittrack/fittrack.html`
 (Adnan's own shipped app), driven with real Chrome via `puppeteer-core`
 (the in-app Browser pane can't be trusted for this, see project CLAUDE.md).
-Mobile viewport 390x844, `deviceScaleFactor: 2`. Onboarding was completed and
-today's steps and water were logged first so the screenshots show the app in
-active use, not its zeroed first-run state.
+Mobile viewport 390x844, `deviceScaleFactor: 2` throughout, so all six sit
+together in a carousel without jumping. Invented neutral profile ("Alex"),
+not Adnan's own name or any real person's data.
 
-| File | Dimensions | Size |
-|---|---|---|
-| `fittrack-home-dashboard.png` | 780x1688 | 120 KB |
-| `fittrack-nutrition-water.png` | 780x1688 | 114 KB |
+FitTrack is a single continuously scrolling page, not a tabbed app: the
+bottom nav just scrolls a section into view. A full day of activity was
+populated through the real UI (check-ins, steps, two foods added through
+the live Open Food Facts search, water, three workout sets logged with real
+weight and reps and marked done), plus a 35 day weight history backfilled
+through the app's own `localStorage` schema, since the in-app "Log weight"
+flow only ever writes today and has no way to backdate a weigh-in.
+
+| File | Dimensions | Size | Shows |
+|---|---|---|---|
+| `fittrack-home-dashboard.png` | 780x1688 | 127 KB | Home dashboard: activity rings, two of three daily check-ins done, steps at 94% of goal, weight card. |
+| `fittrack-workout-session.png` | 780x1688 | 151 KB | Workout, mid-session: three exercises logged and checked off (real weight/reps on one, shown open), four still pending below. |
+| `fittrack-nutrition-food-search.png` | 780x1688 | 149 KB | Nutrition, live food search open, showing the app's real Open Food Facts results next to its own curated and estimated entries. |
+| `fittrack-nutrition-macros-water.png` | 780x1688 | 127 KB | Nutrition after two real meals were added: macro bars filled in, water partway to goal. |
+| `fittrack-progress-weight-trend.png` | 780x1688 | 159 KB | Progress: a real declining Chart.js weight trend over 35 days, plus the app's own trend/projection maths running on that data. |
+| `fittrack-settings-profile.png` | 780x1688 | 110 KB | Settings: profile, daily targets, notification toggles. |
 
 License: Adnan's own app.
 

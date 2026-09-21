@@ -229,7 +229,7 @@ export function MediaCarousel({ images, label, priority = false }: {
   return (
     <div ref={root} className="media-carousel" role="region" aria-roledescription="carousel"
       aria-label={label} tabIndex={0} data-paused={paused} data-dragging={dragging} data-single={images.length === 1}
-      style={{ "--carousel-dwell": `${DWELL_MS}ms`, "--slide-direction": slide.direction } as CSSProperties}
+      style={{ "--slide-direction": slide.direction } as CSSProperties}
       onPointerEnter={(event) => { if (event.pointerType === "mouse") setHovered(true); }}
       onPointerLeave={() => setHovered(false)}
       onFocus={() => setFocused(true)}
@@ -332,14 +332,15 @@ export function MediaCarousel({ images, label, priority = false }: {
       </div>
       <div className="carousel-caption">
         <p>{images[current].alt}</p>
-        <span className="data carousel-counter" aria-hidden="true">{String(current + 1).padStart(2, "0")} / {String(images.length).padStart(2, "0")}</span>
       </div>
       {images.length > 1 && (
         <div className="carousel-indicators" aria-label={`Choose image in ${label}`}>
           {images.map((image, index) => (
             <button key={`${index}:${image.src}`} type="button" className="carousel-indicator" aria-label={`Show image ${index + 1} of ${images.length} in ${label}`}
               aria-current={index === current ? "true" : undefined} onClick={() => goTo(index, index > current ? 1 : -1)}>
-              <span className="carousel-segment"><span key={index === current ? "active" : "idle"} className={index === current ? "carousel-segment-fill is-active" : "carousel-segment-fill"} /></span>
+              <svg viewBox="0 0 24 24" aria-hidden="true" className="carousel-star">
+                <path d="m12 3.4 2.65 5.37 5.93.86-4.29 4.18 1.01 5.91L12 17 6.7 19.72l1.01-5.91-4.29-4.18 5.93-.86L12 3.4Z" fill={index === current ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+              </svg>
             </button>
           ))}
         </div>

@@ -13,11 +13,11 @@ export function Experience() {
 
       <ol className="mt-[var(--space-12)] flex flex-col">
         {EXPERIENCE.map((job, i) => (
-          <li key={job.company} className={i > 0 ? "border-t border-hairline pt-[var(--space-16)]" : ""}>
+          <li key={job.company} className={i > 0 ? "pt-[var(--space-8)]" : ""}>
             {/* Staggered by index so the rows arrive in sequence rather
                 than as a block, same mechanism Selected work uses. */}
             <Reveal delay={i * 80}>
-              <article className="grid gap-[var(--space-6)] pb-[var(--space-16)] motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-[var(--ease)] motion-safe:hover:-translate-y-1 sm:grid-cols-[14rem_1fr]">
+              <article className="grid gap-[var(--space-6)] rounded-[var(--radius-lg)] border border-hairline bg-surface-1 p-[var(--space-6)] shadow-[var(--shadow-float)] motion-safe:transition-[transform,box-shadow] motion-safe:duration-300 motion-safe:ease-[var(--ease)] motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-[var(--shadow-lift)] sm:grid-cols-[14rem_1fr] sm:p-[var(--space-8)]">
                 <div>
                   <p className="data text-ink-subtle">{job.period}</p>
                   <p className="data mt-[var(--space-1)] text-ink-subtle">{job.place}</p>
@@ -42,11 +42,13 @@ export function Experience() {
                     ))}
                   </ul>
                   <ul className="mt-[var(--space-6)] flex flex-wrap gap-[var(--space-2)]">
-                    {job.tags.map((tag) => (
+                    {job.tags.map((tag, tagIndex) => (
                       <li key={tag}>
-                        <span className="data inline-block rounded-[var(--radius-pill)] border border-hairline px-[var(--space-4)] py-[var(--space-1)] text-ink-subtle">
-                          {tag}
-                        </span>
+                        <Reveal className="inline-block" delay={i * 80 + tagIndex * 45}>
+                          <span className="data inline-block rounded-[var(--radius-pill)] border border-hairline px-[var(--space-4)] py-[var(--space-1)] text-ink-subtle">
+                            {tag}
+                          </span>
+                        </Reveal>
                       </li>
                     ))}
                   </ul>

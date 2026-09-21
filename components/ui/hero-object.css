@@ -1,17 +1,56 @@
-@layer components {
-  .hero-object {
-    position: absolute;
-    inset: 0;
-    display: block;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    pointer-events: none;
-  }
+/*
+  Phone framing for the hero galaxy.
 
+  The `display: block` override that used to sit here is gone. It existed to
+  fight a `hidden md:block` utility on the parent in hero.tsx, matching on
+  `.hero-intro > div:has(> .galaxy)`, which meant any change to that
+  element's nesting would silently stop it matching and the galaxy would
+  disappear on phones with nothing failing anywhere. The parent carries a
+  plain `block` and a `.hero-decoration` class now, so there is nothing left
+  to override.
+
+  What remains is sizing, and sizing is safe to do this way: if the selector
+  ever stops matching the composition looks wrong rather than vanishing, so
+  the failure is visible instead of silent.
+
+  THE PHONE PROBLEM THIS SOLVES, found by looking at a real 390x844 capture
+  rather than by any automated check.
+
+  On desktop the galaxy sits in the right hand column and the copy sits in
+  the left, so the two never overlap. A phone has one column, so a full
+  bleed galaxy lands directly behind the lead paragraph. The headline
+  survives that, because it is 40px and bone white at weight 700. The lead
+  does not: it is around 18px of --ink-muted, and while that measures 8.74:1
+  against the flat canvas, it measures far less against a bright star that
+  happens to sit behind a letter. Contrast against a token is not contrast
+  against what actually got painted.
+
+  So on a phone the galaxy is confined to the headline band and is gone
+  before the body copy starts. It fades from full to nothing between 30 and
+  70 percent of its own height, and the element only covers the top 52
+  percent of the hero, which puts the end of the fade above the paragraph
+  rather than through it. It is also dimmed, because a phone viewport puts
+  the core much closer to the text than a desktop one does.
+
+  If the hero copy ever gets longer or shorter, re-check this against a real
+  capture. There is no automated test for "text is hard to read over a
+  moving background" and there probably cannot be one.
+*/
+@layer utilities {
   @media (width < 768px) {
-    .hero-object {
-      display: none;
+    .hero-decoration {
+      top: 0;
+      right: -12%;
+      width: 112%;
+      height: 52%;
+      opacity: 0.72;
+      mask-image: linear-gradient(
+        to bottom,
+        black 0%,
+        black 30%,
+        rgba(0, 0, 0, 0.35) 55%,
+        transparent 70%
+      );
     }
   }
 }

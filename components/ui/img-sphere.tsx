@@ -61,6 +61,8 @@ interface VelocityState {
   y: number;
 }
 
+const INITIAL_ROTATION: RotationState = { x: 15, y: 15, z: 0 };
+
 interface ImgSphereProps {
   items: SkillIcon[];
   containerSize?: number;
@@ -114,12 +116,14 @@ export function ImgSphere({
 }: ImgSphereProps) {
   const isMounted = useIsClient();
   const reducedMotion = usePrefersReducedMotion();
-  const [rotation, setRotation] = useState<RotationState>({ x: 15, y: 15, z: 0 });
-  const [velocity, setVelocity] = useState<VelocityState>({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [hovered, setHovered] = useState<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const tileRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const rotation = useRef<RotationState>(INITIAL_ROTATION);
+  const velocity = useRef<VelocityState>({ x: 0, y: 0 });
+  const isDraggingRef = useRef(false);
   const lastPointer = useRef({ x: 0, y: 0 });
   const frame = useRef<number | null>(null);
 
@@ -159,12 +163,12 @@ export function ImgSphere({
     [maxRotationSpeed]
   );
 
-  const worldPositions = useCallback((): WorldPosition[] => {
+  const worldPositions = useCallback((currentRotation: RotationState): WorldPosition[] => {
     const raw = positions.map((pos) => {
       const thetaRad = SPHERE_MATH.degreesToRadians(pos.theta);
       const phiRad = SPHERE_MATH.degreesToRadians(pos.phi);
-      const rotXRad = SPHERE_MATH.degreesToRadians(rotation.x);
-      const rotYRad = SPHERE_MATH.degreesToRadians(rotation.y);
+      const rotXRad = SPHERE_MATH.degreesToRadians(currentRotation.x);
+      const rotYRad = SPHERE_MATH.degreesToRadians(currentRotation.y);
 
       let x = pos.radius * Math.sin(phiRad) * Math.cos(thetaRad);
       let y = pos.radius * Math.cos(phiRad);
@@ -219,45 +223,73 @@ export function ImgSphere({
       adjusted[i] = { ...a, scale: Math.max(0.25, scale) };
     }
     return adjusted;
-  }, [positions, rotation, actualRadius, baseSize]);
+  }, [positions, actualRadius, baseSize]);
+
+  const applyWorldPositions = useCallback(
+    (isMoving: boolean) => {
+      const nextWorld = worldPositions(rotation.current);
+      const nextStyles = nextWorld.map((position) => ({
+        transform: `translate3d(${position.x.toFixed(2)}px, ${position.y.toFixed(2)}px, 0) translate3d(-50%, -50%, 0) scale(${position.scale.toFixed(2)})`,
+        opacity: position.fadeOpacity.toFixed(2),
+        visibility: position.isVisible ? "visible" : "hidden",
+        zIndex: String(position.zIndex),
+      }));
+
+      nextStyles.forEach((style, index) => {
+        const tile = tileRefs.current[index];
+        if (!tile) return;
+        tile.style.transform = style.transform;
+        tile.style.opacity = style.opacity;
+        tile.style.visibility = style.visibility;
+        tile.style.zIndex = style.zIndex;
+        tile.style.willChange = isMoving ? "transform" : "";
+      });
+    },
+    [worldPositions]
+  );
+
+  const hasMomentum = useCallback(
+    () => Math.abs(velocity.current.x) >= 0.01 || Math.abs(velocity.current.y) >= 0.01,
+    []
+  );
 
   const updateMomentum = useCallback(() => {
-    if (isDragging) return;
-    setVelocity((prev) => {
-      const next = { x: prev.x * effectiveMomentumDecay, y: prev.y * effectiveMomentumDecay };
-      if (!effectiveAutoRotate && Math.abs(next.x) < 0.01 && Math.abs(next.y) < 0.01) {
-        return { x: 0, y: 0 };
-      }
-      return next;
-    });
-    setRotation((prev) => {
-      let y = prev.y + clampSpeed(velocity.y);
-      if (effectiveAutoRotate) y += autoRotateSpeed;
-      return {
-        x: SPHERE_MATH.normalizeAngle(prev.x + clampSpeed(velocity.x)),
-        y: SPHERE_MATH.normalizeAngle(y),
-        z: prev.z,
-      };
-    });
-  }, [isDragging, effectiveMomentumDecay, velocity, clampSpeed, effectiveAutoRotate, autoRotateSpeed]);
+    if (isDraggingRef.current) return;
+    const nextVelocity = {
+      x: velocity.current.x * effectiveMomentumDecay,
+      y: velocity.current.y * effectiveMomentumDecay,
+    };
+    velocity.current = {
+      x: Math.abs(nextVelocity.x) < 0.01 ? 0 : nextVelocity.x,
+      y: Math.abs(nextVelocity.y) < 0.01 ? 0 : nextVelocity.y,
+    };
+    rotation.current = {
+      x: SPHERE_MATH.normalizeAngle(rotation.current.x + clampSpeed(velocity.current.x)),
+      y: SPHERE_MATH.normalizeAngle(
+        rotation.current.y + clampSpeed(velocity.current.y) + (effectiveAutoRotate ? autoRotateSpeed : 0)
+      ),
+      z: rotation.current.z,
+    };
+  }, [effectiveMomentumDecay, clampSpeed, effectiveAutoRotate, autoRotateSpeed]);
 
   const onPointerDelta = useCallback(
     (dx: number, dy: number) => {
       const delta = { x: -dy * dragSensitivity, y: dx * dragSensitivity };
-      setRotation((prev) => ({
-        x: SPHERE_MATH.normalizeAngle(prev.x + clampSpeed(delta.x)),
-        y: SPHERE_MATH.normalizeAngle(prev.y + clampSpeed(delta.y)),
-        z: prev.z,
-      }));
-      setVelocity({ x: clampSpeed(delta.x), y: clampSpeed(delta.y) });
+      rotation.current = {
+        x: SPHERE_MATH.normalizeAngle(rotation.current.x + clampSpeed(delta.x)),
+        y: SPHERE_MATH.normalizeAngle(rotation.current.y + clampSpeed(delta.y)),
+        z: rotation.current.z,
+      };
+      velocity.current = { x: clampSpeed(delta.x), y: clampSpeed(delta.y) };
     },
     [dragSensitivity, clampSpeed]
   );
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
+    isDraggingRef.current = true;
     setIsDragging(true);
-    setVelocity({ x: 0, y: 0 });
+    velocity.current = { x: 0, y: 0 };
     lastPointer.current = { x: e.clientX, y: e.clientY };
   }, []);
 
@@ -270,12 +302,16 @@ export function ImgSphere({
     [isDragging, onPointerDelta]
   );
 
-  const handleMouseUp = useCallback(() => setIsDragging(false), []);
+  const handleMouseUp = useCallback(() => {
+    isDraggingRef.current = false;
+    setIsDragging(false);
+  }, []);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     const touch = e.touches[0];
+    isDraggingRef.current = true;
     setIsDragging(true);
-    setVelocity({ x: 0, y: 0 });
+    velocity.current = { x: 0, y: 0 };
     lastPointer.current = { x: touch.clientX, y: touch.clientY };
   }, []);
 
@@ -290,7 +326,10 @@ export function ImgSphere({
     [isDragging, onPointerDelta]
   );
 
-  const handleTouchEnd = useCallback(() => setIsDragging(false), []);
+  const handleTouchEnd = useCallback(() => {
+    isDraggingRef.current = false;
+    setIsDragging(false);
+  }, []);
 
   useEffect(() => {
     if (!isMounted) return;
@@ -310,25 +349,30 @@ export function ImgSphere({
       snaps velocity to exactly zero once a coast falls below its threshold,
       which re-runs this effect and lets the loop stop on its own.
     */
-    const idle =
-      !effectiveAutoRotate && !isDragging && velocity.x === 0 && velocity.y === 0;
-    if (idle) return;
+    const needsFrame = () => effectiveAutoRotate || isDraggingRef.current || hasMomentum();
+    if (!needsFrame()) {
+      applyWorldPositions(false);
+      return;
+    }
 
     const animate = () => {
       updateMomentum();
-      frame.current = requestAnimationFrame(animate);
+      const isMoving = needsFrame();
+      applyWorldPositions(isMoving);
+      frame.current = isMoving ? requestAnimationFrame(animate) : null;
     };
     frame.current = requestAnimationFrame(animate);
     return () => {
-      if (frame.current) cancelAnimationFrame(frame.current);
+      if (frame.current !== null) cancelAnimationFrame(frame.current);
+      frame.current = null;
     };
   }, [
     isMounted,
     updateMomentum,
     effectiveAutoRotate,
     isDragging,
-    velocity.x,
-    velocity.y,
+    hasMomentum,
+    applyWorldPositions,
   ]);
 
   useEffect(() => {
@@ -345,7 +389,7 @@ export function ImgSphere({
     };
   }, [isMounted, handleMouseMove, handleMouseUp, handleTouchMove, handleTouchEnd]);
 
-  const world = worldPositions();
+  const initialWorld = worldPositions(INITIAL_ROTATION);
 
   return (
     <div
@@ -381,11 +425,10 @@ export function ImgSphere({
 
       <div className="relative h-full w-full" style={{ zIndex: 10 }}>
         {items.map((item, index) => {
-          const pos = world[index];
-          if (!pos || !pos.isVisible) return null;
-          const size = baseSize * pos.scale;
+          const pos = initialWorld[index];
+          if (!pos) return null;
+          const size = baseSize;
           const isHovered = hovered === item.id;
-          const finalScale = isHovered ? Math.min(hoverScale, hoverScale / pos.scale) : 1;
           const entry = item.slug && Object.hasOwn(ICONS, item.slug) ? ICONS[item.slug] : undefined;
           // A null slug (Codex, LLMs, RAG) has no logo to fetch at all: no
           // OpenAI mark exists post-trademark-removal, and the other two are
@@ -398,21 +441,29 @@ export function ImgSphere({
             <div
               key={item.id}
               data-sphere-item
-              className="absolute flex flex-col items-center gap-[var(--space-1)] transition-transform duration-200 ease-out"
+              ref={(element) => {
+                tileRefs.current[index] = element;
+              }}
+              className="absolute flex flex-col items-center gap-[var(--space-1)]"
               style={{
-                left: `${containerSize / 2 + pos.x}px`,
-                top: `${containerSize / 2 + pos.y}px`,
-                opacity: pos.fadeOpacity,
-                transform: `translate(-50%, -50%) scale(${finalScale})`,
+                left: "50%",
+                top: "50%",
+                opacity: pos.fadeOpacity.toFixed(2),
+                transform: `translate3d(${pos.x.toFixed(2)}px, ${pos.y.toFixed(2)}px, 0) translate3d(-50%, -50%, 0) scale(${pos.scale.toFixed(2)})`,
                 zIndex: pos.zIndex,
+                visibility: pos.isVisible ? "visible" : "hidden",
               }}
               onMouseEnter={() => setHovered(item.id)}
               onMouseLeave={() => setHovered(null)}
             >
               <div
-                className="flex items-center justify-center overflow-hidden rounded-full border border-hairline bg-surface-1 p-[var(--space-2)]"
-                style={{ width: size, height: size }}
+                className="transition-transform duration-200 ease-out"
+                style={{ transform: `scale(${isHovered ? hoverScale : 1})` }}
               >
+                <div
+                  className="flex items-center justify-center overflow-hidden rounded-full border border-hairline bg-surface-1 p-[var(--space-2)]"
+                  style={{ width: size, height: size }}
+                >
                 {isTextTile ? (
                   // Deliberate text tile, same circular surface as every
                   // image tile, full name (not one letter, that would read
@@ -449,6 +500,7 @@ export function ImgSphere({
                     dangerouslySetInnerHTML={{ __html: entry.path }}
                   />
                 )}
+                </div>
               </div>
               <span className="data whitespace-nowrap text-ink-subtle">{item.name}</span>
             </div>

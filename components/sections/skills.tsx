@@ -47,11 +47,13 @@ export function Skills() {
               <div>
                 <h3 className="text-[length:var(--step-1)] font-semibold">{group.title}</h3>
                 <ul className="mt-[var(--space-4)] flex flex-wrap gap-[var(--space-2)]">
-                  {group.items.map((item) => (
+                  {group.items.map((item, itemIndex) => (
                     <li key={item.name}>
-                      <span className="data inline-block rounded-[var(--radius-pill)] border border-hairline px-[var(--space-4)] py-[var(--space-1)] text-ink-muted">
-                        {item.name}
-                      </span>
+                      <Reveal className="inline-block" delay={i * 100 + itemIndex * 40}>
+                        <span className="data inline-block rounded-[var(--radius-pill)] border border-hairline px-[var(--space-4)] py-[var(--space-1)] text-ink-muted">
+                          {item.name}
+                        </span>
+                      </Reveal>
                     </li>
                   ))}
                 </ul>

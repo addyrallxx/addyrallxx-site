@@ -42,7 +42,23 @@ export function Hero() {
     <section ref={section} id="hero" aria-labelledby="hero-heading" className="hero-intro relative isolate mx-auto flex min-h-svh max-w-[var(--content-max)] flex-col justify-center px-[var(--gutter)] pt-[var(--space-32)] pb-[var(--space-24)]">
       {/* Stash 24747: explicit visual/content planes and a readable measure.
           Absolute decoration never reserves a mobile or no-WebGL fallback. */}
-      <div aria-hidden="true" className="pointer-events-none absolute top-[12%] right-0 z-0 hidden h-[min(65vw,42rem)] w-[58%] md:block">
+      {/*
+        The galaxy shows on every viewport, phones included.
+
+        This used to be `hidden ... md:block`, from when the decoration here
+        was a wireframe object that removed itself below 768px. The galaxy
+        scales its particle count to viewport area instead, so a phone gets
+        the same composition rather than a blank corner, which is what Adnan
+        asked for: the phone is not a degraded tier.
+
+        Keeping the utility and overriding it from hero-object.css was the
+        other option and it is worse. That override matched on
+        `.hero-intro > div:has(> .galaxy)`, so a change to this element's
+        nesting would silently stop it matching and the galaxy would vanish
+        on phones with nothing failing anywhere. Phone SIZING still lives in
+        hero-object.css, which is fine because sizing degrades visibly.
+      */}
+      <div aria-hidden="true" className="hero-decoration pointer-events-none absolute top-[12%] right-0 z-0 block h-[min(65vw,42rem)] w-[58%]">
         <HeroObject />
       </div>
       <div ref={content} className="relative z-10 origin-top-left">

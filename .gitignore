@@ -37,3 +37,4 @@ raw-assets/
 /hero.png
 /hero-small.png
 /*.tmp.mjs
+/shot-*.png

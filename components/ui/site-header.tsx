@@ -54,7 +54,22 @@ export function SiteHeader() {
 
   return (
     <header ref={header} className="fixed inset-x-0 top-0 z-40">
-      <div data-tone={warm ? "warm" : undefined} className="tone-surface bg-canvas/80 shadow-[0_8px_24px_-16px_var(--canvas-dark)] backdrop-blur">
+      {/*
+        A real translucent material, not a hint of one.
+
+        This was Tailwind's bare `backdrop-blur`, which is 8px and no
+        saturation, sitting directly over an animated star canvas and a bloom
+        layer. At 8px individual star points and bloom smears swim visibly
+        through the nav labels instead of resolving into a surface. Apple's
+        own materials recipe is blur(20px) saturate(180%), and the saturate
+        is the half that actually makes it read as glass: it pulls the colour
+        out of what is behind so the blur has something to smear.
+
+        The shadow was also a one off value that bypassed the site's own two
+        tier elevation system. It uses the float token now, so the header and
+        the cards agree about what "slightly raised" looks like.
+      */}
+      <div data-tone={warm ? "warm" : undefined} className="tone-surface bg-canvas/80 shadow-[var(--shadow-float)] backdrop-blur-[20px] backdrop-saturate-[1.8]">
         <nav aria-label="Primary" className="mx-auto flex max-w-[var(--content-max)] items-center justify-between gap-[var(--space-3)] px-[var(--gutter)] py-[var(--space-4)]">
           <a href="#main" className="shrink-0 font-display text-[length:var(--step-0)] font-semibold tracking-[-0.02em]">{SITE.name}</a>
           <ul className="hidden min-w-0 items-center gap-[var(--space-1)] overflow-x-auto md:flex">

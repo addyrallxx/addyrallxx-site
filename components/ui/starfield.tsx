@@ -6,8 +6,10 @@ const TAU = Math.PI * 2;
 const NEAR = 0.65;
 const FAR = 3.4;
 const CELL = 160;
-const CELL_CAPACITY = 6;
-// Near-white dominates. The rare warm stars never read as saturated red.
+const CELL_CAPACITY = 4;
+const STARS_PER_PIXEL = 1 / 700;
+const LINE_BUDGET = 8;
+// Near white dominates. The rare warm stars never read as saturated red.
 const COLOURS = ["241, 243, 247", "211, 228, 250", "247, 230, 199", "235, 197, 183"];
 const random = (min: number, max: number) => min + Math.random() * (max - min);
 
@@ -23,6 +25,7 @@ interface Star {
   colour: number;
   phase: number;
   frequency: number;
+  twinkle: number;
   glow: boolean;
 }
 
@@ -41,7 +44,7 @@ interface Meteor {
 
 function buildStars(count: number, width: number, height: number): Star[] {
   const focal = Math.min(width, height) * 0.8;
-  const stars = Array.from({ length: count }, (_, index): Star => {
+  const stars = Array.from({ length: count }, (): Star => {
     const colourRoll = Math.random();
     const intensity = Math.random();
     const z = random(NEAR, FAR);
@@ -52,12 +55,13 @@ function buildStars(count: number, width: number, height: number): Star[] {
       screenX: 0,
       screenY: 0,
       brightness: 0,
-      radius: 0.65 + intensity * 0.3,
-      opacity: 0.55 + intensity * 0.3,
-      colour: colourRoll < 0.8 ? 0 : colourRoll < 0.94 ? 1 : colourRoll < 0.99 ? 2 : 3,
+      radius: 0.52 + intensity * 1.08,
+      opacity: 0.42 + intensity * 0.54,
+      colour: colourRoll < 0.59 ? 0 : colourRoll < 0.86 ? 1 : colourRoll < 0.96 ? 2 : 3,
       phase: Math.random() * TAU,
       frequency: TAU / random(4, 10),
-      glow: index % 20 === 0,
+      twinkle: 0.09 + Math.random() * 0.17,
+      glow: intensity > 0.72 && Math.random() < 0.5,
     };
   });
   return stars;
@@ -65,16 +69,16 @@ function buildStars(count: number, width: number, height: number): Star[] {
 
 function makeGlow(colour: string): HTMLCanvasElement {
   const sprite = document.createElement("canvas");
-  sprite.width = sprite.height = 64;
+  sprite.width = sprite.height = 96;
   const context = sprite.getContext("2d");
   if (context) {
-    const gradient = context.createRadialGradient(32, 32, 0, 32, 32, 32);
-    gradient.addColorStop(0, `rgba(${colour}, 0.7)`);
-    gradient.addColorStop(0.12, `rgba(${colour}, 0.28)`);
-    gradient.addColorStop(0.4, `rgba(${colour}, 0.07)`);
+    const gradient = context.createRadialGradient(48, 48, 0, 48, 48, 48);
+    gradient.addColorStop(0, `rgba(${colour}, 0.78)`);
+    gradient.addColorStop(0.1, `rgba(${colour}, 0.36)`);
+    gradient.addColorStop(0.36, `rgba(${colour}, 0.1)`);
     gradient.addColorStop(1, `rgba(${colour}, 0)`);
     context.fillStyle = gradient;
-    context.fillRect(0, 0, 64, 64);
+    context.fillRect(0, 0, 96, 96);
   }
   return sprite;
 }
@@ -98,13 +102,13 @@ export function Starfield(): React.JSX.Element {
     // Fixed pool accommodates screen rotation/resizing. Only the area-based
     // prefix is painted; a small viewport has no minimum star count.
     const extent = Math.max(width, height, window.screen.width, window.screen.height);
-    const stars = buildStars(Math.round(extent * extent / 9000), width, height);
+    const stars = buildStars(Math.round(extent * extent * STARS_PER_PIXEL), width, height);
     let count = 0;
     let columns = 0;
     let rows = 0;
     let cells = new Int32Array(0);
     let cellSizes = new Uint8Array(0);
-    let lineBudget = 12;
+    let lineBudget = LINE_BUDGET;
     let frameCost = 0;
     let previousScroll = window.scrollY;
     let cameraY = 0;
@@ -247,16 +251,16 @@ export function Starfield(): React.JSX.Element {
         const inverseZ = 1 / star.z;
         const x = width / 2 + (star.x - (staticFrame ? 0 : pointerX * 0.012)) * inverseZ * focal;
         const y = height / 2 + (star.y - (staticFrame ? 0 : cameraY + pointerY * 0.012)) * inverseZ * focal;
-        const radius = Math.min(1.7, star.radius * inverseZ);
+        const radius = Math.min(2.6, star.radius * inverseZ * 1.16);
         const fade = Math.min(1, (star.z - NEAR) / 0.16, (FAR - star.z) / 0.2);
         star.screenX = x;
         star.screenY = y;
         star.brightness = 0;
         if (x < 0 || x >= width || y < 0 || y >= height) continue;
-        star.brightness = Math.min(0.7, star.opacity * inverseZ) * fade *
-          (staticFrame ? 1 : 1 + Math.sin(time * star.frequency + star.phase) * 0.18);
+        star.brightness = Math.min(0.88, star.opacity * inverseZ) * fade *
+          (staticFrame ? 1 : 1 + Math.sin(time * star.frequency + star.phase) * star.twinkle);
         ctx.globalAlpha = star.brightness;
-        if (star.brightness >= 0.3 && lineBudget) {
+        if (star.brightness >= 0.36 && lineBudget) {
           const cell = Math.floor(y / CELL) * columns + Math.floor(x / CELL);
           const size = cellSizes[cell];
           if (size < CELL_CAPACITY) {
@@ -264,8 +268,8 @@ export function Starfield(): React.JSX.Element {
             cellSizes[cell]++;
           }
         }
-        if (star.glow) {
-          const size = radius * 11;
+        if (star.glow && star.brightness > 0.16) {
+          const size = Math.max(9, radius * (12 + star.opacity * 8));
           ctx.drawImage(glows[star.colour], x - size / 2, y - size / 2, size, size);
         }
         ctx.fillStyle = fills[star.colour];
@@ -292,7 +296,7 @@ export function Starfield(): React.JSX.Element {
       previousScroll = scroll;
       cameraY += (Math.tanh(scroll / (height * 3)) * 0.28 - cameraY) * damping;
       const started = performance.now();
-      paint(false, delta / 1000 * 0.008 + travel);
+      paint(false, delta / 1000 * 0.02 + travel);
       frameCost += (performance.now() - started - frameCost) * 0.05;
       // Sacrifice lines first, never the star density, on a busy main thread.
       if (frameCost > 2 && lineBudget > 0) { lineBudget--; frameCost = 0; }
@@ -330,12 +334,13 @@ export function Starfield(): React.JSX.Element {
       canvas.width = Math.round(width * dpr);
       canvas.height = Math.round(height * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      count = Math.min(stars.length, Math.round(width * height / 9000));
+      count = Math.min(stars.length, Math.round(width * height * STARS_PER_PIXEL));
+      canvas.dataset.starCount = String(count);
       columns = Math.ceil(width / CELL);
       rows = Math.ceil(height / CELL);
       cellSizes = new Uint8Array(columns * rows);
       cells = new Int32Array(columns * rows * CELL_CAPACITY);
-      lineBudget = 12;
+      lineBudget = LINE_BUDGET;
       frameCost = 0;
       if (!reducedMotion.matches) paint(true);
       syncPlayback();

@@ -36,14 +36,38 @@ const PROJECT_IMAGES: Record<string, { src: string; alt: string }[]> = {
       alt: "A flatlay of the full range of garment trims the factory produces.",
     },
   ],
+  /*
+    Six screens, captured against the live app with real data seeded first.
+
+    Alt text describes what is ON the screen, including the actual numbers,
+    because these double as the carousel's visible captions now that the
+    slide counter is gone. A caption reading "the nutrition screen" tells a
+    reader nothing they cannot already see.
+  */
   fittrack: [
     {
       src: "/fittrack/fittrack-home-dashboard.png",
-      alt: "FitTrack's home dashboard, showing a day's logged workouts and stats.",
+      alt: "The home dashboard: 507 calories, 49g of protein and 1.5L of water logged, with steps at 7,482 of 8,000.",
     },
     {
-      src: "/fittrack/fittrack-nutrition-water.png",
-      alt: "FitTrack's nutrition and water intake tracking screen.",
+      src: "/fittrack/fittrack-workout-session.png",
+      alt: "A workout mid session, with chest press sets logged at 40kg for ten, 40kg for nine and 37.5kg for eight.",
+    },
+    {
+      src: "/fittrack/fittrack-progress-weight-trend.png",
+      alt: "Thirty five days of weight history in Chart.js, down five kilos, with the app projecting when the target is reached.",
+    },
+    {
+      src: "/fittrack/fittrack-nutrition-food-search.png",
+      alt: "Searching for chicken breast, with live Open Food Facts results alongside the app's own curated entries.",
+    },
+    {
+      src: "/fittrack/fittrack-nutrition-macros-water.png",
+      alt: "The nutrition screen after two meals, with macro bars filled in and water at 1.5L of a 4.3L target.",
+    },
+    {
+      src: "/fittrack/fittrack-settings-profile.png",
+      alt: "Settings: profile, daily targets and notification toggles.",
     },
   ],
 };
@@ -87,7 +111,7 @@ export function Work() {
           const hasMedia = images.length > 0;
           return (
             <li key={project.id}>
-              <article className={`work-card${index % 2 ? " work-card-reversed" : ""}${hasMedia ? "" : " work-card-typographic"}`}
+              <article className={`work-card shadow-[var(--shadow-float)] motion-safe:transition-shadow motion-safe:duration-300 motion-safe:ease-[var(--ease)] motion-safe:hover:shadow-[var(--shadow-lift)]${index % 2 ? " work-card-reversed" : ""}${hasMedia ? "" : " work-card-typographic"}`}
                 aria-labelledby={`work-${project.id}`} style={{ "--work-stagger": `${Math.min(index, 3) * 60}ms`, "--work-entry": `${Math.min(index, 3) * 3}%` } as CSSProperties}>
                 <div className="work-copy">
                   <div className="work-meta">

@@ -3,8 +3,30 @@
   whatsapp are the Simple Icons (MIT) glyphs at their native viewBox 0 0 24
   24. Email is not a brand, so it is a plain envelope glyph instead.
 
-  currentColor everywhere: the caller sets colour and size, this component
-  only draws the shape.
+  Brand colour belongs to the mark. Callers own layout and size.
+
+  DELIBERATE EXCEPTION TO THE ONE ACCENT RULE, and it is a decision rather
+  than an oversight, so do not "tidy" it away.
+
+  app/globals.css is strict that the site carries exactly one saturated
+  accent. These marks break that on purpose: Adnan asked for the GitHub,
+  LinkedIn and WhatsApp icons in full colour, because a recognisable brand
+  mark is doing a different job from an accent. An accent says "this is
+  interactive". A brand mark says "this is the thing you already know". The
+  cost of graphite icons is that a visitor scanning for a way to reach him
+  has to read four labels instead of recognising three logos.
+
+  The discipline that keeps it honest: only the MARK takes a brand colour,
+  never a label, never a border, never a background. LinkedIn blue measures
+  3.56:1 on the dark chip, which clears the 3:1 that WCAG 2.1 SC 1.4.11 asks
+  of a non text graphic and would fail outright as text. So the text beside
+  it stays on --ink or --ink-muted, in both tone scopes.
+
+  GitHub stays near white on purpose. It has no single brand colour that
+  works on a dark ground, and near white IS its own dark mode mark.
+
+  Email is not a brand, so it reads var(--accent) rather than a hex and
+  follows the palette wherever that goes next.
 */
 
 const PATHS: Record<"email" | "linkedin" | "github" | "whatsapp", string> = {
@@ -16,6 +38,13 @@ const PATHS: Record<"email" | "linkedin" | "github" | "whatsapp", string> = {
     "M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z",
   whatsapp:
     "M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884M20.52 3.449C18.24 1.245 15.24 0 12.045 0 5.463 0 .102 5.36.099 11.943c0 2.105.548 4.16 1.592 5.974L0 24l6.223-1.632a11.93 11.93 0 0 0 5.822 1.483h.005c6.582 0 11.943-5.36 11.946-11.943a11.87 11.87 0 0 0-3.476-8.459",
+};
+
+const COLORS: Record<keyof typeof PATHS, string> = {
+  email: "var(--accent)",
+  linkedin: "#0A66C2",
+  github: "var(--ink)",
+  whatsapp: "#25D366",
 };
 
 export function SocialIcon({
@@ -31,7 +60,9 @@ export function SocialIcon({
       fill="currentColor"
       aria-hidden="true"
       focusable="false"
-      className={className}
+      data-icon={name}
+      className={`social-icon ${className ?? ""}`}
+      style={{ "--social-icon-color": COLORS[name] } as React.CSSProperties}
     >
       <path d={PATHS[name]} />
     </svg>

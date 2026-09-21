@@ -316,10 +316,11 @@ export const WORK = [
     name: "FitTrack",
     kind: "Offline PWA",
     year: "2026",
-    headline: "A workout and nutrition tracker that works with no signal.",
-    body: "One HTML file. No framework, no build step, no bundler. It installs to a phone home screen and keeps working offline. The constraint was that it still run years from now on any host at all, which costs modularity and buys permanence.",
+    headline: "One HTML file. No build step. Works with no signal.",
+    body: "A workout and nutrition tracker that installs to a phone home screen and keeps working with no connection. No framework, no bundler, nothing to compile: the entire app is a single file you can drop on any static host and open. That costs modularity and buys permanence, and permanence was the trade I wanted.",
     detail: [
-      "Nutrition data comes from Open Food Facts, weight history renders in Chart.js, and a service worker keeps the whole thing usable with no connection.",
+      "Nutrition data comes from Open Food Facts, weight history renders in Chart.js, and a service worker keeps every screen usable offline.",
+      "The bar I held it to was whether it would still run years from now, unchanged, on a host that does not exist yet.",
     ],
     tags: ["Vanilla JS", "Service Worker", "Chart.js"],
     links: [

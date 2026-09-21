@@ -1,4 +1,51 @@
 @layer components {
+  .galaxy,
+  .galaxy-canvas {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  .galaxy { overflow: hidden; }
+
+  .galaxy-intro {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    isolation: isolate;
+    color: var(--ink);
+    background: var(--canvas);
+    transition: opacity 850ms var(--ease);
+  }
+
+  .galaxy-intro-scene {
+    position: absolute;
+    inset: -5%;
+    transition: transform 850ms var(--ease), opacity 850ms var(--ease);
+  }
+
+  .galaxy-greeting {
+    position: relative;
+    z-index: 1;
+    margin: 0;
+    padding: 0.75em 1.25em;
+    font-size: clamp(2.5rem, 6vw, 5.5rem);
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--ink);
+    text-shadow: 0 2px 12px var(--canvas);
+    background: radial-gradient(ellipse, var(--canvas) 12%, color-mix(in srgb, var(--canvas) 88%, transparent) 38%, transparent 72%);
+  }
+
+  .galaxy-intro[data-stage="exiting"] { opacity: 0; pointer-events: none; }
+  .galaxy-intro[data-stage="exiting"] .galaxy-intro-scene { transform: scale(0.86); opacity: 0.65; }
+
   .cosmos {
     isolation: isolate;
     overflow: hidden;
@@ -80,6 +127,10 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
+    .galaxy-intro,
+    .galaxy-intro-scene { transition: none; }
+    .galaxy-intro[data-stage="exiting"] .galaxy-intro-scene { transform: none; }
+
     .cosmos,
     .space-starfield {
       transition: none;

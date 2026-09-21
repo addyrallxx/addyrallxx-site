@@ -34,11 +34,26 @@ export function Contact() {
         {CONTACT.openers.map((opener, index) => (
           <li key={opener.label} className="min-w-0">
             <Reveal delay={index * 70} className="h-full">
+              {/*
+                Press belongs to ScrollTilt and to nothing else.
+
+                The anchor below used to also carry its own
+                motion-safe:active:scale-[0.985] while this ScrollTilt ran its
+                default press at the same 0.985. Both fired on a tap and
+                compounded to roughly 0.970. Nobody chose 0.970, it was two
+                reasonable systems stacking by accident, which is the kind of
+                thing that reads as slightly wrong without anyone being able
+                to say why.
+
+                Hover is the anchor's job instead: lift to the heavier of the
+                two elevation tokens so the card reads as coming forward out
+                of the star field rather than just brightening.
+              */}
               <ScrollTilt tilt={false} className="h-full">
                 <a
                   href={`mailto:${CONTACT.email}?subject=${encodeURIComponent(opener.label)}`}
                   aria-labelledby={`contact-opener-${index}`}
-                  className="group relative flex h-full flex-col rounded-[var(--radius-lg)] bg-surface-1 p-[var(--space-6)] shadow-[var(--shadow-float)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-[var(--ease)] motion-safe:active:scale-[0.985]"
+                  className="group relative flex h-full flex-col rounded-[var(--radius-lg)] bg-surface-1 p-[var(--space-6)] shadow-[var(--shadow-float)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent motion-safe:transition-[box-shadow,background-color] motion-safe:duration-300 motion-safe:ease-[var(--ease)] hover:bg-surface-2 hover:shadow-[var(--shadow-lift)]"
                 >
                   <h3 id={`contact-opener-${index}`} className="pr-[var(--space-8)] text-[length:var(--step-1)] font-semibold">{opener.label}</h3>
                   <p className="mt-[var(--space-4)] text-ink-muted">{opener.body}</p>
@@ -74,10 +89,9 @@ export function Contact() {
                   {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                   className="press group flex items-center gap-[var(--space-4)] rounded-[var(--radius-md)] border border-hairline px-[var(--space-5)] py-[var(--space-4)] transition-colors hover:border-accent"
                 >
-                  <SocialIcon
-                    name={link.icon}
-                    className="size-[20px] shrink-0 text-ink-muted transition-colors group-hover:text-ink"
-                  />
+                  <span className="grid size-8 shrink-0 place-items-center rounded-full bg-[var(--canvas-dark)] motion-safe:transition-[transform,filter] motion-safe:duration-200 motion-safe:ease-[var(--ease)] motion-safe:group-hover:scale-110 motion-safe:group-hover:brightness-125">
+                    <SocialIcon name={link.icon} className="size-[20px]" />
+                  </span>
                   <span className="text-[length:var(--step-0)] text-ink-muted transition-colors group-hover:text-ink">
                     {link.label}
                   </span>

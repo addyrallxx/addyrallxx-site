@@ -15,6 +15,56 @@ A portfolio at Adnan's existing Vercel URL that makes a stranger want to contact
 him within thirty seconds, built for zero dollars, and never left in a half
 finished state between sessions.
 
+## The experience bar, in Adnan's own words
+
+> "the site needs to be a cinematic experience that is visually pleasing and
+> addictive to scroll thru."
+
+That is the acceptance test for anything visual, and it outranks any individual
+feature request. Three things follow from it and they are not optional.
+
+**It is a deep space piece.** The ground is a galaxy: a real 3D star volume that
+moves, stars that twinkle and radiate, atmospheric depth behind everything, and
+a page that feels like it is floating in that volume rather than printed on it.
+Backgrounds move. Things morph. The page reacts to the scroll continuously, not
+in discrete pop-in steps.
+
+**Motion has a budget and it is still a budget.** A reader should feel the page
+is alive and should not be able to point at one element and say "that is
+animating at me". More motion is the instruction; more noise is not. When two
+adjacent elements both tilt, drift and glow, cut one.
+
+**Phone is not a degraded tier.** Adnan has asked explicitly that the phone get
+the same visual experience, and every change has to be confirmed there, not
+assumed. A thing that cannot run on a phone gets a designed phone answer, never
+a blank space where the desktop had something.
+
+### The level ladder, how Adnan talks about progress
+
+He grades the site in levels and expects each session to move it up one.
+
+- **Level 1**, before 2026-09-20: the dark editorial spine. Real copy, real
+  sections, a flat starfield, a working skill sphere. Correct but static.
+- **Level 2**, 2026-09-20: 3D projected star volume, a Cosmos bloom layer, a
+  coverflow slideshow, ScrollTilt, a procedural hero object, the How I work and
+  Up next sections, and copy rewritten to lead with capability.
+- **Level 3**, in progress: a real galaxy asset that rotates and morphs, the
+  preloader built around it, a palette that is not red, 60fps everywhere,
+  slideshow chrome replaced with star navigation, full colour contact marks,
+  and phone parity.
+
+### Standing feedback from Adnan, carried forward
+
+- **He does not like the red accent.** Whatever replaces it, the site keeps
+  exactly one saturated UI accent.
+- **A 3D asset that does not move, morph or react is a picture.** His words
+  about the first attempt: "looks like an image in the back". If it is going to
+  cost a WebGL context it has to earn it.
+- **The star field should be evident**, not a suggestion. More stars, visible
+  motion, twinkle and radiance.
+- **Icons and tiles must not jitter.** A CSS transition on a property that a
+  rAF loop rewrites every frame is the usual cause; never combine the two.
+
 ## Who it has to work for, in priority order
 
 1. A recruiter filling a **summer 2027 software internship**. Wants a graduation
