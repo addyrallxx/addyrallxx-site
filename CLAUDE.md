@@ -156,6 +156,8 @@ login page instead of the site.
 
 ## Reuse before writing, from PLAN.md section 4.4
 
+Design work: follow the Design protocol section in docs/DESIGN.md (Jack Roberts blueprint, 2026-10-09) before any UI change.
+
 `totaltex-web` already contains battle-tested, accessibility-hardened
 primitives Adnan owns outright. Copy these into this repo rather than
 reinventing them: `lib/motion.ts`, `lib/scroll.ts`, `lib/magnetic.ts`,
