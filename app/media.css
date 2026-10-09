@@ -111,15 +111,23 @@
     backdrop-filter: blur(12px);
     transition: opacity var(--dur-fast) var(--ease), transform var(--dur-base) var(--ease);
   }
-  .carousel-control { display: grid; place-items: center; width: 44px; height: 44px; border-radius: var(--radius-pill); color: var(--ink); cursor: pointer; }
-  .carousel-control:hover { background: var(--surface-2); }
+  .carousel-control { display: grid; place-items: center; width: 44px; height: 44px; border-radius: var(--radius-pill); color: var(--ink); cursor: pointer; transition: color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease); }
+  .carousel-control:hover:not(:disabled) { background: var(--surface-2); }
+  .carousel-control:active:not(:disabled) { transform: scale(0.97); }
+  .carousel-control:disabled, .carousel-indicator:disabled { color: var(--ink-subtle); opacity: 0.5; cursor: not-allowed; transform: none; background: none; }
   .carousel-control svg { width: 20px; height: 20px; }
-  .carousel-indicators { display: flex; align-items: center; gap: var(--space-1); padding-inline: var(--space-1); }
-  .carousel-indicator { display: grid; place-items: center; width: 28px; height: 28px; color: var(--ink-subtle); cursor: pointer; border-radius: var(--radius-pill); transition: transform var(--dur-fast) var(--ease); }
+  .carousel-indicators { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); padding-inline: var(--space-1); }
+  .carousel-indicator { display: grid; place-items: center; width: 44px; height: 44px; flex-shrink: 0; color: var(--ink-subtle); cursor: pointer; border-radius: var(--radius-pill); transition: color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease); }
   .carousel-indicator[aria-current="true"] { color: var(--accent); }
-  .carousel-indicator:hover { color: var(--ink); background: var(--surface-2); transform: scale(1.08); }
-  .carousel-indicator:active { transform: scale(0.92); }
+  .carousel-indicator:hover:not(:disabled) { color: var(--ink); background: var(--surface-2); transform: scale(1.08); }
+  .carousel-indicator:active:not(:disabled) { transform: scale(0.92); }
   .carousel-star { width: 15px; height: 15px; }
+  .carousel-message { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-3); padding: var(--space-6); text-align: center; cursor: default; }
+  .carousel-message p:first-child { color: var(--ink); }
+  .carousel-message p + p, .carousel-feedback p { color: var(--ink-muted); font-size: var(--step-0); }
+  .carousel-error-placeholder { position: absolute; inset: 0; z-index: 2; background: var(--canvas); pointer-events: none; }
+  .carousel-feedback { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); padding: var(--space-4) var(--space-2); }
+  .carousel-retry { width: auto; min-width: 44px; padding-inline: var(--space-4); background: var(--surface-2); text-decoration: underline; }
   .social-icon { color: var(--social-icon-color); }
   [data-tone="warm"] .social-icon[data-icon="github"] { --social-icon-color: var(--canvas); }
 

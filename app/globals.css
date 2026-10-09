@@ -69,7 +69,7 @@
 
   --ink: #f1f2f7; /* 18.17:1 on canvas. Bone, not pure white. */
   --ink-muted: #a4a9c2; /* 8.74:1 on canvas */
-  --ink-subtle: #767b96; /* 4.88:1 on canvas. Anything lighter in tone fails AA. */
+  --ink-subtle: #7b809b; /* 5.23:1 on canvas, 4.61:1 on surface-2. */
 
   /*
     The one accent. Ion blue, and the reasoning is worth keeping because the
@@ -259,9 +259,9 @@
 
   --ink: #14130f;
   --ink-muted: #55514a;
-  --ink-subtle: #716b61; /* 4.68:1 on paper. Was #837d72 at 3.62, which failed AA. */
+  --ink-subtle: #666056; /* Passes AA on paper and both raised surfaces. */
 
-  --accent: #4a56c8; /* 5.39:1 on paper, and paper text ON it is the same */
+  --accent: #4955c6; /* 5.48:1 on paper, 4.53:1 on surface-2. */
   --accent-deep: #333d96; /* paper text on it: 8.28:1 */
 }
 
@@ -666,8 +666,17 @@ body {
   transition-timing-function: var(--tw-ease, var(--ease));
   transition-duration: var(--tw-duration, var(--dur-fast));
 }
-.press:active {
+.press:active:not(:disabled):not([aria-disabled="true"]) {
   transform: scale(0.97);
+}
+
+@layer components {
+  .press:disabled, .press[aria-disabled="true"] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+    transform: none;
+  }
 }
 
 /* WCAG 2.2.2 pause mechanism (components/home/marquee-pause.tsx). */

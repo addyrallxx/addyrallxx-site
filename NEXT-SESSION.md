@@ -380,3 +380,5 @@ build only.
 Full original plan: `C:\Users\adnan\.claude\plans\flickering-forging-trinket.md`.
 GOAL.md carries the current standing objective and backlog; keep that file,
 not this section, as the source of truth on priority order.
+
+2026-10-09: design floor fixes applied per DESIGN.md protocol section; see git diff.

@@ -38,6 +38,14 @@
 
 export type Link = { label: string; href: string };
 
+export const mediaFeedback = {
+  emptyTitle: "No images to show",
+  emptyMessage: "Project details are available alongside this gallery.",
+  errorTitle: "Image unavailable",
+  errorMessage: "Try again or choose another image.",
+  retry: "Try again",
+};
+
 /*
   Confirmed by Adnan 2026-09-02.
 

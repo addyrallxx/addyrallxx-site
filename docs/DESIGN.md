@@ -22,8 +22,8 @@ These are the actual hex tokens, not proposed replacements. Warm values override
 | `--hairline-strong` | `#2a3050` | `#bfb8a7` | Stronger panel edges |
 | `--ink` | `#f1f2f7` | `#14130f` | Main text |
 | `--ink-muted` | `#a4a9c2` | `#55514a` | Supporting text |
-| `--ink-subtle` | `#767b96` | `#716b61` | Labels and quiet data |
-| `--accent` | `#7b8cff` | `#4a56c8` | One interactive accent |
+| `--ink-subtle` | `#7b809b` | `#666056` | Labels and quiet data |
+| `--accent` | `#7b8cff` | `#4955c6` | One interactive accent |
 | `--accent-deep` | `#4a56c8` | `#333d96` | Filled-button hover |
 
 Decorative tokens retained: `--m-blue-light: #6cb2e4`, `--m-blue-dark: #1b4fa0`, `--m-red: #e7222e`. Only the single 3px car rule uses that tricolour. `--bloom-indigo: #2d3f9e`, `--bloom-teal: #1d6672`, `--bloom-ember: #7a3a2e` belong only to low-alpha inert Cosmos depth, never text or controls. Warm stars and photographic colours are not extra UI accents.
@@ -85,7 +85,7 @@ Header uses canvas at 80% opacity, `blur(20px) saturate(1.8)` and shadow-float. 
 - Header: fixed translucent surface, name link home, desktop chapter links with `aria-current="location"`, email link, warm tone follows About. Chapter and email links have a 44px minimum height.
 - Hero: one h1, headline plus lead, one filled accent primary and surface-coloured secondary. Primary uses canvas text on accent; hover uses white on accent-deep. Galaxy remains present on phones.
 - Section heading: eyebrow, 48px by 2px accent rule, display title; rule draws on scroll.
-- Work card and coverflow: alternating copy/media, proof panel when imagery is absent, 16:10 reserved frame, caption, previous/pause/next controls at 44px, 28px star indicators. Dwell is 5000ms; hover, focus, dragging, hidden/offscreen, pending image and reduced motion pause it. Empty image array returns null; failed requested images stop playback without a visible recovery message.
+- Work card and coverflow: alternating copy/media, proof panel when imagery is absent, 16:10 reserved frame, caption, previous/pause/next controls and indicator hit areas at 44px, with 15px stars. Dwell is 5000ms; hover, focus, dragging, hidden/offscreen, pending image and reduced motion pause it. Empty arrays show a framed message; failed current or requested images stop playback and show a visible status with a retry button. Retry reloads the failed source, committing a requested slide after it loads. Playback remains stopped until resumed. Pause/play is disabled during reduced motion, pending requests and errors.
 - Contact: three email opener cards, email CTA and real social marks; null destinations are omitted. Contact is mailto-based in shipped code, not the original PLAN.md Web3Forms or globe proposal.
 - Reveal and ScrollTilt: client-armed motion with readable server defaults. Contact press belongs to ScrollTilt (0.985), not a second simultaneous press transform.
 
@@ -139,20 +139,20 @@ Static source audit dated 2026-10-09. Contrast was recomputed from the real hex 
 
 | Floor | This system's value | Pass/fail/unknown |
 |---|---|---|
-| Text >= 4.5:1 on main ground | Dark ink/muted/subtle against `#04050f`: 18.17/8.74/4.88. Warm against `#f4f1ea`: 16.48/6.99/4.68 | PASS |
-| Text >= 4.5:1 on raised surfaces | Dark subtle `#767b96` on surface-2 `#121629`: 4.30. Warm subtle `#716b61` on surface-1 `#ebe6dc`: 4.24; on surface-2 `#e2dcd0`: 3.87. Warm accent `#4a56c8` on surface-2: 4.45 | FAIL for these token combinations; actual text placement needs render audit |
-| Filled CTA text >= 4.5:1 | Dark canvas on accent: 6.81; warm canvas on accent: 5.39; white on dark accent-deep hover: 6.08; white on warm accent-deep: 9.34 | PASS for shipped pairings |
+| Text >= 4.5:1 on main ground | Dark ink/muted/subtle against `#04050f`: 18.17/8.74/5.23. Warm against `#f4f1ea`: 16.48/6.99/5.52 | PASS |
+| Text >= 4.5:1 on raised surfaces | Dark subtle `#767b96` to `#7b809b` on surface-2 `#121629`: 4.30 to 4.61. Warm subtle `#716b61` to `#666056` on surface-1 `#ebe6dc`: 4.24 to 5.01; on surface-2 `#e2dcd0`: 3.87 to 4.56. Warm accent `#4a56c8` to `#4955c6` on surface-2: 4.45 to 4.53 | PASS for token pairs; actual placement still needs render audit |
+| Filled CTA text >= 4.5:1 | Dark canvas on accent: 6.81; warm canvas on accent: 5.48; white on dark accent-deep hover: 6.08; white on warm accent-deep: 9.34 | PASS for shipped pairings |
 | No prohibited white-on-accent text | `#ffffff` on `#7b8cff`: 2.98 | FAIL if used; already prohibited, not the shipped default CTA pairing |
 | Contrast over moving or glass backgrounds | Galaxy, bloom, translucent header and paper seams composite behind content | UNKNOWN until worst-case frames at both widths |
-| 44px by 44px taps | Carousel previous/pause/next 44x44; indicator buttons 28x28; header name has no 44px minimum | FAIL: carousel indicators. Name and inline-link bounds UNKNOWN |
+| 44px by 44px taps | Carousel previous/pause/next 44x44; indicator buttons 28x28 to 44x44 with unchanged 15px stars and wrapping rows; header name has no 44px minimum | PASS for carousel in source. Name and inline-link bounds UNKNOWN |
 | Body >= 16px | step-0 clamp 16px to 18px; step-1 lead 19.2px to 24px. Caption/label register 13.33px to 13.50px | PASS for body; small caption/register is a preship review item |
 | Lines 45 to 75ch | measure 68ch, hero lead 60ch; 19ch heading deliberately separate; phone available width can shorten prose | PASS for declared prose maxima; actual per-screen line lengths UNKNOWN |
-| Five control states | `.press` default/hover/focus/active; focus ring 2px with 3px offset. No disabled treatment; carousel controls lack a complete shared state specification | FAIL: incomplete state coverage |
-| Designed empty state | MediaCarousel returns null for zero images; missing contact channels omitted; work can use proof panels | FAIL: no explicit media-empty treatment or documented intentional omission contract |
-| Designed error state | Failed image stops requested playback, no visible recovery message; contact is external mailto, with no submission state | FAIL: visible media error/recovery absent |
+| Five control states | `.press` adds disabled treatment. Carousel controls/indicators specify default, hover, focus-visible, active and disabled; disabled controls do not hover/press. Pause/play uses native disabled during reduced motion, pending requests and errors | PASS in source |
+| Designed empty state | MediaCarousel changes from null to a 16:10 framed title and supporting message for zero images; missing contact channels omitted; work can use proof panels | PASS in source |
+| Designed error state | Failed current/requested image changes from silent stop to visible status and a 44px retry control; failed current image has a framed placeholder; retry remounts that source and waits for load before committing | PASS in source; live recovery still needs render verification |
 | Reduced motion | Global 0.01ms backstop; component static states, galaxy time frozen, carousel paused and flattened; live preference listeners | PASS in inspected source; visual and keyboard outcomes need render verification |
-| Motion 150 to 300ms ease-out | Fast 150ms, base 300ms pass. Slow 600ms, words 700ms, hero 800ms, reveal fallback 850ms exceed floor. Scroll timelines use progress, not time | FAIL against literal timed-motion range; approved narrative choreography is preserved |
-| Focus/icon/essential border >= 3:1 (preship rule 11) | Accent on canvas dark/warm 6.81/5.39. Hairline and strong on main grounds dark 1.26/1.58, warm 1.34/1.75 | PASS for flat focus pairs; FAIL if these decorative borders alone identify a control |
+| Motion 150 to 300ms ease-out | Fast 150ms, base 300ms pass. Slow 600ms, words 700ms, hero 800ms, reveal fallback 850ms remain unchanged. Scroll timelines use progress, not time | ACCEPTED EXCEPTION: approved narrative/hero choreography and scroll-driven reveals exceed 300ms; ordinary control feedback stays 150ms/300ms |
+| Focus/icon/essential border >= 3:1 (preship rule 11) | Accent on canvas dark/warm 6.81/5.48. Hairline and strong on main grounds dark 1.26/1.58, warm 1.34/1.75 | PASS for flat focus pairs; FAIL if these decorative borders alone identify a control |
 
 Other blueprint differences stay explicit: four approved font families, a 4px spacing base, sRGB hex tokens, 0.94 hero leading, custom SVG stars and scroll choreography. None is silently replaced to satisfy a generic checklist.
 

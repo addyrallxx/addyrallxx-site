@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type PointerEvent } from "react";
 import { usePrefersReducedMotion } from "@/components/ui/use-reduced-motion";
+import { mediaFeedback } from "@/lib/content";
 
 const DWELL_MS = 5000;
 
@@ -31,7 +32,7 @@ export function MediaCarousel({ images, label, priority = false }: {
   images: { src: string; alt: string }[];
   label: string;
   priority?: boolean;
-}): React.JSX.Element | null {
+}): React.JSX.Element {
   const root = useRef<HTMLDivElement>(null);
   const loaded = useRef(new Set<string>());
   const failed = useRef(new Set<string>());
@@ -48,6 +49,8 @@ export function MediaCarousel({ images, label, priority = false }: {
   const [stopped, setStopped] = useState(false);
   const [visible, setVisible] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [error, setError] = useState<number | null>(null);
+  const [attempts, setAttempts] = useState<Record<string, number>>({});
   const reduced = usePrefersReducedMotion();
   const current = images.length ? slide.current % images.length : 0;
   const paused = hovered || focused || stopped || !visible || dragging || reduced || requested !== null;
@@ -101,6 +104,7 @@ export function MediaCarousel({ images, label, priority = false }: {
       pending.current = null;
       setRequested(null);
       setStopped(true);
+      setError(next);
       return;
     }
     if (loaded.current.has(images[next].src)) commit(next, direction);
@@ -203,7 +207,14 @@ export function MediaCarousel({ images, label, priority = false }: {
     };
   }, [reduced, visible]);
 
-  if (!images.length) return null;
+  if (!images.length) return (
+    <div className="media-carousel" role="region" aria-label={label}>
+      <div className="media-carousel-frame carousel-message">
+        <p>{mediaFeedback.emptyTitle}</p>
+        <p>{mediaFeedback.emptyMessage}</p>
+      </div>
+    </div>
+  );
 
   const finishDrag = (event: PointerEvent<HTMLDivElement>, cancelled = false) => {
     const start = drag.current;
@@ -292,18 +303,23 @@ export function MediaCarousel({ images, label, priority = false }: {
             role={original ? "group" : undefined} aria-roledescription={original ? "slide" : undefined}
             aria-label={original ? `${index + 1} of ${images.length}` : undefined} aria-hidden={!original || index !== current}>
             <div className="carousel-image-plane">
-              <Image src={image.src} alt={original ? image.alt : ""} fill sizes="(min-width: 1024px) 34vw, 74vw"
+              <Image key={attempts[image.src] ?? 0} src={image.src} alt={original ? image.alt : ""} fill sizes="(min-width: 1024px) 34vw, 74vw"
                 priority={priority && original && index === 0}
                 loading={priority && original && index === 0 ? undefined : index === current || Math.abs(coverflowOffset(index, current, images.length)) <= 1 || index === requested ? "eager" : "lazy"}
                 className="carousel-slide-img" draggable={false}
                 onLoad={() => {
                   loaded.current.add(image.src);
                   failed.current.delete(image.src);
+                  setError((old) => old === index ? null : old);
                   if (pending.current?.index === index) commit(index, pending.current.direction);
                 }}
                 onError={() => {
                   failed.current.add(image.src);
                   loaded.current.delete(image.src);
+                  if (index === current || pending.current?.index === index) {
+                    setError(index);
+                    setStopped(true);
+                  }
                   if (pending.current?.index === index) {
                     pending.current = null;
                     setRequested(null);
@@ -314,12 +330,17 @@ export function MediaCarousel({ images, label, priority = false }: {
           </div>
         ); }))}
         </div>
+        {error === current && (
+          <div className="carousel-message carousel-error-placeholder">
+            <p>{mediaFeedback.errorTitle}</p>
+          </div>
+        )}
         {images.length > 1 && (
           <div className="carousel-controls">
             <button type="button" className="carousel-control" aria-label={`Previous image in ${label}`} onClick={() => goTo(current - 1, -1)}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m14 6-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" /></svg>
             </button>
-            <button type="button" className="carousel-control" aria-label={`${stopped ? "Play" : "Pause"} slideshow in ${label}`} onClick={() => setStopped(!stopped)}>
+            <button type="button" className="carousel-control" disabled={reduced || requested !== null || error !== null} aria-label={`${stopped ? "Play" : "Pause"} slideshow in ${label}`} onClick={() => setStopped(!stopped)}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
                 {stopped ? <path d="m9 5 10 7-10 7Z" strokeLinejoin="round" /> : <path d="M9 6v12M15 6v12" strokeLinecap="round" />}
               </svg>
@@ -330,6 +351,21 @@ export function MediaCarousel({ images, label, priority = false }: {
           </div>
         )}
       </div>
+      {error !== null && images[error] && (
+        <div className="carousel-feedback" role="status">
+          <p>{mediaFeedback.errorTitle}: {images[error].alt}. {mediaFeedback.errorMessage}</p>
+          <button type="button" className="carousel-control carousel-retry" onClick={() => {
+            const src = images[error].src;
+            failed.current.delete(src);
+            if (error !== current) {
+              pending.current = { index: error, direction: error > current ? 1 : -1 };
+              setRequested(error);
+            }
+            setError(null);
+            setAttempts((old) => ({ ...old, [src]: (old[src] ?? 0) + 1 }));
+          }}>{mediaFeedback.retry}</button>
+        </div>
+      )}
       <div className="carousel-caption">
         <p>{images[current].alt}</p>
       </div>
