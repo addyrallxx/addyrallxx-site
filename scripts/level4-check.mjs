@@ -475,6 +475,64 @@ async function transitionChecks() {
   check('reduced route navigation has no panel or heading animation', await p.evaluate(() => !document.querySelector('.route-panel') && !document.documentElement.dataset.transition && getComputedStyle(document.querySelector('h1 .section-line > span')).animationName === 'none'));
   await p.close();
 }
+async function clockChecks() {
+  const p = await page({ width: 1000, height: 900, deviceScaleFactor: 1 });
+  await p.evaluateOnNewDocument(() => {
+    window.__clockTime = Date.parse('2026-10-10T00:00:30.250Z');
+    const RealDate = Date;
+    window.Date = class extends RealDate { constructor(...args) { super(...(args.length ? args : [window.__clockTime])); } static now() { return window.__clockTime; } };
+    window.__clockTimers = new Map();
+    const set = window.setTimeout.bind(window), clear = window.clearTimeout.bind(window);
+    window.setTimeout = (callback, delay, ...args) => { const id = set(callback, delay, ...args); if (delay === 29750) window.__clockTimers.set(id, delay); return id; };
+    window.clearTimeout = id => { window.__clockTimers.delete(id); return clear(id); };
+  });
+  await p.goto(url, { waitUntil: 'networkidle0' });
+  await p.waitForFunction(() => document.documentElement.dataset.intro === 'done');
+  for (const offset of [0, 12]) {
+    await p.evaluate(offset => { window.__clockTime = Date.parse('2026-10-10T00:00:30.250Z') + offset * 3600000; document.dispatchEvent(new Event('visibilitychange')); }, offset);
+    if (offset) {
+      await sleep(300);
+      check('clock figures crossfade over 600ms', await p.$$eval('.chrome-bottom .clock-figure', figures => figures.every(figure => {
+        const sun = getComputedStyle(figure.querySelector('.clock-sun')), moon = getComputedStyle(figure.querySelector('.clock-moon'));
+        return sun.transitionDuration === '0.6s' && +sun.opacity > 0 && +sun.opacity < 1 && +moon.opacity > 0 && +moon.opacity < 1;
+      })));
+      await sleep(350);
+    } else await sleep(650);
+    check('both clocks use 12 hour digits and AM/PM at fake UTC hour ' + offset, await p.$$eval('.chrome-bottom .clock', clocks => clocks.length === 2 && clocks.every(clock => {
+      const digits = clock.querySelector('.clock-digits').textContent, period = clock.querySelector('.clock-period').textContent;
+      const parts = new Intl.DateTimeFormat('en-US', { timeZone: clock.dataset.zone, hour: 'numeric', minute: '2-digit', hour12: true }).formatToParts(new Date());
+      const value = type => parts.find(part => part.type === type).value;
+      return /^\d{1,2}:\d{2}$/.test(digits) && Number(digits.split(':')[0]) <= 12 && !digits.startsWith('0') && /^(AM|PM)$/.test(period) && digits === value('hour') + ':' + value('minute') && period === value('dayPeriod') && clock.getAttribute('aria-label') === clock.querySelector('.clock-city').textContent + ', ' + digits + ' ' + period;
+    })));
+    check('each clock shows its correct single sun or moon at fake UTC hour ' + offset, await p.$$eval('.chrome-bottom .clock', clocks => clocks.every(clock => {
+      const hour = Number(new Intl.DateTimeFormat('en-GB', { timeZone: clock.dataset.zone, hour: 'numeric', hourCycle: 'h23' }).format(new Date()));
+      const day = hour >= 6 && hour < 18, figure = clock.querySelector('.clock-figure');
+      return clock.querySelectorAll('.clock-figure').length === 1 && figure.dataset.day === String(day) && getComputedStyle(figure.querySelector('.clock-sun')).opacity === (day ? '1' : '0') && getComputedStyle(figure.querySelector('.clock-moon')).opacity === (day ? '0' : '1');
+    })));
+  }
+  check('intro and chrome share one minute-boundary timer with scoped wall-clock phase', await p.evaluate(() => window.__clockTimers.size === 1 && [...document.querySelectorAll('.clocks')].every(el => el.style.getPropertyValue('--clock-phase') === '-250ms') && !document.documentElement.style.getPropertyValue('--clock-phase')));
+  check('clock sync restarts the CSS colon at its wall-clock phase', await p.evaluate(() => {
+    const colon = document.querySelector('.chrome-bottom .clock-colon');
+    const before = getComputedStyle(colon).animationName;
+    document.dispatchEvent(new Event('visibilitychange'));
+    const after = getComputedStyle(colon).animationName;
+    return before !== after && /^clock-colon-[ab]$/.test(after) && colon.getAnimations()[0].currentTime < 50;
+  }));
+  check('desktop figures have a physical 5px sun disc and eight 1.5px rays', await p.$$eval('.chrome-bottom .clock-figure', figures => figures.every(figure => figure.viewBox.baseVal.width === 16 && getComputedStyle(figure).width === '16px' && figure.querySelector('.clock-sun > circle').r.baseVal.value === 5 && figure.querySelectorAll('.clock-rays line').length === 8 && getComputedStyle(figure.querySelector('.clock-rays')).strokeWidth === '1.5px')));
+  const other = await page(); await other.bringToFront(); await sleep(200);
+  check('clock motion pauses when document is hidden', await p.evaluate(() => document.hidden && document.documentElement.classList.contains('clock-paused') && [...document.querySelectorAll('.clock-rays, .clock-star, .clock-colon')].every(el => getComputedStyle(el).animationPlayState === 'paused')));
+  await other.close(); await p.bringToFront();
+  await p.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
+  check('reduced chrome has no running animations and a solid colon', await p.evaluate(() => document.querySelector('.chrome-bottom').getAnimations({ subtree: true }).every(animation => animation.playState !== 'running') && [...document.querySelectorAll('.clock-colon')].every(el => getComputedStyle(el).animationName === 'none' && getComputedStyle(el).opacity === '1')));
+  await p.setViewport({ width: 390, height: 844, deviceScaleFactor: 1 });
+  check('phone clock figures are 14px with no overflow', await p.evaluate(() => [...document.querySelectorAll('.clock-figure')].every(el => getComputedStyle(el).width === '14px') && document.documentElement.scrollWidth === innerWidth));
+  await p.close();
+  const capture = await page({ width: 1000, height: 900, deviceScaleFactor: 1 });
+  await capture.goto(url, { waitUntil: 'networkidle0' }); await capture.waitForFunction(() => document.documentElement.dataset.intro === 'done'); await sleep(1000);
+  const png = await capture.screenshot({ path: join(tmpdir(), 'claude/briefs/f8-clocks.png') });
+  await sharp(png).extract({ left: 0, top: 800, width: 1000, height: 100 }).toFile(join(tmpdir(), 'claude/briefs/f7-clocks.png'));
+  await capture.close();
+}
 try {
   const firstPaint = await page();
   await firstPaint.evaluateOnNewDocument(() => {
@@ -661,6 +719,7 @@ try {
   await schoolChecks();
   await projectChecks();
   await transitionChecks();
+  await clockChecks();
   check("no console, runtime or HTTP errors", errors.length === 0);
   for (const b of budgets) check(`frame budget ${b.width}x${b.height} CPU ${b.rate}x ${b.spin ? "sphere" : "scroll"}`, b.p95 <= (b.rate === 4 ? 33 : 16.7) && b.maxTask <= 50);
   console.log(`${checks} Level 4 checks passed.`);

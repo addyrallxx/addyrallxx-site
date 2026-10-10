@@ -66,6 +66,17 @@
   .chrome-bottom { bottom: var(--gutter); gap: var(--u); }
   .chrome-nav, .clocks { display: flex; align-items: center; gap: 24px; }
   .clock { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .clock-time { display: inline-flex; align-items: baseline; gap: 3px; }
+  .clock-digits { min-width: 4.5ch; }
+  .clock-period { color: var(--ink-3); font-size: 70%; letter-spacing: .06em; min-width: 2ch; }
+  .clock-figure { width: 16px; height: 16px; flex-shrink: 0; }
+  .clock-sun, .clock-moon { transition: opacity 600ms; }
+  .clock-figure[data-day="true"] .clock-sun, .clock-figure[data-day="false"] .clock-moon { opacity: 1; }
+  .clock-figure[data-day="false"] .clock-sun, .clock-figure[data-day="true"] .clock-moon { opacity: 0; }
+  .clock-rays { transform-origin: 8px 8px; animation: clock-rays 20s linear infinite; }
+  .clock-star { transform-origin: 13px 3px; animation: clock-star 4s ease-in-out infinite; }
+  .clock-colon { animation: var(--clock-blink, clock-colon-a) 1s steps(1, end) infinite; animation-delay: var(--clock-phase, 0ms); }
+  :root.clock-paused .clock-rays, :root.clock-paused .clock-star, :root.clock-paused .clock-colon { animation-play-state: paused; }
   .live-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; border: 1px solid var(--accent); flex-shrink: 0; }
   .live-dot[data-day="true"] { background: var(--accent); }
   .availability { display: flex; align-items: center; gap: 8px; }
@@ -291,6 +302,7 @@
   @media (min-width: 1440px) { .t-body { font-size: 17px; } }
   @media (max-width: 719px) {
     .chrome-nav > a { display: none; }
+    .clock-figure { width: 14px; height: 14px; }
     .chrome-nav { gap: 8px; }
     .menu-button { display: inline-flex !important; }
     .sphere-item, .skill-icon { width: 26px; height: 26px; }
@@ -324,5 +336,9 @@
 }
 @keyframes intro-fail-open { to { visibility: hidden; pointer-events: none; } }
 @keyframes headline-rise { from { transform: translateY(105%); } to { transform: translateY(0); } }
+@keyframes clock-rays { to { transform: rotate(360deg); } }
+@keyframes clock-star { 0%, 100% { transform: scale(.6); opacity: .4; } 50% { transform: scale(1); opacity: 1; } }
+@keyframes clock-colon-a { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+@keyframes clock-colon-b { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
 @keyframes sky-enter { from { opacity: 0; } to { opacity: 1; } }
 @keyframes chrome-enter { from { opacity: 0; } to { opacity: 1; } }
