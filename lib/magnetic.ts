@@ -39,13 +39,15 @@ export function attachMagnetic(
   el.style.transition = TRANSITION;
   el.style.willChange = "transform";
 
+  let previous = "";
   let inside = false;
   let pressed = false;
   let lastX = 0;
   let lastY = 0;
 
   const apply = (x: number, y: number, scale: number) => {
-    el.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+    const value = `translate(${x}px, ${y}px) scale(${scale})`;
+    if (value !== previous) { el.style.transform = value; previous = value; }
   };
 
   const currentScale = () => (pressed ? PRESS_SCALE : 1);
@@ -62,8 +64,8 @@ export function attachMagnetic(
       inside = true;
       const cx = r.left + r.width / 2;
       const cy = r.top + r.height / 2;
-      lastX = (e.clientX - cx) * pull;
-      lastY = (e.clientY - cy) * pull;
+      lastX = Math.max(-8, Math.min(8, (e.clientX - cx) * pull));
+      lastY = Math.max(-8, Math.min(8, (e.clientY - cy) * pull));
       apply(lastX, lastY, currentScale());
     } else if (inside) {
       inside = false;

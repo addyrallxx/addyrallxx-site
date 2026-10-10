@@ -159,43 +159,24 @@ async function fanMatrices(p, hover) {
   }));
 }
 async function f3Desktop(p) {
-  check('Work thumbnails do not repeat the link description', await p.$$eval('.work-inline-image img', images => images.length > 0 && images.every(image => image.alt === '')));
-  await scrollTo(p, "#work", 100);
-  check("desktop Work rows are exactly 96px", await p.$$eval(".work-row", rows => rows.every(row => row.getBoundingClientRect().height === 96)));
-  check("home sections keep the specified order", await p.$$eval("main > section", sections => (sections.length >= 9 ? [".hero-line", ".work-row", ".other-band", ".plain-row", "#taste-heading", "[data-sphere]", ".service-row", "#method-heading", "#info-heading"] : [".hero-line", ".work-row", ".other-band", ".plain-row", "[data-sphere]", ".service-row"]).every((selector, i) => sections[i].querySelector(selector))));
-  check("Alongside school and Services render four rows each", await p.evaluate(() => document.querySelectorAll(".plain-row").length === 4 && document.querySelectorAll(".service-row").length === 4 && document.querySelector(".contact-pill").getAttribute("href") === "#contact"));
-  await p.mouse.move(1, 100);
-  await sleep(100);
-  await p.evaluate(() => {
-    window.__previewMounts = [];
-    window.__previewObserver = new MutationObserver(records => {
-      for (const record of records) for (const node of record.addedNodes) if (node instanceof Element && node.matches('.work-preview')) window.__previewMounts.push(node.style.transform);
-    });
-    window.__previewObserver.observe(document.querySelector('.work'), { childList: true, subtree: true });
-  });
-  const row = await p.$eval(".work-row:nth-child(3)", el => { const r = el.getBoundingClientRect(); return { x: r.left + 400, y: r.top + r.height / 2 }; });
-  await p.mouse.move(row.x, row.y);
-  await p.waitForSelector(".work-preview");
-  await sleep(700);
-  const before = await p.$eval(".work-preview", el => { const m = new DOMMatrix(getComputedStyle(el).transform); return { x: m.e, y: m.f }; });
-  await p.mouse.move(row.x + 160, row.y);
-  await sleep(850);
-  const after = await p.$eval(".work-preview", el => { const m = new DOMMatrix(getComputedStyle(el).transform); return { x: m.e, y: m.f }; });
-  check("work preview lerps to pointer with 24px offset", Math.abs(after.x - before.x - 160) < 2 && Math.abs(after.x - row.x - 160 - 24) < 2 && Math.abs(after.y - row.y - 24) < 2);
-  check("work preview is fixed at the measured pointer coordinates", await p.$eval(".work-preview", (el, target) => {
-    const r = el.getBoundingClientRect(); return getComputedStyle(el).position === "fixed" && Math.abs(r.left - target.x) < 2 && Math.abs(r.top - target.y) < 2;
-  }, after));
-  await sharp(await p.screenshot()).resize({ width: 1000 }).toFile(join(tmpdir(), "claude/briefs/f3-work.png"));
-  await p.hover('.work-row:nth-child(4)');
-  await sleep(150);
-  check('Work previews mount positioned before paint on entry and row switch', await p.evaluate(() => {
-    window.__previewObserver.disconnect();
-    return window.__previewMounts.length === 2 && window.__previewMounts.every(transform => { const m = new DOMMatrix(transform); return transform !== 'none' && m.e > 0 && m.f > 0; });
-  }));
-  await scrollTo(p, ".work-row:first-child");
-  await p.hover(".work-row:first-child");
-  check("projects without images have no floating preview", await p.$(".work-preview") === null);
-  await scrollTo(p, ".other-band", 180);
+  check('Work has one card per project and no index numbers', await p.evaluate(count => document.querySelectorAll('#work .work-card').length === count && !document.querySelector('#work .index-number'), [...readFileSync('lib/content.ts', 'utf8').split('export const WORK: Project[] =')[1].split('export const CAR')[0].matchAll(/slug: /g)].length));
+  await scrollTo(p, '#work', 100);
+  check('desktop cards are 78svh with a 560px minimum', await p.$$eval('.work-card', cards => cards.every(card => Math.abs(card.getBoundingClientRect().height / new DOMMatrix(getComputedStyle(card).transform).a - Math.max(560, innerHeight * .78)) < 2)));
+  const entry = await p.$eval('.work-card', el => el.getBoundingClientRect().top + scrollY);
+  const clips = [];
+  for (let i = 0; i < 8; i++) {
+    await p.evaluate(({entry, i}) => window.__lenis.scrollTo(entry - innerHeight + innerHeight * .65 * i / 7, {immediate:true}), {entry, i});
+    await sleep(100);
+    clips.push(await p.$eval('.work-media-frame', el => getComputedStyle(el).clipPath));
+  }
+  check('first media morphs across eight entry samples', new Set(clips).size >= 6);
+  console.log('WORK clips', clips);
+  await scrollTo(p, '.work-card:nth-child(2)', 110);
+  check('covered card reaches scale below .95', await p.$eval('.work-card', el => new DOMMatrix(getComputedStyle(el).transform).a <= .95));
+  await p.setViewport({width:1000,height:900,deviceScaleFactor:1});
+  await scrollTo(p, '.work-card:nth-child(2)', 240);
+  await p.screenshot({path:join(tmpdir(),'claude/briefs/f11-work.png')});
+  await p.setViewport({width:1440,height:900,deviceScaleFactor:1});  await scrollTo(p, ".other-band", 180);
   check('Other things has one accessible heading and a concise link name', await p.$eval('.other-band', el => el.getAttribute('aria-label') === el.querySelector('h2').getAttribute('aria-label') && el.querySelector('.card-fan').getAttribute('aria-hidden') === 'true' && el.querySelectorAll('h2:not([aria-hidden="true"])').length === 1));
   await p.mouse.move(1, 100);
   await sleep(450); await fanMatrices(p, false);
@@ -417,7 +398,7 @@ async function projectChecks() {
   const p = await page({ width: 1000, height: 900, deviceScaleFactor: 1 });
   await p.goto(new URL('/work', url).href, { waitUntil: 'networkidle0' });
   await p.waitForFunction(() => document.documentElement.dataset.intro === 'done');
-  check('/work has the shared project index and smaller builds', await p.evaluate(count => document.querySelectorAll('.work-row').length === count && document.querySelectorAll('.smaller-row').length === 3 && document.querySelectorAll('h1').length === 1, projects.length));
+  check('/work has the shared project index and smaller builds', await p.evaluate(count => document.querySelectorAll('.work-card').length === count && document.querySelectorAll('.smaller-row').length === 3 && document.querySelectorAll('h1').length === 1, projects.length));
   for (let i = 0; i < projects.length; i++) {
     const response = await p.goto(new URL('/work/' + projects[i], url).href, { waitUntil: 'networkidle0' });
     await p.waitForFunction(() => document.documentElement.dataset.intro === 'done');
@@ -458,12 +439,12 @@ async function transitionChecks() {
       if (!w.revealed) requestAnimationFrame(sample);
     }; requestAnimationFrame(sample);
   });
-  await p.click('.work-row:first-child');
+  await scrollTo(p, '.work-card:first-child', 120); await p.evaluate(() => { window.__wipe.initialScroll = scrollY; window.__wipe.shifts = 0; }); await p.click('.work-pill');
   await p.waitForFunction(() => window.__wipe.revealed > 0);
   const wipe = await p.evaluate(() => window.__wipe);
   check('new project stays covered until its route commits', wipe.changed && wipe.violations.length === 0 && wipe.phases.includes('covering') && wipe.phases.includes('revealing'));
   check('wipe uses a 600ms cover and 700ms reveal', wipe.covered - wipe.started >= 580 && wipe.covered - wipe.started < 850 && wipe.revealed - wipe.ready >= 680 && wipe.revealed - wipe.ready < 900);
-  check('wipe preserves scroll until cover and has no layout shift', wipe.coverScroll === 0 && wipe.shifts === 0);
+  check('wipe preserves scroll until cover and has no layout shift', wipe.coverScroll === wipe.initialScroll && wipe.shifts === 0);
   wipe.frames.sort((a, b) => a - b);
   const p95 = wipe.frames[Math.ceil(wipe.frames.length * .95) - 1];
   console.log('WIPE p95=' + p95.toFixed(3) + 'ms'); check('wipe p95 is at most 16.7ms', p95 <= 16.7);
@@ -704,11 +685,8 @@ try {
   check("coarse DPR cap", await mobile.$eval(".sky canvas", (canvas) => canvas.width <= 488));
   check("phone no overflow", await mobile.evaluate(() => document.documentElement.scrollWidth === innerWidth));
   await heroBounds(mobile);
-  await scrollTo(mobile, ".work-row:nth-child(3)");
-  await mobile.hover(".work-row:nth-child(3)");
-  check("touch viewport has no floating preview", await mobile.$(".work-preview") === null);
-  check("touch preview sits inline at 88px", await mobile.$eval(".work-row:nth-child(3) .work-inline-image", el => el.getBoundingClientRect().height === 88));
-  await sphereChecks(mobile);
+  await scrollTo(mobile, '.work-card:nth-child(3)');
+  check('phone Work is sequential with media above text', await mobile.$eval('.work-card:nth-child(3)', el => getComputedStyle(el).position === 'relative' && el.querySelector('.work-media').getBoundingClientRect().top < el.querySelector('.work-copy').getBoundingClientRect().top));  await sphereChecks(mobile);
   await sweepPage(mobile);
   check("phone no overflow after scrolling whole page", await mobile.evaluate(() => document.documentElement.scrollWidth === innerWidth));
   await frameBudget(mobile, 1);

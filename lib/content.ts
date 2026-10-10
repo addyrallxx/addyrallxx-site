@@ -132,6 +132,18 @@ export type Project = {
 
 export const WORK_LABEL = "Selected work";
 
+// Cursor follower and card link on the Work cards.
+export const WORK_CTA = { view: "View", open: "View project" };
+
+// Labels on /work/[slug]. Values come from each WORK item.
+export const WORK_META = {
+  kind: "Kind",
+  year: "Year",
+  stack: "Stack",
+  status: "Status",
+  does: "What it does",
+};
+
 export const WORK: Project[] = [
   {
     slug: "puzzled",
@@ -245,7 +257,7 @@ export const CAR = {
     { label: "Body", value: "M3 style bumper and skirts, carbon lip, grilles, mirror caps, diffuser, spoiler, skirt extensions and rear spats" },
     { label: "Inside", value: "M3 wheel, M Performance shift knob, Logic 7" },
   ],
-  signOff: "Two turbos, three pedals, no adult supervision.",
+  signOff: "Bernina Grey. RB twins. Bad intentions.",
 };
 
 export const OTHER = {
@@ -295,10 +307,10 @@ export const INFO = {
 export const SCHOOL = {
   label: "School",
   lines: ["University", "of Calgary"],
-  lead: "BSc Computer Science, graduating April 2028. The degree runs alongside the work on this site, not instead of it.",
+  lead: "The degree runs alongside the work on this site, not instead of it.",
   facts: [
     { label: "Degree", value: "BSc Computer Science" },
-    { label: "School", value: "University of Calgary" },
+    { label: "Capstone", value: "Handled AI, CPSC 598" },
     { label: "Graduating", value: "April 2028" },
     { label: "Looking for", value: "Summer 2027 internships" },
   ],
@@ -361,6 +373,7 @@ export const CONTACT = {
   body: "Email is fastest. I answer everything.",
   copy: "Copy email",
   copied: "Copied",
+  mail: "Open in mail app",
   availability: "Open to summer 2027 internships and freelance builds.",
 };
 

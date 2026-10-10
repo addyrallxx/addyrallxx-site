@@ -1,63 +1,91 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
 import Image from "next/image";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { TransitionLink as Link } from "@/components/page-transition";
-import { WORK, WORK_LABEL } from "@/lib/content";
-import { SectionReveal } from "@/components/ui/section-reveal";
+import { WORK, WORK_LABEL, WORK_CTA } from "@/lib/content";
+import { attachMagnetic } from "@/lib/magnetic";
 
 export function Work({ showLabel = true }: { showLabel?: boolean }) {
-  const preview = useRef<HTMLDivElement>(null);
-  const pointer = useRef({ x: 0, y: 0 });
-  const [active, setActive] = useState<number | null>(null);
-  const [fine, setFine] = useState(false);
+  const root = useRef<HTMLElement>(null);
   useEffect(() => {
-    const media = matchMedia("(hover: hover) and (pointer: fine)");
-    const update = () => { setFine(media.matches); if (!media.matches) setActive(null); };
-    update(); media.addEventListener("change", update);
-    return () => media.removeEventListener("change", update);
+    gsap.registerPlugin(ScrollTrigger);
+    const el = root.current!;
+    const media = gsap.matchMedia();
+    const cleanups = Array.from(el.querySelectorAll<HTMLElement>(".work-pill")).map(el => attachMagnetic(el));
+    media.add("(prefers-reduced-motion: no-preference)", () => {
+      const cards = Array.from(el.querySelectorAll<HTMLElement>(".work-card"));
+      const context = gsap.context(() => {
+        cards.forEach((card, i) => {
+          const frame = card.querySelector<HTMLElement>(".work-media-frame")!;
+          gsap.fromTo(frame, { clipPath: "inset(16% 22% round 999px)" }, { clipPath: "inset(0% 0% round 20px)", ease: "none", scrollTrigger: { trigger: card, start: "top bottom", end: "top 35%", scrub: true } });
+          gsap.fromTo(card.querySelector(".work-media-inner"), { yPercent: -8 }, { yPercent: 8, ease: "none", scrollTrigger: { trigger: card, start: "top bottom", end: "bottom top", scrub: true } });
+          gsap.fromTo(card.querySelectorAll(".work-word"), { yPercent: 110 }, { yPercent: 0, duration: .8, stagger: .055, ease: "power4.out", scrollTrigger: { trigger: card, start: "top 82%", once: true } });
+          if (cards[i + 1] && innerWidth >= 720) {
+            const timeline = gsap.timeline({ scrollTrigger: { trigger: cards[i + 1], start: "top 85%", end: `top ${9 + (i + 1) * 16 / innerHeight * 100}%`, scrub: true } });
+            timeline.to(card, { scale: .93, ease: "none" }, 0).to(card.querySelector(".work-card-content"), { opacity: .35, ease: "none" }, 0);
+          }
+        });
+      }, el);
+      const followers = cards.map(card => {
+        const surface = card.querySelector<HTMLElement>(".work-media")!;
+        const frame = card.querySelector<HTMLElement>(".work-media-frame")!;
+        const follower = card.querySelector<HTMLElement>(".work-follower")!;
+        const setPosition = gsap.quickSetter(follower, "css");
+        const setSkew = gsap.quickSetter(frame, "skewY", "deg");
+        let x = 0, y = 0, tx = 0, ty = 0, skew = 0, active = false;
+        let previous = "", previousSkew = 0;
+        const move = (event: PointerEvent) => {
+          const bounds = surface.getBoundingClientRect();
+          tx = event.clientX - bounds.left; ty = event.clientY - bounds.top;
+        };
+        const enter = (event: PointerEvent) => {
+          if (event.pointerType !== "mouse" || !matchMedia("(pointer: fine)").matches) return;
+          move(event); x = tx; y = ty; active = true;
+          gsap.to(follower, { scale: 1, duration: .2, overwrite: true });
+        };
+        const leave = () => { active = false; gsap.to(follower, { scale: 0, duration: .2, overwrite: true }); };
+        gsap.set(follower, { scale: 0 });
+        surface.addEventListener("pointermove", move); surface.addEventListener("pointerenter", enter); surface.addEventListener("pointerleave", leave);
+        return { tick: () => {
+          if (active) {
+            x += (tx - x) * .16; y += (ty - y) * .16;
+            const next = `${x.toFixed(2)},${y.toFixed(2)}`;
+            if (next !== previous) { setPosition({ x, y }); previous = next; }
+          }
+          const target = Math.max(-3, Math.min(3, (window.__lenis?.velocity ?? 0) * .04));
+          skew += (target - skew) * .1;
+          const value = Math.abs(skew) < .005 ? 0 : Math.round(skew * 100) / 100;
+          if (value !== previousSkew) { setSkew(value); previousSkew = value; }
+        }, cleanup: () => { surface.removeEventListener("pointermove", move); surface.removeEventListener("pointerenter", enter); surface.removeEventListener("pointerleave", leave); } };
+      });
+      const tick = () => { if (!document.hidden) followers.forEach(f => f.tick()); };
+      gsap.ticker.add(tick);
+      void document.fonts.ready.then(() => ScrollTrigger.refresh());
+      return () => { gsap.ticker.remove(tick); followers.forEach(f => f.cleanup()); context.revert(); };
+    });
+    return () => { media.revert(); cleanups.forEach(cleanup => cleanup()); };
   }, []);
-  useLayoutEffect(() => {
-    const el = preview.current;
-    if (!el || active === null) return;
-    const motion = matchMedia("(prefers-reduced-motion: reduce)");
-    let frame = 0;
-    let width = innerWidth, height = innerHeight;
-    let x = Math.max(0, Math.min(pointer.current.x + 24, width - 320));
-    let y = Math.max(0, Math.min(pointer.current.y + 24, height - 220));
-    const resize = () => { width = innerWidth; height = innerHeight; };
-    const tick = () => {
-      frame = 0;
-      const tx = Math.max(0, Math.min(pointer.current.x + 24, width - 320));
-      const ty = Math.max(0, Math.min(pointer.current.y + 24, height - 220));
-      const dx = (tx - x) * (motion.matches ? 1 : .12);
-      x += dx; y += (ty - y) * (motion.matches ? 1 : .12);
-      const angle = motion.matches ? 0 : Math.max(-6, Math.min(6, dx));
-      el.style.transform = `translate3d(${x}px,${y}px,0) rotate(${angle}deg)`;
-      if (Math.abs(tx - x) + Math.abs(ty - y) > .1) frame = requestAnimationFrame(tick);
-      else el.style.transform = `translate3d(${tx}px,${ty}px,0)`;
-    };
-    const move = (event: PointerEvent) => { pointer.current = { x: event.clientX, y: event.clientY }; if (!frame) frame = requestAnimationFrame(tick); };
-    const clear = () => setActive(null);
-    // Position the newly mounted image before paint, including row switches.
-    tick();
-    const bloom = window.setTimeout(() => { el.dataset.colour = "true"; }, 400);
-    window.addEventListener("pointermove", move, { passive: true });
-    window.addEventListener("resize", resize);
-    window.addEventListener("scroll", clear, { passive: true });
-    window.addEventListener("blur", clear);
-    return () => { cancelAnimationFrame(frame); clearTimeout(bloom); window.removeEventListener("pointermove", move); window.removeEventListener("resize", resize); window.removeEventListener("scroll", clear); window.removeEventListener("blur", clear); };
-  }, [active]);
-  const image = active === null ? undefined : WORK[active].images[0];
-  return <section className="home-section work" id="work" aria-labelledby={showLabel ? "work-heading" : undefined}><SectionReveal>
+  return <section ref={root} className="home-section work" id="work" aria-labelledby={showLabel ? "work-heading" : undefined}>
     {showLabel && <h2 id="work-heading" className="t-label section-label">{WORK_LABEL}</h2>}
-    <div className="index-list">{WORK.map((item, i) => <Link prefetch={false} className="index-row work-row" href={`/work/${item.slug}`} key={item.slug} style={{ "--row-index": i } as CSSProperties}
-      onPointerEnter={event => { pointer.current = { x: event.clientX, y: event.clientY }; if (fine && event.pointerType === "mouse" && item.images.length) setActive(i); }} onPointerLeave={() => setActive(null)}>
-      <span className="t-label index-number">{String(i + 1).padStart(2, "0")}</span>
-      <h3 className="t-title work-name">{item.name}</h3><p className="t-body section-body">{item.line}</p>
-      <div className="work-meta t-small"><span>{item.kind}</span><span>{item.year}</span></div>
-      {item.images[0] && <div className="work-inline-image image-treatment"><Image src={item.images[0].src} alt="" fill sizes="88px" /></div>}
-    </Link>)}</div>
-    {fine && image && <div key={active} ref={preview} className="work-preview image-treatment" aria-hidden="true"><Image src={image.src} alt="" fill sizes="320px" /></div>}
-  </SectionReveal></section>;
+    <div className="work-stack">{WORK.map((item, i) => <article className="work-card" key={item.slug} style={{ "--i": i } as CSSProperties}>
+      <div className="work-card-content">
+        <div className="work-copy">
+          <div className="t-label work-kind"><span>{item.kind}</span><span>{item.year}</span></div>
+          <h3 className="t-display-m" aria-label={item.name}>{item.name.split(" ").map((word, j) => <span key={j} className="work-word-mask" aria-hidden="true"><span className="work-word">{word}</span>{" "}</span>)}</h3>
+          <p className="t-body work-line">{item.line}</p>
+          <ul className="work-tags t-small">{item.stack.map(tag => <li key={tag}>{tag}</li>)}</ul>
+          <Link prefetch={false} className="contact-pill work-pill" href={`/work/${item.slug}`}>{WORK_CTA.open}</Link>
+        </div>
+        <div className="work-media">
+          <Link prefetch={false} className="work-media-link" href={`/work/${item.slug}`} aria-label={`${WORK_CTA.open}: ${item.name}`}>
+            <div className="work-media-frame"><div className="work-media-inner">{item.images[0] ? <Image src={item.images[0].src} alt="" fill sizes="(max-width: 719px) 100vw, 58vw" onLoad={() => ScrollTrigger.refresh()} /> : <span className="t-display-xl work-outline" aria-hidden="true">{item.name}</span>}</div></div>
+          </Link>
+          <span className="work-follower t-small" aria-hidden="true">{WORK_CTA.view}</span>
+        </div>
+      </div>
+    </article>)}</div>
+  </section>;
 }
