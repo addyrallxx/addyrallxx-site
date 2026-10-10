@@ -4,6 +4,7 @@ import SmoothScroll from "@/components/smooth-scroll";
 import { Sky } from "@/components/sky/sky";
 import { Intro } from "@/components/intro/intro";
 import { Chrome } from "@/components/chrome/chrome";
+import { PageTransition } from "@/components/page-transition";
 import { SITE, CHROME } from "@/lib/content";
 import "./globals.css";
 
@@ -28,8 +29,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <SmoothScroll />
         <Sky />
         <Intro />
-        <Chrome />
-        <div className="relative z-[1]">{children}</div>
+        <PageTransition><Chrome />{children}</PageTransition>
       </body>
     </html>
   );

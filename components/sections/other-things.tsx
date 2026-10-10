@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { TransitionLink as Link } from "@/components/page-transition";
 import { OTHER } from "@/lib/content";
 import { SectionReveal } from "@/components/ui/section-reveal";
 

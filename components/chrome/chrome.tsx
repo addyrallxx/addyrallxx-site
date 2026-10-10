@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import Link from "next/link";
+import { TransitionLink as Link } from "@/components/page-transition";
 import { CHROME, NAV, SITE } from "@/lib/content";
 import "@/lib/scroll";
 import { Clocks } from "./clocks";
@@ -56,7 +56,7 @@ export function Chrome() {
       <header className="chrome-top">
         <div className="chrome-name"><Link href="/">{SITE.name}</Link></div>
         <nav className="chrome-nav" aria-label={CHROME.menu}>
-          {NAV.map((link) => <a href={link.href} key={link.href}>{link.label}</a>)}
+          {NAV.map((link) => <Link href={link.href} key={link.href}>{link.label}</Link>)}
           <button ref={menu} className="menu-button" type="button" onClick={open} aria-haspopup="dialog" aria-controls="phone-menu">{CHROME.menu}</button>
           <SkyToggle />
         </nav>
@@ -69,7 +69,7 @@ export function Chrome() {
     {/* Native modal dialog supplies the focus trap, inert background and Escape handling. */}
     <dialog id="phone-menu" className="menu-sheet" ref={sheet} aria-label={CHROME.menu} onClose={restore} onCancel={close} data-lenis-prevent>
       <div className="flex justify-end"><button type="button" onClick={close} autoFocus className="t-small">{CHROME.close}</button></div>
-      <nav>{NAV.map((link) => <a href={link.href} key={link.href} onClick={close} className="t-display-l">{link.label}</a>)}</nav>
+      <nav>{NAV.map((link) => <Link href={link.href} key={link.href} onClick={close} className="t-display-l">{link.label}</Link>)}</nav>
     </dialog>
   </>;
 }

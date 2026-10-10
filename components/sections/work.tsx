@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { TransitionLink as Link } from "@/components/page-transition";
 import { WORK, WORK_LABEL } from "@/lib/content";
 import { SectionReveal } from "@/components/ui/section-reveal";
 

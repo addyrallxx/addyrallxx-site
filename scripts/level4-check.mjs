@@ -426,6 +426,55 @@ async function projectChecks() {
   check('unknown project returns 404', (await fetch(new URL('/work/not-a-project', url))).status === 404);
   await p.close();
 }
+async function transitionChecks() {
+  const p = await page();
+  await p.goto(new URL('/work', url).href, { waitUntil: 'networkidle0' });
+  await p.waitForFunction(() => document.documentElement.dataset.intro === 'done');
+  await p.evaluate(() => {
+    window.__wipe = { frames: [], phases: [], violations: [], shifts: 0, started: 0, covered: 0, ready: 0, revealed: 0, changed: false, coverScroll: 0 };
+    const w = window.__wipe;
+    new PerformanceObserver(list => { for (const entry of list.getEntries()) if (!entry.hadRecentInput) w.shifts += entry.value; }).observe({ type: 'layout-shift' });
+    new MutationObserver(() => {
+      if (!document.querySelector('[data-project="puzzled"]') || w.changed) return;
+      w.changed = true;
+      const panel = document.querySelector('.route-panel'), r = panel.getBoundingClientRect();
+      if (panel.hidden || r.top > .5 || r.bottom < innerHeight - .5 || getComputedStyle(panel).opacity !== '1') w.violations.push('new route committed before cover');
+    }).observe(document.querySelector('.route-content'), { childList: true, subtree: true });
+    for (const [event, key] of [['route:wipe-start', 'started'], ['route:covered', 'covered'], ['route:ready', 'ready'], ['route:revealed', 'revealed']]) window.addEventListener(event, () => { w[key] = performance.now(); if (key === 'covered') w.coverScroll = scrollY; });
+    let last = 0;
+    const sample = now => {
+      const phase = document.documentElement.dataset.transition;
+      if (phase) { if (last) w.frames.push(now - last); last = now; w.phases.push(phase); }
+      if (!w.revealed) requestAnimationFrame(sample);
+    }; requestAnimationFrame(sample);
+  });
+  await p.click('.work-row:first-child');
+  await p.waitForFunction(() => window.__wipe.revealed > 0);
+  const wipe = await p.evaluate(() => window.__wipe);
+  check('new project stays covered until its route commits', wipe.changed && wipe.violations.length === 0 && wipe.phases.includes('covering') && wipe.phases.includes('revealing'));
+  check('wipe uses a 600ms cover and 700ms reveal', wipe.covered - wipe.started >= 580 && wipe.covered - wipe.started < 850 && wipe.revealed - wipe.ready >= 680 && wipe.revealed - wipe.ready < 900);
+  check('wipe preserves scroll until cover and has no layout shift', wipe.coverScroll === 0 && wipe.shifts === 0);
+  wipe.frames.sort((a, b) => a - b);
+  const p95 = wipe.frames[Math.ceil(wipe.frames.length * .95) - 1];
+  console.log('WIPE p95=' + p95.toFixed(3) + 'ms'); check('wipe p95 is at most 16.7ms', p95 <= 16.7);
+  check('heading line rises only after the panel exits', await p.evaluate(() => document.querySelector('h1').classList.contains('route-heading-rise') && !document.querySelector('h1').classList.contains('route-heading-armed') && document.querySelector('.route-panel').hidden && scrollY === 0 && !document.querySelector('.route-content').inert));
+  await p.goBack({ waitUntil: 'networkidle0' });
+  check('Back skips the panel', await p.evaluate(() => location.pathname === '/work' && document.querySelector('.route-panel').hidden && !document.documentElement.dataset.transition));
+  await p.goForward({ waitUntil: 'networkidle0' });
+  check('Forward skips the panel', await p.evaluate(() => location.pathname === '/work/puzzled' && document.querySelector('.route-panel').hidden && !document.documentElement.dataset.transition));
+  await p.click('.chrome-nav a[href="/school"]');
+  await p.waitForFunction(() => location.pathname === '/school' && !document.documentElement.dataset.transition);
+  check('School uses the shared wipe', await p.$eval('h1', el => el.classList.contains('route-heading-rise')));
+  await p.click('.back-link');
+  await p.waitForFunction(() => location.pathname === '/' && !document.documentElement.dataset.transition);
+  check('Home uses the shared wipe and restores the top', await p.evaluate(() => document.querySelector('h1').classList.contains('route-heading-rise') && scrollY === 0));
+  await p.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
+  await p.waitForFunction(() => !document.querySelector('.route-panel'));
+  await p.click('.chrome-nav a[href="/school"]');
+  await p.waitForFunction(() => location.pathname === '/school');
+  check('reduced route navigation has no panel or heading animation', await p.evaluate(() => !document.querySelector('.route-panel') && !document.documentElement.dataset.transition && getComputedStyle(document.querySelector('h1 .section-line > span')).animationName === 'none'));
+  await p.close();
+}
 try {
   const firstPaint = await page();
   await firstPaint.evaluateOnNewDocument(() => {
@@ -611,6 +660,7 @@ try {
   await nojs.close();
   await schoolChecks();
   await projectChecks();
+  await transitionChecks();
   check("no console, runtime or HTTP errors", errors.length === 0);
   for (const b of budgets) check(`frame budget ${b.width}x${b.height} CPU ${b.rate}x ${b.spin ? "sphere" : "scroll"}`, b.p95 <= (b.rate === 4 ? 33 : 16.7) && b.maxTask <= 50);
   console.log(`${checks} Level 4 checks passed.`);

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { TransitionLink as Link } from "@/components/page-transition";
 import { SCHOOL } from "@/lib/content";
 import { SectionReveal } from "@/components/ui/section-reveal";
 

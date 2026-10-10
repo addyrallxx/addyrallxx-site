@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
+import { TransitionLink as Link } from "@/components/page-transition";
 import { notFound } from "next/navigation";
 import { FOOTER, WORK } from "@/lib/content";
 import { SectionReveal } from "@/components/ui/section-reveal";
