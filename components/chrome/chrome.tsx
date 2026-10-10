@@ -6,6 +6,7 @@ import { CHROME, NAV, SITE } from "@/lib/content";
 import "@/lib/scroll";
 import { Clocks } from "./clocks";
 import { SkyToggle } from "./sky-toggle";
+import { RevBar } from "./rev-bar";
 
 export function Chrome() {
   const sheet = useRef<HTMLDialogElement>(null);
@@ -45,7 +46,7 @@ export function Chrome() {
   return <>
     <div className="chrome t-small">
       <header className="chrome-top">
-        <Link href="/">{SITE.name}</Link>
+        <div className="chrome-name"><Link href="/">{SITE.name}</Link><RevBar /></div>
         <nav className="chrome-nav" aria-label={CHROME.menu}>
           {NAV.map((link) => <a href={link.href} key={link.href}>{link.label}</a>)}
           <button ref={menu} className="menu-button" type="button" onClick={open} aria-haspopup="dialog" aria-controls="phone-menu">{CHROME.menu}</button>

@@ -66,11 +66,15 @@ export function Intro() {
     const exit = () => {
       gsap.ticker.remove(tick);
       timeline = gsap.timeline({ onComplete: done });
+      el.dataset.finale = "true";
+      timeline.set(line, { background: "transparent" }, 0);
+      timeline.fromTo(".intro-stripe > span", { y: 0 }, { y: (i: number) => (i - 1) * 5, duration: .28, ease: out }, 0);
       timeline.to(counter, { yPercent: -110, duration: .45, ease }, 0);
       timeline.call(() => { root.dataset.intro = "exiting"; el.dataset.parting = "true"; }, [], .15);
       timeline.to(".intro-top", { yPercent: -100, duration: 1.1, ease }, .15);
       timeline.to(".intro-bottom", { yPercent: 100, duration: 1.1, ease }, .15);
       timeline.to(line, { opacity: 0, duration: .25 }, 1);
+      timeline.to(".intro-stripe", { opacity: 0, duration: .25 }, 1);
       timeline.call(announce, [], .85);
       // Preserve the exit state until the chrome's delayed fade finishes.
       timeline.to({}, { duration: .4 }, 1.25);
@@ -111,6 +115,7 @@ export function Intro() {
           {[0, 1, 2].map((i) => <span className="intro-digit" key={i} hidden><span /><span /></span>)}
         </div></div>
         <div className="intro-horizon" />
+        <div className="intro-stripe"><span /><span /><span /></div>
       </div>
     </div>
     <div className="intro-half intro-bottom"><Clocks label /></div>

@@ -127,6 +127,8 @@ export type Project = {
   images: { src: string; alt: string }[];
 };
 
+export const WORK_LABEL = "Selected work";
+
 export const WORK: Project[] = [
   {
     slug: "puzzled",

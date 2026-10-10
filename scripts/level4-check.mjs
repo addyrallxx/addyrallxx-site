@@ -5,6 +5,7 @@ import { createRequire } from "node:module";
 import sharp from "sharp";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { readFileSync } from "node:fs";
 
 const require = createRequire("C:/Users/adnan/projects/totaltex-web/package.json");
 const puppeteer = require("puppeteer-core");
@@ -41,6 +42,7 @@ async function page(options = {}) {
         text: el.querySelector(".intro-counter").dataset.value,
         rendered: [...el.querySelectorAll(".intro-digit:not([hidden])")].map(d => d.lastElementChild.textContent).join(""),
         scale: new DOMMatrix(getComputedStyle(el.querySelector(".intro-horizon")).transform).a,
+        stripe: el.dataset.finale ? [...el.querySelectorAll(".intro-stripe > span")].map(band => ({ colour: getComputedStyle(band).backgroundColor, height: band.getBoundingClientRect().height, y: new DOMMatrix(getComputedStyle(band).transform).f })) : null,
       });
       if (el.hidden) clearInterval(sample);
     }, 50);
@@ -82,13 +84,13 @@ async function heroBounds(p) {
   check("hero above clocks and within viewport", b.bottom < b.clocks && b.left >= 0 && b.right <= b.width && b.top >= 0);
   check("lead above headline and authored line count", b.leadBottom < b.top && b.lines === (b.width < 720 ? 3 : 2) && b.size >= 56);
 }
-async function frameBudget(p, rate) {
+async function frameBudget(p, rate, spin = false) {
   const cdp = await p.createCDPSession();
   await cdp.send("Emulation.setCPUThrottlingRate", { rate });
-  await p.evaluate(() => window.__lenis.scrollTo(0, { immediate: true }));
+  await p.evaluate(spin => window.__lenis.scrollTo(spin ? document.querySelector("[data-sphere]").getBoundingClientRect().top + scrollY - 160 : 0, { immediate: true }), spin);
   await sleep(300);
   check("visible before frame probe", await p.evaluate(() => !document.hidden));
-  const result = await p.evaluate(() => new Promise(resolve => {
+  const result = await p.evaluate(spin => new Promise(resolve => {
     const frames = [], tasks = [];
     const observer = new PerformanceObserver(list => tasks.push(...list.getEntries().map(e => e.duration)));
     observer.observe({ type: "longtask" });
@@ -101,8 +103,8 @@ async function frameBudget(p, rate) {
     const probe = now => {
       if (last !== undefined) frames.push(now - last);
       last = now;
-      const t = Math.min((now - start) / 6000, 1);
-      window.__lenis.scrollTo(max * (.5 - .5 * Math.cos(t * Math.PI * 2)));
+      const t = Math.min((now - start) / (spin ? 3000 : 6000), 1);
+      if (!spin) window.__lenis.scrollTo(max * (.5 - .5 * Math.cos(t * Math.PI * 2)));
       peakScroll = Math.max(peakScroll, window.scrollY);
       window.dispatchEvent(new PointerEvent("pointermove", { clientX: width * (.5 + .45 * Math.sin(t * Math.PI * 8)), clientY: height * (.5 + .4 * Math.cos(t * Math.PI * 6)), pointerType: "mouse" }));
       if (t < 1) requestAnimationFrame(probe);
@@ -114,12 +116,106 @@ async function frameBudget(p, rate) {
       }
     };
     requestAnimationFrame(probe);
-  }));
-  console.log(`FRAME ${result.width}x${result.height} CPU ${rate}x p95=${result.p95.toFixed(3)}ms frames=${result.frames} maxLongTask=${result.maxTask.toFixed(1)}ms`);
-  check("frame probe exercises canvas and Lenis", result.renders > 60 && result.peakScroll > result.max * .8);
-  budgets.push({ ...result, rate });
+  }), spin);
+  console.log(`FRAME ${result.width}x${result.height} CPU ${rate}x ${spin ? "sphere" : "scroll"} p95=${result.p95.toFixed(3)}ms frames=${result.frames} maxLongTask=${result.maxTask.toFixed(1)}ms`);
+  check(spin ? "frame probe exercises canvas while sphere is visible" : "frame probe exercises canvas and Lenis", result.renders > 60 && (spin || result.peakScroll > result.max * .8));
+  budgets.push({ ...result, rate, spin });
   await cdp.send("Emulation.setCPUThrottlingRate", { rate: 1 });
   await cdp.detach();
+}
+async function scrollTo(p, selector, offset = 160) {
+  const y = await p.$eval(selector, (el, offset) => el.getBoundingClientRect().top + scrollY - offset, offset);
+  await p.evaluate(y => window.__lenis.scrollTo(y, { immediate: true }), y);
+  await sleep(1100);
+  check("Lenis lands at requested section", await p.evaluate(y => Math.abs(scrollY - Math.max(0, Math.min(y, document.documentElement.scrollHeight - innerHeight))) < 2, y));
+}
+async function sweepPage(p) {
+  const max = await p.evaluate(() => document.documentElement.scrollHeight - innerHeight);
+  for (let y = 0; y <= max + 500; y += 500) {
+    await p.evaluate(y => window.__lenis.scrollTo(y, { immediate: true }), Math.min(y, max));
+    await sleep(100);
+  }
+  await sleep(800);
+  check("no HTTP or runtime errors after whole-page lazy image sweep", errors.length === 0);
+}
+async function fanMatrices(p, hover) {
+  const matrices = await p.$$eval(".fan-card", cards => cards.map(card => {
+    const m = new DOMMatrix(getComputedStyle(card).transform); return [m.a, m.b, m.c, m.d, m.e, m.f];
+  }));
+  const values = hover ? [[-16, -16, 20], [0, 0, 4], [16, 16, 20]] : [[-8, 0, 0], [4, 0, 0], [9, 0, 0]];
+  check(`fan computed matrices match technique at ${hover ? "hover" : "rest"}`, matrices.length === 3 && matrices.every((m, i) => {
+    const [angle, x, y] = values[i], a = angle * Math.PI / 180;
+    const expected = [Math.cos(a), Math.sin(a), -Math.sin(a), Math.cos(a), x, y];
+    return m.every((v, j) => Math.abs(v - expected[j]) < .00001);
+  }));
+}
+async function f3Desktop(p) {
+  await scrollTo(p, "#work", 100);
+  check("desktop Work rows are exactly 96px", await p.$$eval(".work-row", rows => rows.every(row => row.getBoundingClientRect().height === 96)));
+  check("first six home sections keep the specified order", await p.$$eval("main > section", sections => sections.length === 6 && [".hero-line", ".work-row", ".other-band", ".plain-row", "[data-sphere]", ".service-row"].every((selector, i) => sections[i].querySelector(selector))));
+  check("Alongside school and Services render four rows each", await p.evaluate(() => document.querySelectorAll(".plain-row").length === 4 && document.querySelectorAll(".service-row").length === 4 && document.querySelector(".contact-pill").getAttribute("href") === "#contact"));
+  const row = await p.$eval(".work-row:nth-child(3)", el => { const r = el.getBoundingClientRect(); return { x: r.left + 400, y: r.top + r.height / 2 }; });
+  await p.mouse.move(row.x, row.y);
+  await p.waitForSelector(".work-preview");
+  await sleep(700);
+  const before = await p.$eval(".work-preview", el => { const m = new DOMMatrix(getComputedStyle(el).transform); return { x: m.e, y: m.f }; });
+  await p.mouse.move(row.x + 160, row.y);
+  await sleep(850);
+  const after = await p.$eval(".work-preview", el => { const m = new DOMMatrix(getComputedStyle(el).transform); return { x: m.e, y: m.f }; });
+  check("work preview lerps to pointer with 24px offset", Math.abs(after.x - before.x - 160) < 2 && Math.abs(after.x - row.x - 160 - 24) < 2 && Math.abs(after.y - row.y - 24) < 2);
+  check("work preview is fixed at the measured pointer coordinates", await p.$eval(".work-preview", (el, target) => {
+    const r = el.getBoundingClientRect(); return getComputedStyle(el).position === "fixed" && Math.abs(r.left - target.x) < 2 && Math.abs(r.top - target.y) < 2;
+  }, after));
+  await sharp(await p.screenshot()).resize({ width: 1000 }).toFile(join(tmpdir(), "claude/briefs/f3-work.png"));
+  await scrollTo(p, ".work-row:first-child");
+  await p.hover(".work-row:first-child");
+  check("projects without images have no floating preview", await p.$(".work-preview") === null);
+  await scrollTo(p, ".other-band", 180);
+  await p.mouse.move(1, 100);
+  await sleep(450); await fanMatrices(p, false);
+  await p.hover(".other-band");
+  await sleep(500); await fanMatrices(p, true);
+  check("E92 stripe wipes fully on fan hover", await p.$eval(".car-stripe", el => getComputedStyle(el).clipPath === "inset(0px)"));
+  await sharp(await p.screenshot()).resize({ width: 1000 }).toFile(join(tmpdir(), "claude/briefs/f3-fan.png"));
+  await p.mouse.move(1, 100);
+  await p.evaluate(() => window.__lenis.scrollTo(0, { immediate: true }));
+  await sleep(100);
+  await p.evaluate(() => {
+    window.__revPeak = 1;
+    const until = performance.now() + 650;
+    const sample = () => { window.__revPeak = Math.max(window.__revPeak, new DOMMatrix(getComputedStyle(document.querySelector(".rev-bar")).transform).a); if (performance.now() < until) requestAnimationFrame(sample); };
+    requestAnimationFrame(sample); window.__lenis.scrollTo(1600);
+  });
+  await sleep(650);
+  check("rev bar grows above 1.5 during Lenis scroll", await p.evaluate(() => window.__revPeak > 1.5));
+  await p.waitForFunction(() => Math.abs(window.__lenis.velocity) < .001);
+  await sleep(1200);
+  check("rev bar settles to 1 within 1.2s", await p.$eval(".rev-bar", el => Math.abs(new DOMMatrix(getComputedStyle(el).transform).a - 1) < .001));
+}
+async function sphereChecks(p) {
+  await scrollTo(p, "[data-sphere]");
+  const expected = (readFileSync("lib/content.ts", "utf8").split("export const SKILLS =")[1].split("export const SERVICES")[0].match(/name:/g) ?? []).length;
+  const snapshot = () => p.evaluate(() => ({ count: document.querySelectorAll("[data-sphere-item]").length, nodes: document.querySelectorAll("*").length, transform: document.querySelector("[data-sphere-item]").style.transform }));
+  const before = await snapshot();
+  await sleep(3000);
+  const after = await snapshot();
+  check("sphere item count equals SKILLS item count", before.count === expected && after.count === expected);
+  check("sphere DOM stays flat over 3s idle spin", Math.abs(after.nodes - before.nodes) <= 5 && before.transform !== after.transform);
+  await p.evaluate(() => window.__lenis.scrollTo(0, { immediate: true }));
+  await sleep(200);
+  const stopped = await snapshot();
+  await sleep(200);
+  check("sphere stops offscreen", stopped.transform === (await snapshot()).transform);
+}
+async function sphereVisibilityCheck(p) {
+  await scrollTo(p, "[data-sphere]");
+  // A synthetic visibility event also resets the sky's adaptive budget.
+  // Keep this isolated lifecycle test after normal scroll measurements.
+  await p.evaluate(() => { Object.defineProperty(document, "hidden", { configurable: true, value: true }); document.dispatchEvent(new Event("visibilitychange")); });
+  const hidden = await p.$eval("[data-sphere-item]", el => el.style.transform);
+  await sleep(200);
+  check("sphere stops when document is hidden", hidden === await p.$eval("[data-sphere-item]", el => el.style.transform));
+  await p.evaluate(() => { delete document.hidden; document.dispatchEvent(new Event("visibilitychange")); });
 }
 async function skyPixels(p) {
   await p.evaluate(() => {
@@ -161,6 +257,8 @@ try {
     ...window.__f1.halves, height: innerHeight }));
   check("intro samples every 50ms contain no zero or padding", intro.samples.length > 20 && intro.samples.some(s => s.text === "100") && intro.samples.every(s => !/^0/.test(s.text) && !/^0/.test(s.rendered)));
   check("intro starts blank", intro.samples[0].text === "" && intro.samples[0].scale === 0);
+  check("intro at 100 has three exact 2px stripe colours", intro.samples.some(s => s.text === "100" && s.stripe?.length === 3 && s.stripe.every((band, i) => band.height === 2 && band.colour === ["rgb(108, 178, 228)", "rgb(27, 79, 160)", "rgb(231, 34, 46)"][i])));
+  check("intro stripe separates to 3px gaps", intro.samples.some(s => s.stripe && Math.abs(s.stripe[0].y + 5) < .01 && Math.abs(s.stripe[1].y) < .01 && Math.abs(s.stripe[2].y - 5) < .01));
   check("horizon grows monotonically", intro.samples.every((s, i, a) => i === 0 || s.scale >= a[i - 1].scale - .000001) && intro.samples.at(-1).scale === 1);
   check("both halves end off screen", intro.top <= 0 && intro.bottom >= intro.height);
   check("headline event 700ms into part", intro.timing >= 640 && intro.timing <= 740);
@@ -199,8 +297,14 @@ try {
   const blurred = await p.evaluate(() => window.__f1.renders);
   await sleep(250);
   check("sky keeps rendering on blur", await p.evaluate((count) => window.__f1.renders > count, blurred));
+  await f3Desktop(p);
+  await sphereChecks(p);
+  await sweepPage(p);
   await frameBudget(p, 1);
   await frameBudget(p, 4);
+  await frameBudget(p, 1, true);
+  await frameBudget(p, 4, true);
+  await sphereVisibilityCheck(p);
   await p.reload({ waitUntil: "networkidle0" });
   check("session intro skips once", await p.evaluate(() => window.__f1.done === 1 && document.querySelector(".intro").hidden));
   await p.close();
@@ -213,8 +317,18 @@ try {
   check("coarse DPR cap", await mobile.$eval(".sky canvas", (canvas) => canvas.width <= 488));
   check("phone no overflow", await mobile.evaluate(() => document.documentElement.scrollWidth === innerWidth));
   await heroBounds(mobile);
+  await scrollTo(mobile, ".work-row:nth-child(3)");
+  await mobile.hover(".work-row:nth-child(3)");
+  check("touch viewport has no floating preview", await mobile.$(".work-preview") === null);
+  check("touch preview sits inline at 88px", await mobile.$eval(".work-row:nth-child(3) .work-inline-image", el => el.getBoundingClientRect().height === 88));
+  await sphereChecks(mobile);
+  await sweepPage(mobile);
+  check("phone no overflow after scrolling whole page", await mobile.evaluate(() => document.documentElement.scrollWidth === innerWidth));
   await frameBudget(mobile, 1);
   await frameBudget(mobile, 4);
+  await frameBudget(mobile, 1, true);
+  await frameBudget(mobile, 4, true);
+  await sphereVisibilityCheck(mobile);
   await mobile.evaluate(() => window.__lenis.scrollTo(0, { immediate: true }));
   await sleep(150);
   await mobile.click(".menu-button");
@@ -242,6 +356,10 @@ try {
   const reducedMode = await reduced.evaluate(() => document.documentElement.dataset.mode);
   await reduced.click(".sky-toggle");
   check("reduced toggle is immediate", await reduced.evaluate((previous) => document.documentElement.dataset.mode !== previous, reducedMode));
+  await reduced.$eval("[data-sphere]", el => el.scrollIntoView());
+  const staticSphere = await reduced.$eval("[data-sphere-item]", el => el.style.transform);
+  await sleep(300);
+  check("reduced sphere is static and rev bar rests", await reduced.evaluate(transform => document.querySelector("[data-sphere-item]").style.transform === transform && new DOMMatrix(getComputedStyle(document.querySelector(".rev-bar")).transform).a === 1, staticSphere));
   await reduced.close();
 
   const nojs = await page();
@@ -252,10 +370,9 @@ try {
   check("no-JS headline is visible", await nojs.$eval(".hero-line > span", (el) => getComputedStyle(el).transform === "none"));
   await nojs.close();
   check("no console, runtime or HTTP errors", errors.length === 0);
-  for (const b of budgets) check(`frame budget ${b.width}x${b.height} CPU ${b.rate}x`, b.p95 <= (b.rate === 4 ? 33 : 16.7) && b.maxTask <= 50);
+  for (const b of budgets) check(`frame budget ${b.width}x${b.height} CPU ${b.rate}x ${b.spin ? "sphere" : "scroll"}`, b.p95 <= (b.rate === 4 ? 33 : 16.7) && b.maxTask <= 50);
   console.log(`${checks} Level 4 checks passed.`);
 } finally {
   await browser.close();
   if (errors.length) console.error(errors);
 }
-
