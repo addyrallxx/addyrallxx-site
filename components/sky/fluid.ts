@@ -52,6 +52,15 @@ export class Fluid {
     for (const buffer of targets) { renderer.setRenderTarget(buffer); renderer.clear(); }
     renderer.setRenderTarget(null);
   }
+  setResolutionScale(scale: number) {
+    const sim = Math.round(128 * scale), dye = Math.round(512 * scale);
+    for (const buffer of [this.velocity, this.pressure]) {
+      buffer.read.setSize(sim, sim); buffer.write.setSize(sim, sim);
+    }
+    this.divergence.setSize(sim, sim);
+    this.dye.read.setSize(dye, dye); this.dye.write.setSize(dye, dye);
+    this.uniforms.uTexel.value.set(1 / sim, 1 / sim);
+  }
   private draw(pass: number, destination: THREE.WebGLRenderTarget) {
     this.uniforms.uPass.value = pass;
     this.renderer.setRenderTarget(destination);
@@ -61,13 +70,14 @@ export class Fluid {
     const u = this.uniforms;
     u.uAspect.value = aspect;
     u.uPoint.value.set(x,y);
-    u.uRadius.value = Math.min(speed,night ? 14 : 6)*.01;
+    // Tuned 2026-10-10 (Adnan: too much area, stays too long): narrow brush, short life.
+    u.uRadius.value = Math.min(speed,night ? 6 : 2.5)*.01;
     u.uSource.value = this.velocity.read.texture;
-    u.uSplat.value.set(dx*5,-dy*5,0);
+    u.uSplat.value.set(dx*3,-dy*3,0);
     this.draw(1,this.velocity.write);
     this.velocity.swap();
     u.uSource.value = this.dye.read.texture;
-    u.uSplat.value.set(.02,.02,.02);
+    u.uSplat.value.set(.012,.012,.012);
     this.draw(1,this.dye.write);
     this.dye.swap();
   }
@@ -76,7 +86,7 @@ export class Fluid {
     u.uDt.value = dt;
     u.uVelocity.value = this.velocity.read.texture;
     u.uSource.value = this.velocity.read.texture;
-    u.uDissipation.value = .2;
+    u.uDissipation.value = 1;
     this.draw(0,this.velocity.write);
     this.velocity.swap();
     u.uVelocity.value = this.velocity.read.texture;
@@ -94,7 +104,7 @@ export class Fluid {
     this.velocity.swap();
     u.uVelocity.value = this.velocity.read.texture;
     u.uSource.value = this.dye.read.texture;
-    u.uDissipation.value = night ? .86 : .74;
+    u.uDissipation.value = night ? 2.2 : 2.8;
     this.draw(0,this.dye.write);
     this.dye.swap();
   }

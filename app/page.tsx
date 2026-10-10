@@ -17,7 +17,7 @@ export default function Home() {
     else {
       el.classList.add("hero-armed");
       // A dropped intro chunk must not leave the headline hidden.
-      timer = window.setTimeout(rise, 4000);
+      timer = window.setTimeout(rise, 5000);
     }
     window.addEventListener("intro:done", rise);
     return () => { clearTimeout(timer); window.removeEventListener("intro:done", rise); };
@@ -25,14 +25,22 @@ export default function Home() {
   return (
     <main id="main">
       <section className="hero" ref={hero}>
-        <h1 className="t-display-xl" aria-label={HERO.lines.join(" ")}>
-          {HERO.lines.map((line, i) => (
-            <span className="hero-line" aria-hidden="true" key={line}>
-              <span style={{ "--line-index": i } as CSSProperties}>{line}</span>
-            </span>
+        <dl className="hero-facts">
+          {HERO.facts.map((fact) => (
+            <div key={fact.label}><dt className="t-label">{fact.label}</dt><dd className="t-small">{fact.value}</dd></div>
           ))}
-        </h1>
+        </dl>
         <p className="hero-lead t-body">{HERO.lead}</p>
+        <h1 className="t-display-xl" aria-label={HERO.lines.join(" ")}>
+          {HERO.lines.flatMap((line, i) => [
+            <span className={`hero-line ${i === 1 ? "hero-desktop-line" : ""}`} aria-hidden="true" key={line}>
+              <span style={{ "--line-index": i } as CSSProperties}>{line}</span>
+            </span>,
+            ...(i === 1 ? line.split(" ").map((word, j) => <span className="hero-line hero-phone-line" aria-hidden="true" key={word}>
+              <span style={{ "--line-index": i + j } as CSSProperties}>{word}</span>
+            </span>) : []),
+          ])}
+        </h1>
       </section>
       <section id="work" className="h-[200vh] px-[var(--gutter)] pt-[var(--u)]"><h2 className="t-display-l">Work</h2></section>
     </main>

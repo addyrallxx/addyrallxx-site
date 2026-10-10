@@ -45,6 +45,72 @@ export const CHROME = {
 export const HERO = {
   lines: ["Systems", "with taste"],
   lead: "I'm Adnan Shakib. I build the software that runs a car dealership operation in Calgary and a garment factory in Dhaka. If it's slow, ugly or vague, it isn't done.",
+  // The resume line. A recruiter gets who, where, when and what next
+  // before scrolling, so the display line never has to carry it.
+  facts: [
+    { label: "Studying", value: "Computer Science, University of Calgary, April 2028" },
+    { label: "Running", value: "Co-founder, Puzzled" },
+    { label: "Taking over", value: "Managing director, TotalTex" },
+    { label: "Looking for", value: "Summer 2027 internships" },
+  ],
+};
+
+// The sphere returns from the previous design, restyled to Level 4 tokens.
+// Every slug has a file at public/icons/<slug>.svg; null means name only.
+export const SKILLS = {
+  label: "Tools",
+  hint: "Drag it",
+  groups: [
+    { title: "Languages", items: [
+      { name: "Python", slug: "python" }, { name: "TypeScript", slug: "typescript" }, { name: "JavaScript", slug: "javascript" },
+      { name: "Java", slug: "openjdk" }, { name: "Kotlin", slug: "kotlin" }, { name: "SQL", slug: null },
+    ] },
+    { title: "Web and motion", items: [
+      { name: "Next.js", slug: "nextdotjs" }, { name: "React", slug: "react" }, { name: "Tailwind CSS", slug: "tailwindcss" },
+      { name: "Node.js", slug: "nodedotjs" }, { name: "GSAP", slug: "greensock" }, { name: "Three.js", slug: null },
+    ] },
+    { title: "Data and infrastructure", items: [
+      { name: "PostgreSQL", slug: "postgresql" }, { name: "Drizzle", slug: "drizzle" }, { name: "Docker", slug: "docker" },
+      { name: "Vercel", slug: "vercel" }, { name: "Git", slug: "git" },
+    ] },
+    { title: "AI and automation", items: [
+      { name: "Claude Code", slug: "claude" }, { name: "Codex", slug: null }, { name: "Gemini", slug: "googlegemini" },
+      { name: "MCP", slug: "modelcontextprotocol" }, { name: "LangChain", slug: "langchain" }, { name: "Hugging Face", slug: "huggingface" },
+      { name: "n8n", slug: "n8n" }, { name: "Zapier", slug: "zapier" },
+    ] },
+    { title: "ML and research", items: [
+      { name: "PyTorch", slug: "pytorch" }, { name: "CUDA", slug: "nvidia" }, { name: "LaTeX", slug: "latex" },
+    ] },
+  ],
+};
+
+export const SERVICES = {
+  label: "Services",
+  lines: ["What I'll", "build you"],
+  items: [
+    { name: "Websites", line: "Sites that look expensive and load fast. Design, build, motion, launch." },
+    { name: "Internal tools", line: "The order system, the dashboard, the spreadsheet you've outgrown, rebuilt as software your team will actually use." },
+    { name: "Automation", line: "Scrapers, pipelines and AI agents that take the repetitive part of a job off someone's desk." },
+    { name: "Dealership operations", line: "Through Puzzled: inventory, listings, leads and paid social, run for you end to end." },
+  ],
+  cta: "Tell me what you need",
+};
+
+// What runs alongside the degree. Ordered by hours, not prestige.
+export const SIDE = {
+  label: "Alongside school",
+  items: [
+    { name: "Puzzled", line: "The dealership operation I co-run with my roommate. More than seven Calgary dealerships so far." },
+    { name: "TotalTex", line: "My father's trims factory in Dhaka. I built its software and I'm next in line to run it." },
+    { name: "Handled AI", line: "My CPSC 598 capstone venture: a home services platform, built with a team of three." },
+    { name: "The studio", line: "My own setup where Claude, Codex and Gemini build in parallel and review each other's work." },
+  ],
+};
+
+// Written last, per Adnan (2026-10-10). Placeholder until the copy pass.
+export const FAQ = {
+  label: "Questions",
+  items: [] as { q: string; a: string }[],
 };
 
 export type Project = {
@@ -184,7 +250,7 @@ export const METHOD = {
 
 export const INFO = {
   label: "Info",
-  bio: "Born in Dhaka, studying computer science in Calgary, graduating April 2028. I co-run Puzzled and I'm stepping in as managing director of TotalTex, the trims factory my father founded. Off the clock: a black E92 335xi I mostly built myself.",
+  bio: "Born in Dhaka, studying computer science in Calgary, graduating April 2028. I co-run Puzzled and I'm stepping in as managing director of TotalTex, the trims factory my father founded. Off the clock: an E92 335xi, wrapped in BMW Individual Bernina Grey, mostly built by me.",
   lists: [
     {
       label: "Now",
@@ -192,10 +258,6 @@ export const INFO = {
     },
     { label: "Before", items: ["Sales and inventory, Prime Autos Calgary, 2022 to 2023"] },
     { label: "School", items: ["BSc Computer Science, University of Calgary, April 2028"] },
-    {
-      label: "Tools",
-      items: ["Python, TypeScript, SQL", "Next.js, React, PostgreSQL", "Three.js, GSAP", "Claude Code, Codex, Gemini"],
-    },
   ],
 };
 

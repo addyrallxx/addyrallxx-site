@@ -105,6 +105,35 @@ to three lines (SYSTEMS / WITH / TASTE) at the 56px minimum: that stack is
 the phone design, not a fallback, and wrapped lines still rise inside their
 authored mask. Phone lead is full width above it.
 
+Decision 2026-10-10, Adnan ("this is my portfolio, it acts like a resume",
+"don't just boast systems with taste"): a facts row sits between the lead and
+the headline, four items from `HERO.facts` (Studying, Running, Taking over,
+Looking for), Label over Small, hairline above, 4 columns at desktop, 2x2 on
+phone. A recruiter reads who, where, when and what next without scrolling.
+
+**Section order, revised 2026-10-10:** Hero, Work, Other things, Alongside
+school, Taste, Tools (skill sphere), Services, How I work, Info, Questions,
+Contact. Questions is written last (Adnan); the section ships hidden while
+`FAQ.items` is empty.
+
+**Alongside school** (`SIDE`). Four hairline rows like Work, no links:
+Puzzled, TotalTex, Handled AI (CPSC 598 capstone), the studio.
+
+**Tools, the skill sphere** (Adnan: keep it, bring it to this system). The
+old `img-sphere.tsx` (commit 59f0628) comes back rebuilt: Simple Icons
+mono, drawn in `--ink` (day) or `--ink` night, no brand colours, labels
+in Small on hover; drag to spin with inertia, slow idle spin, pauses when
+offscreen or hidden. Transform only, one rAF, items keyed by `name`
+(never slug; see the CLAUDE.md duplicate key trap). Beside it the grouped
+plain list (recruiter skim plus fallback). Reduced motion: static sphere.
+
+**Services** (`SERVICES`). Display L two lines `WHAT I'LL` / `BUILD YOU`,
+then four rows in the Work index style (name, one line), then a pill to
+#contact. Numbered 01 to 04.
+
+**Questions** (`FAQ`). Hairline accordion, native `<details>`, Title
+questions, Body answers. Last copy task.
+
 **2. Work** (`#work`). Label `Selected work` top left. A full width index:
 one row per project, 1px `--line` between rows, each row 96px tall at
 desktop: index number (`01`, Label style, `--ink-3`), project name (Title),
@@ -131,7 +160,7 @@ links: number, principle (Title), one sentence (Body `--ink-2`).
 **6. Info** (`#info`). Two columns. Left: portrait slot (4:5, `--r-md`; empty
 until Adnan supplies a photo: show nothing rather than a placeholder head)
 and the short bio. Right: compact lists with Label headers: `Now`,
-`Before`, `School`, `Tools`. Plain text lists, no logos, no sphere.
+`Before`, `School`. Plain text lists, no logos (tools moved to the sphere).
 
 **7. Contact** (`#contact`). Display XL `LET'S BUILD` / `SOMETHING`. Under it
 a pill button with the email (copies to clipboard on click with a
@@ -193,8 +222,8 @@ Concept: **a horizon draws, then day and night open along it.**
 One fixed full viewport WebGL canvas, `z-index: 0`, `pointer-events: none`,
 `aria-hidden`. Content sits above it at `z-index: 1` with transparent
 grounds. Three.js `WebGLRenderer` with a full screen triangle, DPR capped at
-1.5 (1.25 on coarse pointers), paused when `document.hidden` or when the
-tab blurs.
+1.5 (1.25 on coarse pointers), paused when `document.hidden`. Blur only drops pointer state (2026-10-10:
+pausing on blur froze the sky on a visible second screen).
 
 Layers inside one fragment shader:
 - **Day**: `--bg` paper plus a 2.5 percent static grain and a very soft
@@ -219,9 +248,11 @@ Layers inside one fragment shader:
 - **Fluid trail**: a small stable fluid sim (Pavel Dobryakov's
   WebGL-Fluid-Simulation approach, MIT, credit it in a comment) at sim res
   128, dye res 512, 12 pressure iterations, curl 0. Pointermove with speed
-  above 0.2px adds a splat of velocity `delta * 5` and radius
-  `clamp(speed, 0, 6) * 0.01` (day) or `clamp(speed, 0, 14) * 0.01` (night).
-  Dissipation density .74 day, .86 night. The trail mask is
+  above 0.2px adds a splat of velocity `delta * 3`, dye .012 and radius
+  `clamp(speed, 0, 2.5) * 0.01` (day) or `clamp(speed, 0, 6) * 0.01` (night).
+  Dissipation density 2.8 day, 2.2 night, velocity 1.0, so a stroke is gone
+  in about half a second. Retuned 2026-10-10 after Adnan: the first values
+  (radius 6/14, density .74/.86) revealed too wide and lingered. The trail mask is
   `m = 1 - smoothstep(.001, .004, length(dye))`.
 - **Composite**: day mode shows `mix(night, day, m)`, so the trail opens the
   night under the paper. Night mode shows night with the aurora alpha raised
@@ -340,3 +371,14 @@ media-carousel,scroll-tilt}.tsx` and their CSS (`space.css`,
 skills sphere, `components/chapter/calgary-time.tsx` (replaced by the
 clocks), JetBrains Mono, Manrope, Instrument Serif.
 `scripts/verify.mjs` is rewritten for the new page (chunk 4).
+
+## 11. The E92 (added 2026-10-10)
+
+Adnan supplied photos (Drive `E92 pics`, local copy `assets-src/e92/`,
+gitignored; publish only sharp-processed copies, which strip EXIF and GPS).
+Picks: `20260923_152338` (bay open, halo eyes, the hero), `Snapchat-202035236`
+(night profile, crop the plate out), `IMG_5153` (sunset), `20260521_020157`
+(night front). Never `IMG_6588` (a house is identifiable). It becomes the
+fourth card in the Other things fan and a photo in Info. Build detail lives
+in Adnan's ChatGPT "E92" project, which no tool here can read: copy waits
+until he pastes or exports those notes.

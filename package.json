@@ -10,7 +10,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "copy-gate": "node scripts/copy-gate.mjs",
-    "verify": "node scripts/verify.mjs"
+    "verify": "node scripts/level4-check.mjs"
   },
   "dependencies": {
     "gsap": "^3.15.0",

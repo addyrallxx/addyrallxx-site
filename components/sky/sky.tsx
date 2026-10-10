@@ -63,22 +63,23 @@ export function Sky() {
         let time = 0;
         let last = performance.now();
         let paused = document.hidden;
-        let blurred = false;
         let disposed = false;
         let sweep: gsap.core.Tween | undefined;
         const progress = { value: 0 };
         let swapped = false;
         let px = -1, py = -1, x = 0, y = 0, dx = 0, dy = 0, speed = 0;
         let width = window.innerWidth, height = window.innerHeight;
+        let resolutionScale = 1, frameTotal = 0, budgetStart = last;
+        const frameWindow: { at: number; duration: number }[] = [];
         const resize = () => {
           width = window.innerWidth; height = window.innerHeight;
-          gpu.setPixelRatio(Math.min(window.devicePixelRatio, coarse.matches ? 1.25 : 1.5));
+          gpu.setPixelRatio(Math.min(window.devicePixelRatio, coarse.matches ? 1.25 : 1.5) * resolutionScale);
           gpu.setSize(width,height);
           // Screen space remains in CSS pixels so parallax is independent of DPR.
           uniforms.uResolution.value.set(width,height);
         };
         const pointer = (event: PointerEvent) => {
-          if (paused || blurred) return;
+          if (paused) return;
           if (px < 0) { px = event.clientX; py = event.clientY; return; }
           const deltaX = event.clientX-px, deltaY = event.clientY-py;
           const velocity = Math.hypot(deltaX,deltaY);
@@ -91,7 +92,16 @@ export function Sky() {
         const scroll = () => { uniforms.uScroll.value = window.scrollY; };
         const intro = () => { uniforms.uIntro.value = 1; };
         const tick = (now: number) => {
-          if (disposed || paused || blurred) return;
+          if (disposed || paused) return;
+          const duration = now - last;
+          frameWindow.push({ at: now, duration }); frameTotal += duration;
+          while (frameWindow.length > 1 && now - frameWindow[0].at > 2000) frameTotal -= frameWindow.shift()!.duration;
+          if (resolutionScale === 1 && now - budgetStart >= 2000 && frameTotal / frameWindow.length > 14) {
+            resolutionScale = .75;
+            simulation.setResolutionScale(resolutionScale);
+            // Stars share the full-screen sky pass, so reduce that pass too.
+            resize();
+          }
           const dt = Math.min((now-last)/1000,1/30);
           last = now; time += dt;
           uniforms.uTime.value = time;
@@ -111,8 +121,10 @@ export function Sky() {
           px = -1; dx = 0; dy = 0; speed = 0;
         };
         const resume = () => {
-          if (paused || blurred || disposed) return;
+          if (paused || disposed) return;
+          frameWindow.length = 0; frameTotal = 0;
           last = performance.now();
+          budgetStart = last;
           sweep?.resume();
           cancelAnimationFrame(frame);
           frame = requestAnimationFrame(tick);
@@ -121,8 +133,10 @@ export function Sky() {
           paused = document.hidden;
           if (paused) pause(); else resume();
         };
-        const blur = () => { blurred = true; pause(); };
-        const focus = () => { blurred = false; resume(); };
+        // Blur only drops the pointer. Pausing here froze the sky (and any
+        // sweep) whenever focus went to another window on a visible screen;
+        // document.hidden is the real "nobody can see this" signal.
+        const blur = () => { px = -1; dx = 0; dy = 0; speed = 0; };
         const cleanup = () => {
           if (disposed) return;
           disposed = true;
@@ -133,7 +147,6 @@ export function Sky() {
           window.removeEventListener("scroll",scroll);
           window.removeEventListener("intro:done",intro);
           window.removeEventListener("blur",blur);
-          window.removeEventListener("focus",focus);
           document.removeEventListener("visibilitychange",visibility);
           canvas.removeEventListener("webglcontextlost",lost);
           scene.clear();
@@ -169,7 +182,7 @@ export function Sky() {
               root.dataset.mode = mode;
             },
           });
-          if (paused || blurred) sweep.pause();
+          if (paused) sweep.pause();
         };
         resize();
         // Compile and render once before claiming WebGL owns the mode interface.
@@ -185,7 +198,6 @@ export function Sky() {
         window.addEventListener("scroll",scroll,{ passive: true });
         window.addEventListener("intro:done",intro);
         window.addEventListener("blur",blur);
-        window.addEventListener("focus",focus);
         document.addEventListener("visibilitychange",visibility);
         canvas.addEventListener("webglcontextlost",lost);
         shutdown = cleanup;
