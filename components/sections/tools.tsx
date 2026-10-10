@@ -60,6 +60,7 @@ export function Tools() {
     };
     const tick = (now: number) => {
       frame = 0;
+      if (last && now - last < 1000 / 60 - .5) { frame = requestAnimationFrame(tick); return; }
       const dt = last ? Math.min((now - last) / 1000, .05) : 1 / 60; last = now;
       spin += ((hovered || selected >= 0 ? 0 : 1) - spin) * (1 - Math.exp(-dt * 10));
       if (turnAt >= 0) {

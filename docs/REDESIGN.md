@@ -19,8 +19,8 @@ page.**
 - The cursor leaves a **fluid trail that opens a hole in the day** and shows
   the night underneath. In night mode the trail lights up the aurora.
 - The mode toggle sweeps one sky into the other with a noise warped edge.
-- The site opens in whichever sky Calgary is under right now (07:00 to 19:00
-  local Calgary time is day), and remembers the visitor's own choice after.
+- Every page load starts in the night sky before first paint. Time and stored
+  choices do not set the initial mode. The toggle changes the current visit.
 
 Reference credit (structure and mechanism only, no code, words or assets
 copied): segerman.dev (two-world reveal, intro counter, wipe transitions),
@@ -112,7 +112,7 @@ Looking for), Label over Small, hairline above, 4 columns at desktop, 2x2 on
 phone. A recruiter reads who, where, when and what next without scrolling.
 
 **Section order, revised 2026-10-10:** Hero, Work, Other things, Alongside
-school, Taste, Tools (skill sphere), Services, How I work, Info, Questions,
+school, Taste, Tools (skill sphere), Services, How I work, Info, E92, Questions,
 Contact. Questions is written last (Adnan); the section ships hidden while
 `FAQ.items` is empty.
 
@@ -283,7 +283,7 @@ Layers inside one fragment shader:
 `aria-pressed`. Icon is two circles in SVG: a disc and an offset masking
 disc; day shows the full disc (sun), night slides the mask disc in to make a
 crescent (400ms `--ease-inout`). On hover the icon rotates 20deg and scales
-1.1 (200ms). Writes `localStorage.sky`, sets `document.documentElement.dataset.mode`.
+1.1 (200ms). Sets `document.documentElement.dataset.mode` for the current visit.
 
 ### 6.5 Page transitions
 Next App Router. A client `TransitionLink` intercepts same origin clicks to
@@ -328,9 +328,8 @@ reads inside animation frames; `will-change` only while an element moves.
 ## 7. Interfaces pinned (parallel builders must not change these)
 
 - Mode state: `document.documentElement.dataset.mode` is `"day"` or
-  `"night"`. Set before paint by an inline script in `<head>` (reads
-  `localStorage.sky`, else Calgary hour via `Intl.DateTimeFormat` with
-  `timeZone: "America/Edmonton"`). Toggle changes it and dispatches
+  `"night"`. Set to night in server markup and by an inline script in `<head>` before
+  paint. Stored choices and Calgary time are ignored. Toggle changes it and dispatches
   `window` event `sky:mode` with `detail: { mode: "day" | "night" }`.
 - The sky canvas listens to `sky:mode` and to `intro:done`.
 - Intro dispatches `intro:done` exactly once per page load.
@@ -377,9 +376,10 @@ clocks), JetBrains Mono, Manrope, Instrument Serif.
 Adnan supplied photos (Drive `E92 pics`, local copy `assets-src/e92/`,
 gitignored; publish only sharp-processed copies, which strip EXIF and GPS).
 Picks (graded 2026-10-10 from Gemini crop and grade recipes, applied with sharp, reviewed on a contact sheet): `20260923_152246` as `bay.jpg` (4:5) and `bay-wide.jpg` (bonnet fully up, halo eyes; replaces 152338, whose bonnet sat on the secondary latch), `Snapchat-202035236` as `night.jpg` (wide profile, plate blurred), `20260521_020131` as `front.jpg` (4:5 night front). Never `IMG_5153` or any sunset frame: it shows the car black, before the Bernina Grey. Never `IMG_6588` (a house is identifiable). It becomes the
-fourth card in the Other things fan and a photo in Info. Build detail lives
-in Adnan's ChatGPT "E92" project, which no tool here can read: copy waits
-until he pastes or exports those notes.
+standalone #e92 section after Info. Its photos occupy the left seven desktop
+columns, with the tach and nine spec rows in the right five. Phone stacks
+photos, tach and specs. Approved build copy is CAR in lib/content.ts and
+documented in docs/e92-copy.md.
 
 ## 12. The stripe (Adnan, 2026-10-10: "I loved the M theme and colour stripe, make it cooler")
 
@@ -395,10 +395,10 @@ appears at exactly three moments, each one moving:
 2. **The tach** (replaces the rev bar, Adnan 2026-10-10: "a proper period
    correct bar with quality detail, no new modern ipad screen type shit").
    An E92 era analogue tachometer, see section 14. The stripe lives on its
-   face as the `///` mark. The rev bar and its header slot are removed.
-3. **The car.** The E92 card in the Other things fan and the Info car
-   photo carry a 3px stripe along their bottom edge. On fan hover the
-   stripe on the E92 card wipes in left to right (clip-path, 400ms).
+   face as the `///` mark, inside the standalone #e92 section beside the spec rows. The rev bar and its header slot are removed.
+3. **The car.** The standalone #e92 section, after Info and before Questions,
+   carries one 3px stripe along its top edge. It wipes left to right once
+   on entry (clip-path, 400ms). The Other things fan has three typographic cards.
 
 ## 13. Tools, the globe (redesign, Adnan 2026-10-10: "proper 60 fps, the new ink colour aligns, much more premium, redesign it if you have to")
 
@@ -410,13 +410,10 @@ spinning. The redesign reads as an instrument, not a tag cloud.
   inline SVG behind the items: one circle, an equator ellipse (ry = 0.28r)
   and one meridian ellipse (rx = 0.28r), 1px `--line`,
   `vector-effect: non-scaling-stroke`. It never rotates.
-- **Items are pills, every label always visible** (a recruiter skims it
-  without hovering): height 30px, padding 0 12px, radius pill, 1px
-  `--line` border, ground `var(--bg)` so a front pill covers what is behind
-  it, 16px mono icon (CSS mask, `currentColor`) plus the name in Small
-  (13px). Null slug: name only. Ink is `--ink` in both modes; hover,
-  focus and selection switch border and icon to `--accent`. No brand
-  colours.
+- **Items are logos only.** 30px Simple Icons brand colour, no pill, border
+  or visible name. Relative luminance below 0.2 uses `--ink`. Null slugs stay
+  list only. Every logo has an accessible name and a title. Selected groups
+  render at full opacity with a 1px accent ring under each logo.
 - **Placement.** Even Fibonacci points on radius 180 (130 at phone), no
   jitter, no runtime overlap pass. Precompute unit positions once.
 - **Depth.** Per frame: `translate3d(x, y, 0) scale(s)` with s from 0.62
@@ -430,7 +427,7 @@ spinning. The redesign reads as an instrument, not a tag cloud.
   resumes it.
 - **Groups drive the globe.** In the grouped list beside it each group
   title is a button (`aria-pressed`). Hover, focus or tap: that group's
-  pills take the accent and a raised opacity floor (0.5 even at the back),
+  logos retain their colour, take a 1px accent ring and full opacity,
   every other pill caps at 0.3, and the globe turns so the group's
   centroid faces front (700ms, `--ease-out`). Pressing again or Escape
   clears it. This is the resume link: the list says what, the globe shows
@@ -450,8 +447,8 @@ An E92 era analogue tachometer: a physical instrument, not a screen. No
 glass reflections, no glow rings, no digital readout, no gradients beyond
 the bezel and a faint face vignette.
 
-- **Place and size.** Fixed chrome, bottom left (the clocks and
-  availability shift right of it). 88px at desktop, 64px at max-width 700.
+- **Place and size.** In the standalone #e92 section, above its spec rows
+  in the right five columns. 220px at desktop, 160px at max-width 700. Bottom chrome holds clocks and availability only.
   Inline SVG, viewBox 0 0 200 200, `aria-hidden`.
 - **Face.** Black (#0B0B0C) with a static radial vignette to #000 at the
   rim. Bezel: a 3px ring, linear gradient #A7A9AD to #2B2C2F (top left
@@ -483,8 +480,8 @@ the bezel and a faint face vignette.
   the limiter cuts: the target drops 350 rpm for 90ms, then returns, and
   repeats while held. One rAF that idles when settled within 5 rpm of the
   target.
-- **Start sweep.** On `intro:done`, the needle sweeps to 8 and back to idle
-  over 900ms (the coded E9x gauge sweep). Once per load.
+- **Start sweep.** When the car specs first enter view (IntersectionObserver 0.4), the needle sweeps to 8 and back to idle
+  over 900ms (the coded E9x gauge sweep). Once per load. Revs follow scroll velocity only while the specs are visible; rAF stops offscreen.
 - **Reduced motion.** Static at idle, no sweep.
 
 ### F3.5 implementation notes (2026-10-10)

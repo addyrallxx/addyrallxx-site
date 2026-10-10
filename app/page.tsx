@@ -7,7 +7,8 @@ import { Services } from "@/components/sections/services";
 import { Taste } from "@/components/sections/taste";
 import { Method } from "@/components/sections/method";
 import { Info } from "@/components/sections/info";
+import { E92 } from "@/components/sections/e92";
 
 export default function Home() {
-  return <main id="main"><Hero /><Work /><OtherThings /><AlongsideSchool /><Taste /><Tools /><Services /><Method /><Info /></main>;
+  return <main id="main"><Hero /><Work /><OtherThings /><AlongsideSchool /><Taste /><Tools /><Services /><Method /><Info /><E92 /></main>;
 }

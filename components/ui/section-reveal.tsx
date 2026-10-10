@@ -8,7 +8,7 @@ export function SectionReveal({ children }: { children: ReactNode }) {
     const el = ref.current!;
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
     if (motion.matches) return;
-    const targets = el.querySelectorAll(".section-line, .section-body, .index-row");
+    const targets = el.querySelectorAll(".section-line, .section-body, .index-row, .e92-stripe");
     const observer = new IntersectionObserver(entries => {
       entries.forEach(entry => {
         if (entry.isIntersecting) { entry.target.classList.add("is-visible"); observer.unobserve(entry.target); }

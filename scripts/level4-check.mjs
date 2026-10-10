@@ -220,10 +220,10 @@ async function tachChecks(p) {
     window.__tachPeak = -96;
     const until = performance.now() + 700;
     const sample = () => { window.__tachPeak = Math.max(window.__tachPeak, parseFloat(document.querySelector('.tach-needle').style.transform.slice(7))); if (performance.now() < until) requestAnimationFrame(sample); };
-    requestAnimationFrame(sample); window.__lenis.scrollTo(window.scrollY + 160, { duration: .05 });
+    requestAnimationFrame(sample); window.__lenis.scrollTo(window.scrollY - 160, { duration: .05 });
   });
   await sleep(700);
-  check('tach exceeds 4000 rpm during fast Lenis scroll', await p.evaluate(() => window.__tachPeak > 0));
+  check('onscreen tach responds to real Lenis scroll velocity', await p.evaluate(() => window.__tachPeak > -95));
   await p.waitForFunction(() => Math.abs(window.__lenis.velocity) < .001);
   await sleep(1500);
   check('tach returns within 2deg of idle in 1.5s', Math.abs(await needleAngle() + 96) <= 2);
@@ -231,19 +231,26 @@ async function tachChecks(p) {
     const lenis = window.__lenis, descriptor = Object.getOwnPropertyDescriptor(lenis, 'velocity');
     Object.defineProperty(lenis, 'velocity', { configurable: true, get: () => 50, set: () => {} });
     window.dispatchEvent(new Event('scroll'));
-    const start = performance.now(); let previous = -Infinity, fell = false;
+    const start = performance.now(); let previous = -Infinity, fell = false, peak = -96;
     const sample = now => {
       const a = parseFloat(document.querySelector('.tach-needle').style.transform.slice(7));
+      peak = Math.max(peak, a);
       if (now - start > 700 && a < previous - .05) fell = true;
       previous = a;
       if (now - start < 1600) requestAnimationFrame(sample);
-      else { if (descriptor) Object.defineProperty(lenis, 'velocity', descriptor); else delete lenis.velocity; resolve(fell); }
+      else { if (descriptor) Object.defineProperty(lenis, 'velocity', descriptor); else delete lenis.velocity; resolve({ fell, peak }); }
     }; requestAnimationFrame(sample);
   }));
-  check('tach limiter flutters while target stays above 7000 rpm', flutter);
+  check('tach exceeds 4000 rpm during sustained fast Lenis velocity', flutter.peak > 0);
+  check('tach limiter flutters while target stays above 7000 rpm', flutter.fell);
   await sleep(1500);
   await p.evaluate(() => window.__lenis.scrollTo(0, { immediate: true }));
   await sleep(1500);
+  check('tach stops offscreen at idle', await p.$eval('.tach-needle', el => el.style.transform === 'rotate(-96deg)' && el.style.willChange === ''));
+  await p.evaluate(() => { window.__tachSamples = []; window.dispatchEvent(new Event('tach:probe')); });
+  await scrollTo(p, '.car-instrument', 120);
+  check('tach start sweep happens only once', await p.evaluate(() => window.__tachSamples.length > 10 && window.__tachSamples.every(a => a === -96)));
+  await p.evaluate(() => window.__lenis.scrollTo(0, { immediate: true }));
 }
 async function tachScreenshots(p) {
   for (const mode of ['day', 'night']) {
@@ -436,12 +443,18 @@ try {
   await sleep(250);
   check("sky keeps rendering on blur", await p.evaluate((count) => window.__f1.renders > count, blurred));
   await f3Desktop(p);
-  if (await p.$('.tach')) await tachChecks(p);
+  check('tach lives only in E92, with nine spec rows after Info', await p.evaluate(() => document.querySelectorAll('#e92 .tach').length === 1 && document.querySelectorAll('#e92 .car-specs > div').length === 9 && document.querySelector('#info').nextElementSibling.id === 'e92' && !document.querySelector('.chrome .tach')));
+  await tachChecks(p);
   await sphereChecks(p);
   for (const [id, heading] of [['taste', 'Taste'], ['method', 'How I work'], ['info', 'Info']]) check(id + ' section has its heading', await p.$eval('#' + id + ' h2', (el, heading) => el.textContent === heading, heading));
   check('Info has its bio and lists without a car block or portrait placeholder', await p.evaluate(() => document.querySelectorAll('#info .info-lists > div').length === 3 && document.querySelector('#info .info-bio').textContent.length > 0 && !document.querySelector('#info img, #info .tach, #info .car-block')));
   await sweepPage(p);
-  if (await p.$('.car-images')) check('both Info E92 images loaded after scrolling', await p.$$eval('.car-images img', images => images.length === 2 && images.every(image => image.naturalWidth > 0)));
+  check('all three E92 images loaded after scrolling', await p.$$eval('#e92 .car-images img', images => images.length === 3 && images.every(image => image.naturalWidth > 0)));
+  check('E92 stripe reveals along its top edge', await p.$eval('.e92-stripe', el => getComputedStyle(el).clipPath === 'inset(0px)' && getComputedStyle(el).top === '0px'));
+  await p.setViewport({ width: 1000, height: 900, deviceScaleFactor: 1 });
+  await scrollTo(p, '#e92', 60);
+  await p.screenshot({ path: join(tmpdir(), 'claude/briefs/f5-e92.png') });
+  await p.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
   await frameBudget(p, 1);
   await frameBudget(p, 4);
   await frameBudget(p, 1, true);
