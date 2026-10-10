@@ -6,7 +6,6 @@ import { CHROME, NAV, SITE } from "@/lib/content";
 import "@/lib/scroll";
 import { Clocks } from "./clocks";
 import { SkyToggle } from "./sky-toggle";
-import { Tach } from "./tach";
 
 export function Chrome() {
   const sheet = useRef<HTMLDialogElement>(null);
@@ -63,7 +62,6 @@ export function Chrome() {
         </nav>
       </header>
       <div className="chrome-bottom" ref={bottom}>
-        <Tach />
         <Clocks />
         <p className="availability"><span className="live-dot" data-day="true" aria-hidden="true" />{CHROME.availability}</p>
       </div>

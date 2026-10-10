@@ -4,7 +4,7 @@ import { useEffect, useId, useState } from "react";
 import { CHROME } from "@/lib/content";
 
 export function SkyToggle() {
-  const [mode, setMode] = useState<"day" | "night">("day");
+  const [mode, setMode] = useState<"day" | "night">("night");
   const id = useId();
   useEffect(() => {
     const sync = () => setMode(document.documentElement.dataset.mode === "night" ? "night" : "day");
@@ -15,7 +15,6 @@ export function SkyToggle() {
   }, []);
   const toggle = () => {
     const next = mode === "day" ? "night" : "day";
-    try { localStorage.setItem("sky", next); } catch { /* The choice still works without storage. */ }
     // Sky owns the midpoint token swap. Without a live canvas this swaps immediately.
     if (document.documentElement.dataset.sky !== "webgl") document.documentElement.dataset.mode = next;
     setMode(next);

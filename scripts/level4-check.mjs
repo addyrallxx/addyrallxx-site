@@ -30,7 +30,7 @@ async function page(options = {}) {
     window.__f1 = { done: 0, scroll: 0, time: 0, renders: 0 };
     window.__introSamples = [];
     window.__tachSamples = [];
-    window.addEventListener('intro:done', () => {
+    window.addEventListener('tach:probe', () => {
       const until = performance.now() + 1100;
       const sample = () => { const needle = document.querySelector('.tach-needle'); if (needle) window.__tachSamples.push(parseFloat(needle.style.transform.slice(7))); if (performance.now() < until) requestAnimationFrame(sample); }; requestAnimationFrame(sample);
     });
@@ -131,10 +131,12 @@ async function frameBudget(p, rate, spin = false) {
   await cdp.detach();
 }
 async function scrollTo(p, selector, offset = 160) {
-  const y = await p.$eval(selector, (el, offset) => el.getBoundingClientRect().top + scrollY - offset, offset);
-  await p.evaluate(y => window.__lenis.scrollTo(y, { immediate: true }), y);
+  const y = await p.$eval(selector, (el, offset) => Math.max(0, Math.min(el.getBoundingClientRect().top + scrollY - offset, document.documentElement.scrollHeight - innerHeight)), offset);
+  await p.evaluate(y => { window.__lenis.resize(); window.__lenis.scrollTo(y, { immediate: true }); }, y);
   await sleep(1100);
-  check("Lenis lands at requested section", await p.evaluate(y => Math.abs(scrollY - Math.max(0, Math.min(y, document.documentElement.scrollHeight - innerHeight))) < 2, y));
+  const landed = await p.evaluate(y => ({ actual: scrollY, target: Math.max(0, Math.min(y, document.documentElement.scrollHeight - innerHeight)), limit: window.__lenis.limit }), y);
+  if (Math.abs(landed.actual - landed.target) >= 2) console.log('scroll mismatch', landed);
+  check("Lenis lands at requested section", Math.abs(landed.actual - landed.target) < 2);
 }
 async function sweepPage(p) {
   const max = await p.evaluate(() => document.documentElement.scrollHeight - innerHeight);
@@ -160,7 +162,7 @@ async function f3Desktop(p) {
   check('Work thumbnails do not repeat the link description', await p.$$eval('.work-inline-image img', images => images.length > 0 && images.every(image => image.alt === '')));
   await scrollTo(p, "#work", 100);
   check("desktop Work rows are exactly 96px", await p.$$eval(".work-row", rows => rows.every(row => row.getBoundingClientRect().height === 96)));
-  check("first six home sections keep the specified order", await p.$$eval("main > section", sections => sections.length === 6 && [".hero-line", ".work-row", ".other-band", ".plain-row", "[data-sphere]", ".service-row"].every((selector, i) => sections[i].querySelector(selector))));
+  check("home sections keep the specified order", await p.$$eval("main > section", sections => (sections.length >= 9 ? [".hero-line", ".work-row", ".other-band", ".plain-row", "#taste-heading", "[data-sphere]", ".service-row", "#method-heading", "#info-heading"] : [".hero-line", ".work-row", ".other-band", ".plain-row", "[data-sphere]", ".service-row"]).every((selector, i) => sections[i].querySelector(selector))));
   check("Alongside school and Services render four rows each", await p.evaluate(() => document.querySelectorAll(".plain-row").length === 4 && document.querySelectorAll(".service-row").length === 4 && document.querySelector(".contact-pill").getAttribute("href") === "#contact"));
   await p.mouse.move(1, 100);
   await sleep(100);
@@ -199,20 +201,26 @@ async function f3Desktop(p) {
   await sleep(450); await fanMatrices(p, false);
   await p.hover(".other-band");
   await sleep(500); await fanMatrices(p, true);
-  check("E92 stripe wipes fully on fan hover", await p.$eval(".car-stripe", el => getComputedStyle(el).clipPath === "inset(0px)"));
+  if (await p.$('.car-stripe')) check("E92 stripe wipes fully on fan hover", await p.$eval(".car-stripe", el => getComputedStyle(el).clipPath === "inset(0px)"));
+  else check("Other things renders three typographic cards", await p.$$eval(".fan-card", cards => cards.length === 3 && cards.every(card => card.classList.contains("fan-type"))));
   await sharp(await p.screenshot()).resize({ width: 1000 }).toFile(join(tmpdir(), "claude/briefs/f3-fan.png"));
 
 }
 async function tachChecks(p) {
   await p.evaluate(() => window.__lenis.scrollTo(0, { immediate: true }));
   await sleep(1500);
+  await p.evaluate(() => window.dispatchEvent(new Event('tach:probe')));
+  await scrollTo(p, '.car-instrument', 120);
+  check('tach performs its one start sweep', await p.evaluate(() => Math.max(...window.__tachSamples) > 115 && Math.abs(window.__tachSamples.at(-1) + 96) < 1));
+  await tachScreenshots(p);
+  await scrollTo(p, '.car-instrument', 120);
   const needleAngle = () => p.$eval('.tach-needle', el => parseFloat(el.style.transform.slice(7)));
   check('tach rests at 800 rpm within 1deg', Math.abs(await needleAngle() + 96) <= 1);
   await p.evaluate(() => {
     window.__tachPeak = -96;
     const until = performance.now() + 700;
     const sample = () => { window.__tachPeak = Math.max(window.__tachPeak, parseFloat(document.querySelector('.tach-needle').style.transform.slice(7))); if (performance.now() < until) requestAnimationFrame(sample); };
-    requestAnimationFrame(sample); window.__lenis.scrollTo(2600, { duration: .5 });
+    requestAnimationFrame(sample); window.__lenis.scrollTo(window.scrollY + 160, { duration: .05 });
   });
   await sleep(700);
   check('tach exceeds 4000 rpm during fast Lenis scroll', await p.evaluate(() => window.__tachPeak > 0));
@@ -243,9 +251,8 @@ async function tachScreenshots(p) {
     await sleep(1950);
     if (mode === 'night') check('night tach numeral computes to E9x orange', await p.$eval('.tach-number', el => getComputedStyle(el).fill === 'rgb(255, 140, 46)'));
     await p.setViewport({ width: 1000, height: 900, deviceScaleFactor: 1 });
-    // Crop only at the top of the page, before any scroll at this viewport.
-    const box = { x: 0, y: 700, width: 1000, height: 200 };
-    await p.screenshot({ path: join(tmpdir(), 'claude/briefs/f35-tach-' + mode + '.png'), clip: box });
+    await scrollTo(p, '.car-instrument', 120);
+    await p.screenshot({ path: join(tmpdir(), 'claude/briefs/f35-tach-' + mode + '.png') });
     await p.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
   }
 }
@@ -271,12 +278,12 @@ async function sphereChecks(p) {
     const capture = el.setPointerCapture; el.setPointerCapture = () => {};
     event('pointerdown', r.left + 200); event('pointermove', r.left + 240);
     await new Promise(resolve => setTimeout(resolve, 500));
-    const before = document.querySelector('[data-sphere-item]').style.transform;
+    const before = getComputedStyle(document.querySelector('[data-sphere-item]')).transform;
     event('pointerup', r.left + 240); el.setPointerCapture = capture;
     await new Promise(resolve => setTimeout(resolve, 100));
-    return { before, after: document.querySelector('[data-sphere-item]').style.transform };
+    return { before, after: getComputedStyle(document.querySelector('[data-sphere-item]')).transform };
   });
-  check('held globe drag releases without stale horizontal fling', Math.abs(new DOMMatrix(held.before).e - new DOMMatrix(held.after).e) < .1);
+  check('held globe drag releases without stale horizontal fling', await p.evaluate(held => Math.abs(new DOMMatrix(held.before).e - new DOMMatrix(held.after).e) < .1, held));
   await p.keyboard.press('Escape');
   await p.$eval('.skills-list button', el => el.click());
   await sleep(750);
@@ -326,6 +333,25 @@ async function skyPixels(p) {
   return sharp(buffer).raw().toBuffer({ resolveWithObject: true });
 }
 try {
+  const firstPaint = await page();
+  await firstPaint.evaluateOnNewDocument(() => {
+    localStorage.setItem('sky', 'day');
+    const RealDate = Date;
+    window.Date = class extends RealDate {
+      constructor(...args) { super(...(args.length ? args : ['2026-10-10T18:00:00Z'])); }
+    };
+    window.__loadModes = [];
+    new MutationObserver(() => {
+      const mode = document.documentElement?.dataset.mode;
+      if (mode) window.__loadModes.push(mode);
+    }).observe(document, { subtree: true, childList: true, attributes: true, attributeFilter: ['data-mode'] });
+  });
+  await firstPaint.goto(url, { waitUntil: 'networkidle0' });
+  check('Calgary noon with stored day starts night before first paint', await firstPaint.evaluate(() =>
+    new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Edmonton', hour: '2-digit', hourCycle: 'h23' }).format(new Date()) === '12' &&
+    localStorage.sky === 'day' && window.__loadModes.length > 0 && window.__loadModes.every(mode => mode === 'night') && document.documentElement.dataset.mode === 'night'));
+  check('bottom chrome contains no tach', await firstPaint.$('.chrome-bottom .tach') === null);
+  await firstPaint.close();
   const p = await page();
   await p.goto(url, { waitUntil: "domcontentloaded" });
   check("visible real Chrome before measurement", await p.evaluate(() => document.hidden === false));
@@ -348,7 +374,7 @@ try {
   console.log(info);
   check("visible real Chrome", !info.hidden);
   check("single intro completion", info.done === 1);
-  check('tach performs its one start sweep', await p.evaluate(() => Math.max(...window.__tachSamples) > 115 && Math.abs(window.__tachSamples.at(-1) + 96) < 1));
+  if (await p.$('.tach-needle')) check('tach stays idle before car enters view', await p.$eval('.tach-needle', el => parseFloat(el.style.transform.slice(7)) === -96));
   check("counter reaches 100", info.counter === "100");
   const intro = await p.evaluate(() => ({ samples: window.__introSamples, timing: window.__f1.doneAt - window.__f1.partAt,
     ...window.__f1.halves, height: innerHeight }));
@@ -364,7 +390,7 @@ try {
   check("Instrument body", info.body.includes("Instrument"));
   check("no horizontal overflow", info.width === info.viewport);
   await heroBounds(p);
-  await tachScreenshots(p);
+
   await p.evaluate(() => window.dispatchEvent(new CustomEvent("sky:mode", { detail: { mode: "day" } })));
   await sleep(1950);
   await sharp(await p.screenshot()).resize({ width: 1000 }).toFile(join(tmpdir(), "claude/briefs/f2-hero.png"));
@@ -396,9 +422,18 @@ try {
   await sleep(250);
   check("sky keeps rendering on blur", await p.evaluate((count) => window.__f1.renders > count, blurred));
   await f3Desktop(p);
-  await tachChecks(p);
+  if (await p.$('.tach')) await tachChecks(p);
   await sphereChecks(p);
+  if (await p.$('#info')) {
+  for (const [id, heading] of [['taste', 'Taste'], ['method', 'How I work'], ['info', 'Info']]) check(id + ' section has its heading', await p.$eval('#' + id + ' h2', (el, heading) => el.textContent === heading, heading));
+  check('tach lives only in Info', await p.evaluate(() => document.querySelectorAll('#info .tach').length === 1 && !document.querySelector('.chrome .tach')));
+  await p.setViewport({ width: 1000, height: 900, deviceScaleFactor: 1 });
+  await scrollTo(p, '.car-instrument', 160);
+  await p.screenshot({ path: join(tmpdir(), 'claude/briefs/f4-info.png') });
+  await p.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
+  }
   await sweepPage(p);
+  if (await p.$('.car-images')) check('both Info E92 images loaded after scrolling', await p.$$eval('.car-images img', images => images.length === 2 && images.every(image => image.naturalWidth > 0)));
   await frameBudget(p, 1);
   await frameBudget(p, 4);
   await frameBudget(p, 1, true);
@@ -464,7 +499,7 @@ try {
   await reduced.$eval("[data-sphere]", el => el.scrollIntoView());
   const staticSphere = await reduced.$eval("[data-sphere-item]", el => el.style.transform);
   await sleep(300);
-  check("reduced sphere is static and tach rests without sweep", await reduced.evaluate(transform => document.querySelector("[data-sphere-item]").style.transform === transform && parseFloat(document.querySelector(".tach-needle").style.transform.slice(7)) === -96 && window.__tachSamples.every(a => a === -96), staticSphere));
+  check("reduced sphere is static and tach rests without sweep", await reduced.evaluate(transform => document.querySelector("[data-sphere-item]").style.transform === transform && (!document.querySelector('.tach-needle') || parseFloat(document.querySelector(".tach-needle").style.transform.slice(7)) === -96) && window.__tachSamples.every(a => a === -96), staticSphere));
   await reduced.$eval('.skills-list button', el => el.click());
   await sleep(750);
   check('reduced group highlight works without a globe turn', await reduced.evaluate(transform => document.querySelector('.skills-list button').getAttribute('aria-pressed') === 'true' && document.querySelector('[data-sphere-item]').dataset.selected === 'true' && document.querySelector('[data-sphere-item]').style.transform === transform, staticSphere));

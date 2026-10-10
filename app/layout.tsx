@@ -17,11 +17,11 @@ export const metadata: Metadata = {
   openGraph: { title: SITE.name, description: SITE.description, type: "website", locale: "en_CA" },
 };
 
-const modeScript = `(()=>{let mode;try{mode=localStorage.getItem("sky")}catch{}if(mode!=="day"&&mode!=="night"){const hour=Number(new Intl.DateTimeFormat("en-GB",{timeZone:"America/Edmonton",hour:"2-digit",hourCycle:"h23"}).format(new Date()));mode=hour>=7&&hour<19?"day":"night"}document.documentElement.dataset.mode=mode})()`;
+const modeScript = `document.documentElement.dataset.mode="night"`;
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" data-mode="day" suppressHydrationWarning>
+    <html lang="en" data-mode="night" suppressHydrationWarning>
       <head><script dangerouslySetInnerHTML={{ __html: modeScript }} /></head>
       <body className={`${archivo.variable} ${instrument.variable} antialiased`}>
         <a href="#main" className="skip-link">{CHROME.skip}</a>
