@@ -25,6 +25,7 @@ export const SITE = {
 
 export const NAV = [
   { label: "Work", href: "/#work" },
+  { label: "School", href: "/school" },
   { label: "Info", href: "/#info" },
   { label: "Contact", href: "/#contact" },
 ] satisfies Link[];
@@ -57,7 +58,8 @@ export const HERO = {
 };
 
 // The sphere returns from the previous design, restyled to Level 4 tokens.
-// Every slug has a file at public/icons/<slug>.svg; null means name only.
+// Every slug has a file at public/icons/<slug>.svg. The globe shows brand
+// colour logos only (Adnan, 2026-10-10); null slugs appear in the list only.
 export const SKILLS = {
   label: "Tools",
   hint: "Drag it",
@@ -68,14 +70,14 @@ export const SKILLS = {
     ] },
     { title: "Web and motion", items: [
       { name: "Next.js", slug: "nextdotjs" }, { name: "React", slug: "react" }, { name: "Tailwind CSS", slug: "tailwindcss" },
-      { name: "Node.js", slug: "nodedotjs" }, { name: "GSAP", slug: "greensock" }, { name: "Three.js", slug: null },
+      { name: "Node.js", slug: "nodedotjs" }, { name: "GSAP", slug: "greensock" }, { name: "Three.js", slug: "threedotjs" },
     ] },
     { title: "Data and infrastructure", items: [
       { name: "PostgreSQL", slug: "postgresql" }, { name: "Drizzle", slug: "drizzle" }, { name: "Docker", slug: "docker" },
       { name: "Vercel", slug: "vercel" }, { name: "Git", slug: "git" },
     ] },
     { title: "AI and automation", items: [
-      { name: "Claude Code", slug: "claude" }, { name: "Codex", slug: null }, { name: "Gemini", slug: "googlegemini" },
+      { name: "Claude Code", slug: "claude" }, { name: "Codex", slug: "openai" }, { name: "Gemini", slug: "googlegemini" },
       { name: "MCP", slug: "modelcontextprotocol" }, { name: "LangChain", slug: "langchain" }, { name: "Hugging Face", slug: "huggingface" },
       { name: "n8n", slug: "n8n" }, { name: "Zapier", slug: "zapier" },
     ] },
@@ -225,16 +227,37 @@ export const WORK: Project[] = [
   },
 ];
 
+export const CAR = {
+  card: { name: "The E92", line: "335xi, six speed manual, BMW Individual Bernina Grey. Mostly built by me." },
+  label: "Off the clock",
+  // Display L lines for the section heading.
+  lines: ["The", "E92"],
+  title: "2008 BMW 335xi",
+  lead: "An all wheel drive, three pedal N54 coupe that BMW left a lot on the table with. I picked it up.",
+  specs: [
+    { label: "Engine", value: "Original N54 twin turbo six, RB Twos+ turbos" },
+    { label: "Fuel", value: "Walbro 450 lift pump, upgraded high pressure pump, Index 12 injectors" },
+    { label: "Air", value: "VRSF 7.5 inch intercooler and charge pipe, HKS blow off valve" },
+    { label: "Tune", value: "MHD flash, four maps. About 535 wheel horsepower on 93 pump gas, about 610 on E40 (tune estimates)" },
+    { label: "Drive", value: "Six speed manual, SPEC Stage 2+ clutch, xDrive with xDelete" },
+    { label: "Chassis", value: "ST XTA coilovers, M3 control arms, Hawk HP+ pads" },
+    { label: "Wheels", value: "BBS RX202, 18 inch, Hankook Ventus RS4" },
+    { label: "Body", value: "M3 style bumper and skirts, carbon lip, grilles, mirror caps, diffuser, spoiler, skirt extensions and rear spats" },
+    { label: "Inside", value: "M3 wheel, M Performance shift knob, Logic 7" },
+  ],
+  signOff: "Two turbos, three pedals, no adult supervision.",
+};
+
 export const OTHER = {
   left: "Other",
   right: "Things",
-  label: "Smaller builds, and the car",
-  // Fan order is left, centre, right. Only the car carries a photo; the
-  // other two are typographic cards until real captures exist.
+  label: "Smaller builds",
+  // Fan order is left, centre, right. The car has its own section now
+  // (Adnan, 2026-10-10); all three cards are smaller builds.
   items: [
     { name: "This site", line: "Two skies, one page. Next.js, Three.js and GSAP.", image: null },
     { name: "Motion studio", line: "Product reels made in code with Remotion.", image: null },
-    { name: "The E92", line: "335xi in BMW Individual Bernina Grey, mostly built by me.", image: { src: "/e92/bay.jpg", alt: "Grey BMW E92 coupe with the bonnet up and halo headlights on" } },
+    { name: "Class steward", line: "A Discord bot for my capstone class. It mirrors instructor posts into one channel and audits the server's permissions.", image: null },
   ],
 };
 
@@ -264,6 +287,73 @@ export const INFO = {
     { label: "Before", items: ["Sales and inventory, Prime Autos Calgary, 2022 to 2023"] },
     { label: "School", items: ["BSc Computer Science, University of Calgary, April 2028"] },
   ],
+};
+
+// The /school page. Facts only from the vault: degree, graduation date,
+// CPSC 598 and Handled AI, the steward bot. No grades or course list until
+// Adnan supplies them.
+export const SCHOOL = {
+  label: "School",
+  lines: ["University", "of Calgary"],
+  lead: "BSc Computer Science, graduating April 2028. The degree runs alongside the work on this site, not instead of it.",
+  facts: [
+    { label: "Degree", value: "BSc Computer Science" },
+    { label: "School", value: "University of Calgary" },
+    { label: "Graduating", value: "April 2028" },
+    { label: "Looking for", value: "Summer 2027 internships" },
+  ],
+  sections: [
+    {
+      label: "Now",
+      title: "CPSC 598, the entrepreneurship capstone",
+      body: "An eight month venture course, September 2026 to April 2027, graded on evidence over opinion. Interviews, a lean canvas, milestones and a funding pitch, all built as a team.",
+    },
+    {
+      label: "The venture",
+      title: "Handled AI",
+      body: "Our capstone venture for Calgary homeowners. Send a photo and a line of text, get a scoped price band, get booked with a licensed local pro. Plumbing and heating first.",
+    },
+    {
+      label: "Built for the class",
+      title: "Class steward",
+      body: "A Discord bot that mirrors every instructor post into one channel and checks the server's permissions, after it found three settings locking the professor out.",
+    },
+  ],
+  // Course names only, from Adnan's transcript (2026-10-10). Never grades,
+  // GPA, term results, student ID or birthdate.
+  courses: [
+    {
+      label: "Done",
+      items: [
+        "CPSC 331 Data Structures, Algorithms and Analysis",
+        "CPSC 355 Computing Machinery",
+        "CPSC 441 Computer Networks",
+        "CPSC 471 Database Management Systems",
+        "SENG 300 Software Engineering",
+        "CPSC 329 Information Security and Privacy",
+        "CPSC 409 History of Computation",
+        "PHIL 314 Information Technology Ethics",
+      ],
+    },
+    {
+      label: "This term",
+      items: [
+        "CPSC 383 Artificial Intelligence and Machine Learning",
+        "CPSC 481 Human Computer Interaction",
+        "CPSC 598 Software Entrepreneur Capstone",
+      ],
+    },
+    {
+      label: "Next term",
+      items: [
+        "CPSC 457 Operating Systems",
+        "CPSC 449 Programming Paradigms",
+        "CPSC 365 C++ Programming",
+      ],
+    },
+  ],
+  coursesLabel: "Coursework",
+  back: "Back to home",
 };
 
 export const CONTACT = {

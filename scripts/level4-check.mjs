@@ -111,7 +111,7 @@ async function frameBudget(p, rate, spin = false) {
       last = now;
       const t = Math.min((now - start) / (spin ? 3000 : 6000), 1);
       if (!spin) window.__lenis.scrollTo(max * (.5 - .5 * Math.cos(t * Math.PI * 2)));
-      peakScroll = Math.max(peakScroll, window.scrollY);
+      peakScroll = Math.max(peakScroll, window.__lenis.animatedScroll);
       window.dispatchEvent(new PointerEvent("pointermove", { clientX: width * (.5 + .45 * Math.sin(t * Math.PI * 8)), clientY: height * (.5 + .4 * Math.cos(t * Math.PI * 6)), pointerType: "mouse" }));
       if (t < 1) requestAnimationFrame(probe);
       else {
@@ -260,14 +260,28 @@ async function sphereChecks(p) {
   // Leave the prior Work hover so this measures idle spin rather than pill hover pause.
   await p.mouse.move(1, 100);
   await scrollTo(p, "[data-sphere]");
-  const names = [...readFileSync("lib/content.ts", "utf8").split("export const SKILLS =")[1].split("export const SERVICES")[0].matchAll(/name: "([^"]+)"/g)].map(match => match[1]);
+  const names = [...readFileSync("lib/content.ts", "utf8").split("export const SKILLS =")[1].split("export const SERVICES")[0].matchAll(/name: "([^"]+)", slug: "([^"]+)"/g)].map(match => match[1]);
   const expected = names.length;
   const snapshot = () => p.evaluate(() => ({ count: document.querySelectorAll("[data-sphere-item]").length, nodes: document.querySelectorAll("*").length, transform: document.querySelector("[data-sphere-item]").style.transform }));
   const before = await snapshot();
   await sleep(3000);
   const after = await snapshot();
-  check("sphere item count equals SKILLS item count", before.count === expected && after.count === expected);
-  check('every globe pill always shows its name', await p.$$eval('[data-sphere-item]', (pills, names) => pills.every((pill, i) => pill.textContent.trim() === names[i] && getComputedStyle(pill.querySelector('.sphere-label')).opacity === '1'), names));
+  check("sphere count equals SKILLS items with logos", before.count === expected && after.count === expected);
+  check('globe has no visible text and every logo has an accessible name and title', await p.$$eval('[data-sphere-item]', (logos, names) => logos.every((logo, i) => logo.textContent.trim() === '' && logo.getAttribute('aria-label') === names[i] && logo.title === names[i] && !logo.closest('[aria-hidden="true"]')), names));
+  check('globe has 30px colour logos without pills or borders', await p.$$eval('[data-sphere-item]', logos => logos.every(logo => {
+    const style = getComputedStyle(logo), icon = getComputedStyle(logo.querySelector('.skill-icon'));
+    return style.borderWidth === '0px' && style.backgroundColor === 'rgba(0, 0, 0, 0)' && icon.width === '30px' && icon.maskImage !== 'none' && icon.backgroundColor !== 'rgba(0, 0, 0, 0)';
+  }) && new Set(logos.map(logo => getComputedStyle(logo.querySelector('.skill-icon')).backgroundColor)).size > 3));
+  check('SQL stays in the list and off the globe', await p.evaluate(() => [...document.querySelectorAll('.skills-list li')].some(li => li.textContent === 'SQL') && !document.querySelector('[data-sphere-item][aria-label="SQL"]')));
+  const colours = JSON.parse(readFileSync('lib/skill-colors.ts', 'utf8').split('= ')[1].replace(/;\s*$/, ''));
+  check('logo colours follow package luminance rule', await p.$$eval('[data-sphere-item]', (logos, colours) => logos.every(logo => {
+    const hex = colours[logo.dataset.slug];
+    const channels = [0,2,4].map(i => parseInt(hex.slice(i,i+2),16)/255).map(c => c <= .04045 ? c/12.92 : ((c+.055)/1.055)**2.4);
+    const probe = document.createElement('span');
+    probe.style.color = channels[0]*.2126 + channels[1]*.7152 + channels[2]*.0722 < .2 ? 'var(--ink)' : '#'+hex;
+    document.body.append(probe); const colour = getComputedStyle(probe).color; probe.remove();
+    return getComputedStyle(logo.querySelector('.skill-icon')).backgroundColor === colour;
+  }), colours));
   check("sphere DOM stays flat over 3s idle spin", Math.abs(after.nodes - before.nodes) <= 5 && before.transform !== after.transform);
   await p.$eval('.skills-list button', el => el.click());
   await sleep(800);
@@ -290,7 +304,7 @@ async function sphereChecks(p) {
   check('pressed group highlights its pills and caps the others', await p.evaluate(() => {
     const button = document.querySelector('.skills-list button'), accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
     const probe = document.createElement('span'); probe.style.color = accent; document.body.append(probe); const colour = getComputedStyle(probe).color; probe.remove();
-    return button.getAttribute('aria-pressed') === 'true' && [...document.querySelectorAll('[data-sphere-item]')].every(pill => pill.dataset.group === '0' ? getComputedStyle(pill).borderColor === colour && +pill.style.opacity >= .5 : +pill.style.opacity <= .3);
+    return button.getAttribute('aria-pressed') === 'true' && [...document.querySelectorAll('[data-sphere-item]')].every(pill => pill.dataset.group === '0' ? getComputedStyle(pill, '::after').borderColor === colour && getComputedStyle(pill, '::after').borderWidth === '1px' && +pill.style.opacity === 1 : +pill.style.opacity <= .3);
   }));
   await p.keyboard.press('Escape');
   check('Escape clears the selected group', await p.$$eval('.skills-list button', buttons => buttons.every(button => button.getAttribute('aria-pressed') === 'false')));
@@ -300,7 +314,7 @@ async function sphereChecks(p) {
     await p.setViewport({ width: 1000, height: 900, deviceScaleFactor: 1 });
     await scrollTo(p, '[data-sphere]', 200);
     await p.$eval('.skills-list button', el => el.click()); await sleep(750);
-    await p.screenshot({ path: join(tmpdir(), 'claude/briefs/f35-globe.png') });
+    await p.screenshot({ path: join(tmpdir(), 'claude/briefs/f5-globe.png') });
     await p.keyboard.press('Escape');
     await p.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
   }

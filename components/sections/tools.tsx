@@ -2,9 +2,15 @@
 
 import { useEffect, useRef } from "react";
 import { SKILLS } from "@/lib/content";
+import { skillColors } from "@/lib/skill-colors";
 import { SectionReveal } from "@/components/ui/section-reveal";
 
-const items = SKILLS.groups.flatMap((group, groupIndex) => group.items.map(item => ({ ...item, group: groupIndex })));
+const items = SKILLS.groups.flatMap((group, groupIndex) => group.items.filter(item => item.slug && skillColors[item.slug]).map(item => ({ ...item, group: groupIndex })));
+function logoColor(slug: string) {
+  const hex = skillColors[slug];
+  const channels = [0, 2, 4].map(offset => parseInt(hex.slice(offset, offset + 2), 16) / 255).map(channel => channel <= .04045 ? channel / 12.92 : ((channel + .055) / 1.055) ** 2.4);
+  return channels[0] * .2126 + channels[1] * .7152 + channels[2] * .0722 < .2 ? "var(--ink)" : `#${hex}`;
+}
 const positions = new Float64Array(items.length * 3);
 const centroids = new Float64Array(SKILLS.groups.length * 3);
 for (let i = 0; i < items.length; i++) {
@@ -45,7 +51,7 @@ export function Tools() {
         const y = y0 * cx - z0 * sx, z1 = y0 * sx + z0 * cx, x = x0 * cy + z1 * sy, z = -x0 * sy + z1 * cy;
         const depth = (z + 1) / 2, scale = .62 + .38 * depth;
         let opacity = .16 + .84 * depth;
-        if (selected >= 0) opacity = items[i].group === selected ? Math.max(.5, opacity) : Math.min(.3, opacity);
+        if (selected >= 0) opacity = items[i].group === selected ? 1 : Math.min(.3, opacity);
         tiles[i].style.transform = `translate3d(${x * radius}px,${y * radius}px,0) translate(-50%,-50%) scale(${scale})`;
         tiles[i].style.opacity = String(opacity);
         const bucket = Math.min(7, Math.floor(depth * 8));
@@ -125,10 +131,10 @@ export function Tools() {
   return <section className="home-section tools" aria-labelledby="tools-heading"><SectionReveal>
     <h2 className="t-label section-label" id="tools-heading">{SKILLS.label}</h2>
     <div className="tools-grid">
-      <div className="sphere-column"><div className="skill-sphere" ref={sphere} data-sphere aria-hidden="true">
-        <svg className="globe-grid" viewBox="0 0 440 440" fill="none" stroke="var(--line)"><circle cx="220" cy="220" r="180" vectorEffect="non-scaling-stroke" /><ellipse cx="220" cy="220" rx="180" ry="50.4" vectorEffect="non-scaling-stroke" /><ellipse cx="220" cy="220" rx="50.4" ry="180" vectorEffect="non-scaling-stroke" /></svg>
-        {items.map((item, i) => { const p = projection(i, tilt, 25 * Math.PI / 180), depth = (p.z + 1) / 2; return <div key={item.name} data-sphere-item data-group={item.group} className="sphere-item" style={{ transform: `translate3d(calc(${p.x} * var(--globe-radius)),calc(${p.y} * var(--globe-radius)),0) translate(-50%,-50%) scale(${.62 + .38 * depth})`, opacity: .16 + .84 * depth }}>
-          {item.slug && <span className="skill-icon" style={{ maskImage: `url(/icons/${item.slug}.svg)` }} />}<span className="sphere-label t-small">{item.name}</span>
+      <div className="sphere-column"><div className="skill-sphere" ref={sphere} data-sphere>
+        <svg className="globe-grid" viewBox="0 0 440 440" fill="none" stroke="var(--line)" aria-hidden="true"><circle cx="220" cy="220" r="180" vectorEffect="non-scaling-stroke" /><ellipse cx="220" cy="220" rx="180" ry="50.4" vectorEffect="non-scaling-stroke" /><ellipse cx="220" cy="220" rx="50.4" ry="180" vectorEffect="non-scaling-stroke" /></svg>
+        {items.map((item, i) => { const p = projection(i, tilt, 25 * Math.PI / 180), depth = (p.z + 1) / 2; return <div key={item.name} data-sphere-item data-group={item.group} data-slug={item.slug} className="sphere-item" role="img" aria-label={item.name} title={item.name} style={{ transform: `translate3d(calc(${p.x} * var(--globe-radius)),calc(${p.y} * var(--globe-radius)),0) translate(-50%,-50%) scale(${.62 + .38 * depth})`, opacity: .16 + .84 * depth }}>
+          <span className="skill-icon" style={{ maskImage: `url(/icons/${item.slug}.svg)`, backgroundColor: logoColor(item.slug!) }} />
         </div>; })}
       </div><p className="t-label">{SKILLS.hint}</p></div>
       <div className="skills-list" ref={list}>{SKILLS.groups.map(group => <div key={group.title} className="section-body"><h3><button type="button" className="t-label" aria-pressed="false">{group.title}</button></h3><ul>{group.items.map(item => <li className="t-small" key={item.name}>{item.name}</li>)}</ul></div>)}</div>

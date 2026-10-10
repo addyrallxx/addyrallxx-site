@@ -95,7 +95,7 @@
   .m-stripe { display: flex; height: 3px; }
   .m-stripe > span { flex: 1; }
   .chrome-name { position: relative; }
-  .tach { width: 88px; height: 88px; flex-shrink: 0; }
+  .tach { width: 200px; height: 200px; flex-shrink: 0; }
   .tach-ink { fill: #ECEAE4; stroke: #ECEAE4; transition: fill 300ms, stroke 300ms; }
   .tach-number { font-family: var(--font-body), sans-serif; font-size: 15.3px; font-weight: 600; stroke: none !important; }
   .tach-legend { font-family: var(--font-body), sans-serif; font-size: 8px; stroke: none !important; }
@@ -175,16 +175,34 @@
   .skill-sphere { --globe-radius: 180px; position: relative; width: 440px; height: 440px; max-width: 100%; touch-action: pan-y; cursor: grab; user-select: none; contain: layout paint; }
   .globe-grid { position: absolute; inset: 0; width: 100%; height: 100%; stroke-width: 1; }
   .skill-sphere[data-dragging="true"] { cursor: grabbing; }
-  .sphere-item { position: absolute; top: 50%; left: 50%; height: 30px; padding: 0 12px; border-radius: var(--r-pill); border: 1px solid var(--line); background: var(--bg); display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--ink); white-space: nowrap; }
-  .skill-icon { display: block; width: 16px; height: 16px; background: currentColor; mask-size: contain; mask-position: center; mask-repeat: no-repeat; flex-shrink: 0; }
-  .sphere-label { font-size: 13px; }
-  .sphere-item:hover, .sphere-item:focus-visible, .sphere-item[data-selected="true"] { border-color: var(--accent); }
-  .sphere-item:hover .skill-icon, .sphere-item:focus-visible .skill-icon, .sphere-item[data-selected="true"] .skill-icon { color: var(--accent); }
+  .sphere-item { position: absolute; top: 50%; left: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; }
+  .skill-icon { display: block; width: 30px; height: 30px; mask-size: contain; mask-position: center; mask-repeat: no-repeat; flex-shrink: 0; }
+  .sphere-item::after { content: ""; position: absolute; inset: -5px; border: 1px solid var(--accent); border-radius: 50%; opacity: 0; }
+  .sphere-item:hover::after, .sphere-item[data-selected="true"]::after { opacity: 1; }
   .skills-list button { min-height: 44px; text-align: left; }
   .skills-list button[aria-pressed="true"] { color: var(--accent); }
   .skills-list { grid-column: 7 / 13; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: calc(var(--u) * 1.5); }
   .skills-list ul { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
   .section-heading { margin-bottom: calc(var(--u) * 2); }
+  .editorial-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--gutter); }
+  .taste-body, .info-lists { grid-column: 7 / 13; }
+  .info-bio { grid-column: 1 / 6; }
+  .info-lists { display: grid; gap: calc(var(--u) * 1.5); }
+  .info-lists ul { margin-top: 12px; display: grid; gap: 8px; }
+  .method-row h3 { grid-column: 2 / 5; }
+  .method-row p { grid-column: 5 / 13; color: var(--ink-2); }
+  .car-block { margin-top: calc(var(--u) * 4); }
+  .car-lead { margin-top: var(--u); }
+  .car-instrument { display: flex; align-items: center; gap: calc(var(--u) * 2); margin-block: calc(var(--u) * 2); }
+  .car-specs { flex: 1; min-width: 0; }
+  .car-specs > div { display: grid; grid-template-columns: 1fr 3fr; gap: var(--u); padding-block: 12px; border-top: 1px solid var(--line); }
+  .car-specs > div:last-child { border-bottom: 1px solid var(--line); }
+  .car-specs dt { color: var(--ink-3); }
+  .car-images { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gutter); align-items: end; }
+  .car-bay { aspect-ratio: 4 / 5; border-radius: var(--r-md); }
+  .car-bay .m-stripe { position: absolute; bottom: 0; left: 0; right: 0; z-index: 2; }
+  .car-night { aspect-ratio: 16 / 9; border-radius: var(--r-md); }
+  .car-signoff { margin-top: var(--u); }
   .section-line { display: block; overflow: hidden; padding-bottom: .08em; margin-bottom: -.08em; }
   .section-line > span { display: block; }
   .service-row > p { grid-column: 5 / 13; color: var(--ink-2); }
@@ -208,6 +226,11 @@
     .work-preview { display: none; }
   }
   @media (max-width: 719px) {
+    .editorial-grid { display: flex; flex-direction: column; gap: calc(var(--u) * 2); }
+    .method-row h3, .method-row p { grid-column: 2; }
+    .car-instrument { flex-direction: column-reverse; align-items: flex-start; }
+    .car-specs { width: 100%; }
+    .car-images { grid-template-columns: 1fr; }
     .index-row { grid-template-columns: 24px minmax(0, 1fr); gap: 12px; }
     .work-name, .service-row h3 { grid-column: 2; }
     .work-row { height: auto; padding-block: var(--u); }
@@ -236,7 +259,7 @@
     .hero-phone-line { display: block; }
   }
   @media (max-width: 700px) {
-    .tach { width: 64px; height: 64px; }
+    .tach { width: 140px; height: 140px; }
     .skill-sphere { --globe-radius: 130px; width: 320px; height: 320px; }
   }
   @media (prefers-reduced-motion: reduce) {

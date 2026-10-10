@@ -20,7 +20,7 @@ export function Chrome() {
     let pastHero: boolean | undefined;
     const onScroll = () => {
       const lenis = window.__lenis;
-      const past = (lenis?.isScrolling === "smooth" ? lenis.animatedScroll : window.scrollY) >= heroHeight;
+      const past = (lenis?.animatedScroll ?? window.scrollY) >= heroHeight;
       // Cached Lenis position avoids flushing styles after animated DOM writes.
       if (bottom.current && past !== pastHero) { bottom.current.dataset.pastHero = String(past); pastHero = past; }
     };

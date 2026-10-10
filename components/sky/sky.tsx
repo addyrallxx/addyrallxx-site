@@ -62,6 +62,7 @@ export function Sky() {
         let frame = 0;
         let time = 0;
         let last = performance.now();
+        let lastFrame = last;
         let paused = document.hidden;
         let disposed = false;
         let sweep: gsap.core.Tween | undefined;
@@ -92,12 +93,13 @@ export function Sky() {
         // scrollY can synchronously flush pending animated styles and layout.
         const scroll = () => {
           const lenis = window.__lenis;
-          uniforms.uScroll.value = lenis?.isScrolling === "smooth" ? lenis.animatedScroll : window.scrollY;
+          uniforms.uScroll.value = lenis?.animatedScroll ?? window.scrollY;
         };
         const intro = () => { uniforms.uIntro.value = 1; };
         const tick = (now: number) => {
           if (disposed || paused) return;
-          const duration = now - last;
+          const duration = now - lastFrame;
+          lastFrame = now;
           frameWindow.push({ at: now, duration }); frameTotal += duration;
           while (frameWindow.length > 1 && now - frameWindow[0].at > 2000) frameTotal -= frameWindow.shift()!.duration;
           if (resolutionScale === 1 && now - budgetStart >= 2000 && frameTotal / frameWindow.length > 14) {
@@ -106,6 +108,8 @@ export function Sky() {
             // Stars share the full-screen sky pass, so reduce that pass too.
             resize();
           }
+          // Keep the fluid's twenty GPU passes at 60Hz on high-refresh displays.
+          if (now - last < 1000 / 60 - .5) { frame = requestAnimationFrame(tick); return; }
           const dt = Math.min((now-last)/1000,1/30);
           last = now; time += dt;
           uniforms.uTime.value = time;
@@ -128,6 +132,7 @@ export function Sky() {
           if (paused || disposed) return;
           frameWindow.length = 0; frameTotal = 0;
           last = performance.now();
+          lastFrame = last;
           budgetStart = last;
           sweep?.resume();
           cancelAnimationFrame(frame);
