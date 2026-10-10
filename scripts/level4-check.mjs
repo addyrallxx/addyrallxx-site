@@ -438,14 +438,8 @@ try {
   await f3Desktop(p);
   if (await p.$('.tach')) await tachChecks(p);
   await sphereChecks(p);
-  if (await p.$('#info')) {
   for (const [id, heading] of [['taste', 'Taste'], ['method', 'How I work'], ['info', 'Info']]) check(id + ' section has its heading', await p.$eval('#' + id + ' h2', (el, heading) => el.textContent === heading, heading));
-  check('tach lives only in Info', await p.evaluate(() => document.querySelectorAll('#info .tach').length === 1 && !document.querySelector('.chrome .tach')));
-  await p.setViewport({ width: 1000, height: 900, deviceScaleFactor: 1 });
-  await scrollTo(p, '.car-instrument', 160);
-  await p.screenshot({ path: join(tmpdir(), 'claude/briefs/f4-info.png') });
-  await p.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
-  }
+  check('Info has its bio and lists without a car block or portrait placeholder', await p.evaluate(() => document.querySelectorAll('#info .info-lists > div').length === 3 && document.querySelector('#info .info-bio').textContent.length > 0 && !document.querySelector('#info img, #info .tach, #info .car-block')));
   await sweepPage(p);
   if (await p.$('.car-images')) check('both Info E92 images loaded after scrolling', await p.$$eval('.car-images img', images => images.length === 2 && images.every(image => image.naturalWidth > 0)));
   await frameBudget(p, 1);
