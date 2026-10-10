@@ -139,6 +139,7 @@
   .reveal-armed .reveal.is-visible { opacity: 1; transform: none; }
   .home-section { padding: calc(var(--u) * 4) var(--gutter); scroll-margin-top: 80px; }
   .section-label { margin-bottom: calc(var(--u) * 1.5); }
+  .section-hairline { display: block; height: 1px; background: var(--line); transform-origin: left; margin-bottom: calc(var(--u) * 1.5); }
   .index-row { position: relative; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--gutter); align-items: center; min-height: 96px; padding: var(--u) 0; }
   .index-row::before, .index-list::after { content: ""; display: block; height: 1px; background: var(--line); }
   .index-row::before { position: absolute; top: 0; left: 0; right: 0; transform-origin: left; }
@@ -208,8 +209,8 @@
   .skill-sphere { --globe-radius: 180px; position: relative; width: 440px; height: 440px; max-width: 100%; touch-action: pan-y; cursor: grab; user-select: none; contain: layout paint; }
   .globe-grid { position: absolute; inset: 0; width: 100%; height: 100%; stroke-width: 1; }
   .skill-sphere[data-dragging="true"] { cursor: grabbing; }
-  .sphere-item { position: absolute; top: 50%; left: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; }
-  .skill-icon { display: block; width: 34px; height: 34px; mask-size: contain; mask-position: center; mask-repeat: no-repeat; flex-shrink: 0; }
+  .sphere-item { position: absolute; top: 50%; left: 50%; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; }
+  .skill-icon { display: block; width: 42px; height: 42px; mask-size: contain; mask-position: center; mask-repeat: no-repeat; flex-shrink: 0; }
   .sphere-item::after { content: ""; position: absolute; inset: -5px; border: 1px solid var(--accent); border-radius: 50%; opacity: 0; }
   .sphere-item:hover::after, .sphere-item[data-selected="true"]::after { opacity: 1; }
   .skills-list button { min-height: 44px; text-align: left; }
@@ -332,7 +333,7 @@
     .clock-figure { width: 14px; height: 14px; }
     .chrome-nav { gap: 8px; }
     .menu-button { display: inline-flex !important; }
-    .sphere-item, .skill-icon { width: 26px; height: 26px; }
+    .sphere-item, .skill-icon { width: 32px; height: 32px; }
     .chrome-bottom { align-items: flex-start; gap: 12px; }
     .chrome-bottom .clocks { flex-direction: column; align-items: flex-start; gap: 6px; }
     .availability { max-width: 125px; align-items: baseline; }

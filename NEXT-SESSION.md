@@ -191,3 +191,6 @@ setting, never authorised). Level 4 reaches production only when Adnan says so.
 
 ### F11 Part A, 2026-10-10
 Selected Work now uses sticky stacking cards, masked words, clip morphs, image parallax, velocity skew and cursor followers. Phone cards are sequential with media first. Preserved Claude's content edits. tsc, copy-gate, build and 225 real Chrome checks passed on confirmed own 3100 PID 27288. All eight frame budget configurations passed. F11 progress and screenshot evidence are in the Temp claude/briefs folder. Parts B to H remain.
+
+### F11 Part B, 2026-10-10
+Display L heading parallax, entry hairlines, magnetic section pills and 42px/32px globe logos are implemented. Sky and globe now use the existing GSAP ticker, with visibility pause. tsc, copy-gate, build and 229 Chrome checks passed on own confirmed 3100 PID 17200. Eight frame configurations and redundant repeats passed. Part C is in progress and not included in this checkpoint.

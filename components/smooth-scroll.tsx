@@ -28,6 +28,8 @@ export default function SmoothScroll() {
     let gsap: GsapModule["default"] | undefined;
     let lenis: LenisInstance | undefined;
     let raf: ((time: number) => void) | undefined;
+    const visibility = () => { if (document.hidden) gsap?.ticker.sleep(); else gsap?.ticker.wake(); };
+    document.addEventListener("visibilitychange", visibility);
 
     (async () => {
       const [{ default: gsapMod }, { ScrollTrigger }, { default: Lenis }] = await Promise.all([
@@ -51,6 +53,7 @@ export default function SmoothScroll() {
       raf = (time: number) => lenis!.raf(time * 1000);
       gsap.ticker.add(raf);
       gsap.ticker.lagSmoothing(0);
+      visibility();
 
       // Anchor scrolling + menu scroll-lock reach the instance through here
       window.__lenis = lenis;
@@ -58,6 +61,7 @@ export default function SmoothScroll() {
 
     return () => {
       cancelled = true;
+      document.removeEventListener("visibilitychange", visibility);
       if (gsap && raf) gsap.ticker.remove(raf);
       delete window.__lenis;
       lenis?.destroy();

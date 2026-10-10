@@ -18,6 +18,7 @@ export function Work({ showLabel = true }: { showLabel?: boolean }) {
     media.add("(prefers-reduced-motion: no-preference)", () => {
       const cards = Array.from(el.querySelectorAll<HTMLElement>(".work-card"));
       const context = gsap.context(() => {
+        gsap.fromTo(el.querySelector(".section-hairline"), { scaleX: 0 }, { scaleX: 1, ease: "none", scrollTrigger: { trigger: el, start: "top bottom", end: "top 65%", scrub: true } });
         cards.forEach((card, i) => {
           const frame = card.querySelector<HTMLElement>(".work-media-frame")!;
           gsap.fromTo(frame, { clipPath: "inset(16% 22% round 999px)" }, { clipPath: "inset(0% 0% round 20px)", ease: "none", scrollTrigger: { trigger: card, start: "top bottom", end: "top 35%", scrub: true } });
@@ -69,6 +70,7 @@ export function Work({ showLabel = true }: { showLabel?: boolean }) {
     return () => { media.revert(); cleanups.forEach(cleanup => cleanup()); };
   }, []);
   return <section ref={root} className="home-section work" id="work" aria-labelledby={showLabel ? "work-heading" : undefined}>
+    <span className="section-hairline" aria-hidden="true" />
     {showLabel && <h2 id="work-heading" className="t-label section-label">{WORK_LABEL}</h2>}
     <div className="work-stack">{WORK.map((item, i) => <article className="work-card" key={item.slug} style={{ "--i": i } as CSSProperties}>
       <div className="work-card-content">

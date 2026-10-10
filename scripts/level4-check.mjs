@@ -255,9 +255,9 @@ async function sphereChecks(p) {
   const after = await snapshot();
   check("sphere count equals SKILLS items with logos", before.count === expected && after.count === expected);
   check('globe has no visible text and every logo has an accessible name and title', await p.$$eval('[data-sphere-item]', (logos, names) => logos.every((logo, i) => logo.textContent.trim() === '' && logo.getAttribute('aria-label') === names[i] && logo.title === names[i] && !logo.closest('[aria-hidden="true"]')), names));
-  check('globe has 34px desktop or 26px phone colour logos without pills or borders', await p.$$eval('[data-sphere-item]', logos => logos.every(logo => {
+  check('globe has 42px desktop or 32px phone colour logos without pills or borders', await p.$$eval('[data-sphere-item]', logos => logos.every(logo => {
     const style = getComputedStyle(logo), icon = getComputedStyle(logo.querySelector('.skill-icon'));
-    return style.borderWidth === '0px' && style.backgroundColor === 'rgba(0, 0, 0, 0)' && icon.width === (innerWidth < 720 ? '26px' : '34px') && icon.maskImage !== 'none' && icon.backgroundColor !== 'rgba(0, 0, 0, 0)';
+    return style.borderWidth === '0px' && style.backgroundColor === 'rgba(0, 0, 0, 0)' && icon.width === (innerWidth < 720 ? '32px' : '42px') && icon.maskImage !== 'none' && icon.backgroundColor !== 'rgba(0, 0, 0, 0)';
   }) && new Set(logos.map(logo => getComputedStyle(logo.querySelector('.skill-icon')).backgroundColor)).size > 3));
   check('SQL stays in the list and off the globe', await p.evaluate(() => [...document.querySelectorAll('.skills-list li')].some(li => li.textContent === 'SQL') && !document.querySelector('[data-sphere-item][aria-label="SQL"]')));
   const colours = JSON.parse(readFileSync('lib/skill-colors.ts', 'utf8').split('= ')[1].replace(/;\s*$/, ''));
@@ -654,6 +654,16 @@ try {
   await sleep(250);
   check("sky keeps rendering on blur", await p.evaluate((count) => window.__f1.renders > count, blurred));
   await f3Desktop(p);
+  const headingTop = await p.$eval('#taste-heading', el => el.closest('section').getBoundingClientRect().top + scrollY);
+  await p.evaluate(y => window.__lenis.scrollTo(y - innerHeight * .7, {immediate:true}), headingTop); await sleep(150);
+  const headingBefore = await p.$eval('#taste .t-display-l', el => getComputedStyle(el).transform);
+  await p.evaluate(y => window.__lenis.scrollTo(y, {immediate:true}), headingTop); await sleep(150);
+  check('display heading parallaxes within its pass', headingBefore !== await p.$eval('#taste .t-display-l', el => getComputedStyle(el).transform));
+  check('section hairline reaches full width', await p.$eval('#taste-heading', el => new DOMMatrix(getComputedStyle(el.parentElement.querySelector('.section-hairline')).transform).a === 1));
+  await scrollTo(p, '.work-card:first-child', 100);
+  const pill = await p.$eval('.work-pill', el => { const r = el.getBoundingClientRect(); return {x:r.right-1,y:r.bottom-1}; });
+  await p.mouse.move(pill.x,pill.y); await sleep(400);
+  check('magnetic pull is bounded to 8px', await p.$eval('.work-pill', el => {const m=new DOMMatrix(getComputedStyle(el).transform); return Math.hypot(m.e,m.f)<=8.01 && Math.hypot(m.e,m.f)>0;}));
   check('tach lives only in E92, with nine spec rows after Info', await p.evaluate(() => document.querySelectorAll('#e92 .tach').length === 1 && document.querySelectorAll('#e92 .car-specs > div').length === 9 && document.querySelector('#info').nextElementSibling.id === 'e92' && !document.querySelector('.chrome .tach')));
   await tachChecks(p);
   await sphereChecks(p);

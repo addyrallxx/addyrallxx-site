@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { gsap } from "gsap";
 import { SKILLS } from "@/lib/content";
 import { skillColors } from "@/lib/skill-colors";
 import { SectionReveal } from "@/components/ui/section-reveal";
@@ -62,7 +63,7 @@ export function Tools() {
     };
     const tick = (now: number) => {
       frame = 0;
-      if (last && now - last < 1000 / 60 - .5) { frame = requestAnimationFrame(tick); return; }
+      if (last && now - last < 1000 / 60 - .5) return;
       const dt = last ? Math.min((now - last) / 1000, .05) : 1 / 60; last = now;
       spin += ((hovered || selected >= 0 ? 0 : 1) - spin) * (1 - Math.exp(-dt * 10));
       if (turnAt >= 0) {
@@ -78,13 +79,14 @@ export function Tools() {
         rx += vx * dt;
       }
       if (dragId >= 0) { vx *= Math.exp(-dt * 40); vy *= Math.exp(-dt * 40); }
-      paint(); frame = requestAnimationFrame(tick);
+      paint();
     };
+    const ticker = () => tick(performance.now());
     const sync = () => {
       const run = visible && !document.hidden && !motion.matches;
       if (motion.matches) { rx = tilt; ry = 25 * Math.PI / 180; turnAt = -1; paint(); }
-      if (run && !frame) { last = 0; tiles.forEach(tile => { tile.style.willChange = "transform, opacity"; }); frame = requestAnimationFrame(tick); }
-      else if (!run) { cancelAnimationFrame(frame); frame = 0; last = 0; dragId = -1; vx = 0; vy = 0; el.removeAttribute("data-dragging"); tiles.forEach(tile => { tile.style.willChange = ""; }); }
+      if (run && !frame) { last = 0; tiles.forEach(tile => { tile.style.willChange = "transform, opacity"; }); gsap.ticker.add(ticker); frame = 1; }
+      else if (!run) { gsap.ticker.remove(ticker); frame = 0; last = 0; dragId = -1; vx = 0; vy = 0; el.removeAttribute("data-dragging"); tiles.forEach(tile => { tile.style.willChange = ""; }); }
     };
     const select = () => {
       const next = preview >= 0 ? preview : pinned;
@@ -124,7 +126,7 @@ export function Tools() {
     controls.addEventListener("pointerover", previewGroup); controls.addEventListener("pointerleave", leaveGroup); controls.addEventListener("focusin", previewGroup); controls.addEventListener("focusout", leaveGroup); controls.addEventListener("click", press);
     window.addEventListener("keydown", escape); document.addEventListener("visibilitychange", sync); motion.addEventListener("change", sync); phone.addEventListener("change", paint);
     return () => {
-      cancelAnimationFrame(frame); observer.disconnect();
+      gsap.ticker.remove(ticker); observer.disconnect();
       el.removeEventListener("pointerdown", down); el.removeEventListener("pointermove", move); el.removeEventListener("pointerover", over); el.removeEventListener("pointerout", over); el.removeEventListener("pointerleave", leave);
       el.removeEventListener("pointerup", up); el.removeEventListener("pointercancel", up); el.removeEventListener("lostpointercapture", up);
       controls.removeEventListener("pointerover", previewGroup); controls.removeEventListener("pointerleave", leaveGroup); controls.removeEventListener("focusin", previewGroup); controls.removeEventListener("focusout", leaveGroup); controls.removeEventListener("click", press);

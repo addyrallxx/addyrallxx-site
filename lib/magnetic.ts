@@ -1,9 +1,6 @@
-// Ported from totaltex-web/lib/magnetic.ts. Only change: --ease-site (that
-// repo's token name) renamed to --ease (this repo's token name). Logic and
-// accessibility behavior (pointer:fine only, off under
-// prefers-reduced-motion) are unchanged.
+// Ported from totaltex-web, with the site's easing and an 8px pull cap.
 
-const TRANSITION = "transform 220ms var(--ease)";
+const TRANSITION = "transform 220ms var(--ease-out)";
 const PRESS_SCALE = 0.97;
 
 /**
@@ -40,6 +37,7 @@ export function attachMagnetic(
   el.style.willChange = "transform";
 
   let previous = "";
+  const motion = matchMedia("(prefers-reduced-motion: reduce)");
   let inside = false;
   let pressed = false;
   let lastX = 0;
@@ -53,6 +51,7 @@ export function attachMagnetic(
   const currentScale = () => (pressed ? PRESS_SCALE : 1);
 
   const onMove = (e: PointerEvent) => {
+    if (motion.matches || document.hidden) return;
     const r = el.getBoundingClientRect();
     const within =
       e.clientX >= r.left - pad &&
@@ -66,6 +65,8 @@ export function attachMagnetic(
       const cy = r.top + r.height / 2;
       lastX = Math.max(-8, Math.min(8, (e.clientX - cx) * pull));
       lastY = Math.max(-8, Math.min(8, (e.clientY - cy) * pull));
+      const length = Math.hypot(lastX, lastY);
+      if (length > 8) { lastX *= 8 / length; lastY *= 8 / length; }
       apply(lastX, lastY, currentScale());
     } else if (inside) {
       inside = false;
@@ -87,6 +88,8 @@ export function attachMagnetic(
     pressed = false;
     apply(inside ? lastX : 0, inside ? lastY : 0, 1);
   };
+  const finish = () => { if (motion.matches) { pressed = false; inside = false; apply(0, 0, 1); } };
+  motion.addEventListener("change", finish);
 
   window.addEventListener("pointermove", onMove, { passive: true });
   el.addEventListener("pointerdown", onPointerDown);
@@ -94,6 +97,7 @@ export function attachMagnetic(
   el.addEventListener("pointercancel", release);
   el.addEventListener("pointerleave", release);
   return () => {
+    motion.removeEventListener("change", finish);
     window.removeEventListener("pointermove", onMove);
     el.removeEventListener("pointerdown", onPointerDown);
     el.removeEventListener("pointerup", release);

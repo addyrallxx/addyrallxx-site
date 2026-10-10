@@ -59,7 +59,7 @@ export function Sky() {
         const gpu = renderer;
         const simulation = fluid;
         const canvas = renderer.domElement;
-        let frame = 0;
+        const ticker = () => tick(performance.now());
         let time = 0;
         let last = performance.now();
         let lastFrame = last;
@@ -109,7 +109,7 @@ export function Sky() {
             resize();
           }
           // Keep the fluid's twenty GPU passes at 60Hz on high-refresh displays.
-          if (now - last < 1000 / 60 - .5) { frame = requestAnimationFrame(tick); return; }
+          if (now - last < 1000 / 60 - .5) return;
           const dt = Math.min((now-last)/1000,1/30);
           last = now; time += dt;
           uniforms.uTime.value = time;
@@ -121,10 +121,10 @@ export function Sky() {
           uniforms.uDye.value = simulation.dye.read.texture;
           gpu.setRenderTarget(null);
           gpu.render(scene,camera);
-          frame = requestAnimationFrame(tick);
+
         };
         const pause = () => {
-          cancelAnimationFrame(frame);
+          gsap.ticker.remove(ticker);
           sweep?.pause();
           px = -1; dx = 0; dy = 0; speed = 0;
         };
@@ -135,8 +135,9 @@ export function Sky() {
           lastFrame = last;
           budgetStart = last;
           sweep?.resume();
-          cancelAnimationFrame(frame);
-          frame = requestAnimationFrame(tick);
+          gsap.ticker.remove(ticker);
+          gsap.ticker.add(ticker);
+
         };
         const visibility = () => {
           paused = document.hidden;
