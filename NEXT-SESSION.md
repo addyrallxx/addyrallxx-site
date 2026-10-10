@@ -194,3 +194,6 @@ Selected Work now uses sticky stacking cards, masked words, clip morphs, image p
 
 ### F11 Part B, 2026-10-10
 Display L heading parallax, entry hairlines, magnetic section pills and 42px/32px globe logos are implemented. Sky and globe now use the existing GSAP ticker, with visibility pause. tsc, copy-gate, build and 229 Chrome checks passed on own confirmed 3100 PID 17200. Eight frame configurations and redundant repeats passed. Part C is in progress and not included in this checkpoint.
+
+### F11 Part C, 2026-10-10
+Curved GSAP wipes and centered supplied destination names are complete. Timing is 650ms cover, 180ms hold, 750ms reveal. Shared motion clock is capped at 60Hz and animated Work layers are promoted to meet the unchanged budgets. tsc, copy-gate, build and 225 Chrome checks passed on own 3100 PID 1984. All eight budgets passed; wipe p95 4.3ms. Parts D/H and E are prepared in the working tree, excluded from this checkpoint. G remains.

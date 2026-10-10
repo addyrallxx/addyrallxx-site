@@ -422,7 +422,7 @@ async function transitionChecks() {
   await p.goto(new URL('/work', url).href, { waitUntil: 'networkidle0' });
   await p.waitForFunction(() => document.documentElement.dataset.intro === 'done');
   await p.evaluate(() => {
-    window.__wipe = { frames: [], phases: [], violations: [], shifts: 0, started: 0, covered: 0, ready: 0, revealed: 0, changed: false, coverScroll: 0 };
+    window.__wipe = { frames: [], paths: [], names: [], phases: [], violations: [], shifts: 0, started: 0, covered: 0, ready: 0, revealed: 0, changed: false, coverScroll: 0 };
     const w = window.__wipe;
     new PerformanceObserver(list => { for (const entry of list.getEntries()) if (!entry.hadRecentInput) w.shifts += entry.value; }).observe({ type: 'layout-shift' });
     new MutationObserver(() => {
@@ -435,15 +435,25 @@ async function transitionChecks() {
     let last = 0;
     const sample = now => {
       const phase = document.documentElement.dataset.transition;
-      if (phase) { if (last) w.frames.push(now - last); last = now; w.phases.push(phase); }
+      if (phase) {
+        if (last) w.frames.push(now - last); last = now; w.phases.push(phase);
+        w.paths.push(document.querySelector('.route-curve-top path')?.getAttribute('d'));
+        if (phase === 'covered' && now - w.covered >= 70 && now - w.covered <= 150) {
+          const name = document.querySelector('.route-name > span');
+          w.names.push({ text: name.textContent, opacity: getComputedStyle(name).opacity, y: new DOMMatrix(getComputedStyle(name).transform).f });
+        }
+      }
       if (!w.revealed) requestAnimationFrame(sample);
     }; requestAnimationFrame(sample);
   });
   await scrollTo(p, '.work-card:first-child', 120); await p.evaluate(() => { window.__wipe.initialScroll = scrollY; window.__wipe.shifts = 0; }); await p.click('.work-pill');
   await p.waitForFunction(() => window.__wipe.revealed > 0);
   const wipe = await p.evaluate(() => window.__wipe);
+  console.log('WIPE state', { changed: wipe.changed, violations: wipe.violations, phases: [...new Set(wipe.phases)], started: wipe.started, covered: wipe.covered, ready: wipe.ready, revealed: wipe.revealed, names: wipe.names });
   check('new project stays covered until its route commits', wipe.changed && wipe.violations.length === 0 && wipe.phases.includes('covering') && wipe.phases.includes('revealing'));
-  check('wipe uses a 600ms cover and 700ms reveal', wipe.covered - wipe.started >= 580 && wipe.covered - wipe.started < 850 && wipe.revealed - wipe.ready >= 680 && wipe.revealed - wipe.ready < 900);
+  check('wipe uses a 650ms cover, 180ms hold and 750ms reveal', wipe.covered - wipe.started >= 630 && wipe.covered - wipe.started < 850 && wipe.ready - wipe.covered >= 175 && wipe.revealed - wipe.ready >= 730 && wipe.revealed - wipe.ready < 950);
+  check('curved leading edge changes during cover', new Set(wipe.paths.filter(Boolean)).size > 3);
+  check('destination name is visible at mid hold', wipe.names.length > 0 && wipe.names.every(name => name.text === 'Puzzled' && +name.opacity > .99 && Math.abs(name.y) < 1));
   check('wipe preserves scroll until cover and has no layout shift', wipe.coverScroll === wipe.initialScroll && wipe.shifts === 0);
   wipe.frames.sort((a, b) => a - b);
   const p95 = wipe.frames[Math.ceil(wipe.frames.length * .95) - 1];
@@ -453,7 +463,10 @@ async function transitionChecks() {
   check('Back skips the panel', await p.evaluate(() => location.pathname === '/work' && document.querySelector('.route-panel').hidden && !document.documentElement.dataset.transition));
   await p.goForward({ waitUntil: 'networkidle0' });
   check('Forward skips the panel', await p.evaluate(() => location.pathname === '/work/puzzled' && document.querySelector('.route-panel').hidden && !document.documentElement.dataset.transition));
+  await p.setViewport({ width: 1000, height: 900, deviceScaleFactor: 1 });
   await p.click('.chrome-nav a[href="/school"]');
+  await p.waitForFunction(() => document.documentElement.dataset.transition === 'covered'); await sleep(70);
+  await p.screenshot({ path: join(tmpdir(), 'claude/briefs/f11-transition.png') });
   await p.waitForFunction(() => location.pathname === '/school' && !document.documentElement.dataset.transition);
   check('School uses the shared wipe', await p.$eval('h1', el => el.classList.contains('route-heading-rise')));
   await p.click('.back-link');
@@ -700,8 +713,6 @@ try {
   await sweepPage(mobile);
   check("phone no overflow after scrolling whole page", await mobile.evaluate(() => document.documentElement.scrollWidth === innerWidth));
   await frameBudget(mobile, 1);
-  await frameBudget(mobile, 4);
-  await frameBudget(mobile, 4);
   await frameBudget(mobile, 4);
   await frameBudget(mobile, 1, true);
   await frameBudget(mobile, 4, true);

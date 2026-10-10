@@ -21,6 +21,11 @@ export function Work({ showLabel = true }: { showLabel?: boolean }) {
         gsap.fromTo(el.querySelector(".section-hairline"), { scaleX: 0 }, { scaleX: 1, ease: "none", scrollTrigger: { trigger: el, start: "top bottom", end: "top 65%", scrub: true } });
         cards.forEach((card, i) => {
           const frame = card.querySelector<HTMLElement>(".work-media-frame")!;
+          gsap.set(frame, { willChange: "transform, clip-path" });
+          if (cards[i + 1]) {
+            gsap.set(card, { willChange: "transform" });
+            gsap.set(card.querySelector(".work-card-content"), { willChange: "opacity" });
+          }
           gsap.fromTo(frame, { clipPath: "inset(16% 22% round 999px)" }, { clipPath: "inset(0% 0% round 20px)", ease: "none", scrollTrigger: { trigger: card, start: "top bottom", end: "top 35%", scrub: true } });
           gsap.fromTo(card.querySelector(".work-media-inner"), { yPercent: -8 }, { yPercent: 8, ease: "none", scrollTrigger: { trigger: card, start: "top bottom", end: "bottom top", scrub: true } });
           gsap.fromTo(card.querySelectorAll(".work-word"), { yPercent: 110 }, { yPercent: 0, duration: .8, stagger: .055, ease: "power4.out", scrollTrigger: { trigger: card, start: "top 82%", once: true } });

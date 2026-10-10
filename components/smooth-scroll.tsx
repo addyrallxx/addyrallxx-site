@@ -53,6 +53,7 @@ export default function SmoothScroll() {
       raf = (time: number) => lenis!.raf(time * 1000);
       gsap.ticker.add(raf);
       gsap.ticker.lagSmoothing(0);
+      gsap.ticker.fps(60);
       visibility();
 
       // Anchor scrolling + menu scroll-lock reach the instance through here

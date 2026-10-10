@@ -1,0 +1,8 @@
+@layer theme, base, components, utilities;
+@layer components {
+  .route-curve { position: absolute; left: 0; width: 100%; height: 18vh; fill: var(--panel); }
+  .route-curve-top { bottom: 100%; }
+  .route-curve-bottom { top: 100%; }
+  .route-name { height: 100%; display: grid; place-items: center; overflow: hidden; text-align: center; color: var(--bg); padding: var(--gutter); }
+  .route-name > span { display: block; }
+}
