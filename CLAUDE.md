@@ -14,11 +14,13 @@ rejected by Adnan on 2026-09-02 (bizarre, generic AI copy, assistant chatter
 reached the published page) and its code deleted. It was rebuilt as a dark
 editorial spine, then, per Adnan's own stated acceptance bar ("a cinematic
 experience that is visually pleasing and addictive to scroll thru," see
-`GOAL.md`), pushed further: current direction is a deep space piece, a real
-3D star volume and a procedural galaxy behind an editorial spine with warm
-photographic chapters, not a flat dark background behind static content.
+`GOAL.md`), pushed through Levels 2 and 3 (a deep space piece with a procedural
+galaxy). **Current direction is Level 4, "Two skies" (2026-10-09, branch
+`level4`): a warm day sky in front, a real shader night sky behind, a fluid
+cursor trail that opens one into the other. Design of record is
+`docs/REDESIGN.md`**; it supersedes `docs/DESIGN.md` and retires the galaxy.
 Read `GOAL.md` first now, every session: it is the cold-start plan of record
-and carries the current "level" (Adnan grades progress as Level 1/2/3, not
+and carries the current "level" (Adnan grades progress as Level 1/2/3/4, not
 chunk numbers). See `NEXT-SESSION.md` for exactly what has shipped. `PLAN.md`
 sections 1 to 6 still carry the narrative spine and content reasoning (Dhaka
 to Calgary, confidentiality rules, chapter content); its Three.js-specific
@@ -312,3 +314,12 @@ system, built fresh.
   pixels. This is the same family as the identity assertion: measure nothing
   until the thing under test is actually on screen. **A check that passes
   locally and fails live is more often a race than a regression.**
+- **A sky or animation that pauses on window blur freezes whenever focus
+  moves to another window on a visible screen.** It also froze the off screen
+  verification Chrome whenever Adnan used his desktop, which failed "paper
+  grain paints" with the whole sky stuck in night. Pause on
+  `document.hidden` only; blur should only drop pointer state.
+- **Vercel previews for this project sit behind Vercel SSO** (a 302 to
+  `vercel.com/sso-api`), so a curl or harness against a preview URL measures
+  a login redirect unless a share token is used. The identity abort rule
+  applies: assert the page is the site before measuring anything.

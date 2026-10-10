@@ -64,6 +64,45 @@ He grades the site in levels and expects each session to move it up one.
   Commit `f4a5627` follows it and touches only `scripts/verify.mjs`: the live
   run exposed that the harness was measuring the intro overlay rather than
   the page. Live production now reads 58 passed, 0 failed.
+- **Level 4, "Two skies"** (started 2026-10-09, branch `level4`, design of
+  record `docs/REDESIGN.md`, bar in `bar.md`). **This is the current
+  objective and it supersedes the deep space direction above**: the galaxy
+  world is retired. Calgary and Dhaka are twelve hours apart, so the page has
+  a warm day sky (paper, navy ink) in front and a real shader night sky
+  behind it. A cursor driven fluid trail opens the night under the day, and
+  a toggle sweeps one sky into the other. It opens in the sky Calgary is
+  under now. Also in scope: a horizon intro with an odometer count (blank,
+  then 1 to 100, never 0 or 000); the BMW M tricolour stripe at exactly three
+  moving moments (intro finale, scroll rev bar, E92 card), never the BMW
+  logo; a Work index with a cursor preview; a card fan band with the E92; the
+  skill sphere rebuilt in the new system; Services; Alongside school
+  (Puzzled, TotalTex, Handled AI, the studio); a FAQ written last; a falling
+  glyph contact pit; page transitions. **The site is also Adnan's resume**, so
+  the first screen carries hard facts (UCalgary CS April 2028, Puzzled
+  co-founder, incoming TotalTex managing director, summer 2027 internships)
+  before any boast. Frame budget is a hard gate: p95 under 16.7ms at 1440 and
+  390, under 33ms at 4x CPU.
+  **Done (2026-10-10):** foundation, horizon intro and hero shipped and
+  pushed (`5e46a5a`, `9e558ef`, `ade9967`; 52 real Chrome checks via
+  `scripts/level4-check.mjs`, including frame budgets at 1440 and 390),
+  calmer fluid trail (smaller brush, shorter life), resume facts row, stripe
+  and E92 spec, E92 photos in. F3 (stripe, Work index, Other things card fan,
+  Alongside school, Tools sphere, Services) is on its final verification
+  rerun; read its real diff before trusting it.
+  **Adnan's direction:** the site is also his resume (UCalgary CS 2028,
+  Puzzled co-founder, incoming TotalTex managing director, summer 2027
+  internships first); keep and redesign the skill sphere (60fps, premium, ink
+  aligned); Questions last; the rev bar becomes a period-correct analogue
+  E92-era tach; stripe at three moving moments, no BMW logo; E92 photos
+  graded; an optional `///` mark of three slanted tricolour bars (no M).
+  Public colour copy for the car says only "BMW Individual Bernina Grey".
+  **To call Level 4 complete:** F3 processed and verified; tach and sphere
+  redesigned; photos graded; E92 copy written from the vault notes; F4
+  (Taste, How I work, Info, Questions, Contact pit, `/work` pages,
+  transitions); humanizer plus Codex rival copy pass; Design Loop critics;
+  `impeccable detect`; preship 20 at 390 and 1440; twinkle audit (Adnan:
+  stars twinkle a bit too much; only after a stable version). Level 4 reaches
+  production only when Adnan says so.
 
 ### Standing feedback from Adnan, carried forward
 

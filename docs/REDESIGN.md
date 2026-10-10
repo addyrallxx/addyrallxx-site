@@ -376,9 +376,7 @@ clocks), JetBrains Mono, Manrope, Instrument Serif.
 
 Adnan supplied photos (Drive `E92 pics`, local copy `assets-src/e92/`,
 gitignored; publish only sharp-processed copies, which strip EXIF and GPS).
-Picks: `20260923_152338` (bay open, halo eyes, the hero), `Snapchat-202035236`
-(night profile, crop the plate out), `IMG_5153` (sunset), `20260521_020157`
-(night front). Never `IMG_6588` (a house is identifiable). It becomes the
+Picks (graded 2026-10-10 from Gemini crop and grade recipes, applied with sharp, reviewed on a contact sheet): `20260923_152246` as `bay.jpg` (4:5) and `bay-wide.jpg` (bonnet fully up, halo eyes; replaces 152338, whose bonnet sat on the secondary latch), `Snapchat-202035236` as `night.jpg` (wide profile, plate blurred), `20260521_020131` as `front.jpg` (4:5 night front). Never `IMG_5153` or any sunset frame: it shows the car black, before the Bernina Grey. Never `IMG_6588` (a house is identifiable). It becomes the
 fourth card in the Other things fan and a photo in Info. Build detail lives
 in Adnan's ChatGPT "E92" project, which no tool here can read: copy waits
 until he pastes or exports those notes.
@@ -394,12 +392,97 @@ appears at exactly three moments, each one moving:
    into three 2px bands (light, dark, red) that separate to 3px gaps over
    280ms (`--ease-out`). As the halves part, the stripe rides the lower
    edge of the top half and leaves the frame with it.
-2. **The rev bar.** In the fixed chrome, under the name top left, a 3px
-   tricolour bar 20px long at rest. It stretches with Lenis scroll
-   velocity, `scaleX(1 + min(|v| / 18, 5))` from the left, and settles back
-   with a critically damped spring (no overshoot) when scrolling stops.
-   Transform only, origin left, one rAF that idles when velocity is 0.
-   Reduced motion: static 20px bar.
+2. **The tach** (replaces the rev bar, Adnan 2026-10-10: "a proper period
+   correct bar with quality detail, no new modern ipad screen type shit").
+   An E92 era analogue tachometer, see section 14. The stripe lives on its
+   face as the `///` mark. The rev bar and its header slot are removed.
 3. **The car.** The E92 card in the Other things fan and the Info car
    photo carry a 3px stripe along their bottom edge. On fan hover the
    stripe on the E92 card wipes in left to right (clip-path, 400ms).
+
+## 13. Tools, the globe (redesign, Adnan 2026-10-10: "proper 60 fps, the new ink colour aligns, much more premium, redesign it if you have to")
+
+Supersedes the sphere paragraph in section 4. The F3 port spun a cloud of
+loose icons, ran an O(n squared) overlap pass every frame and never stopped
+spinning. The redesign reads as an instrument, not a tag cloud.
+
+- **Globe.** Container 440px (desktop), 320px (max-width 700). A static
+  inline SVG behind the items: one circle, an equator ellipse (ry = 0.28r)
+  and one meridian ellipse (rx = 0.28r), 1px `--line`,
+  `vector-effect: non-scaling-stroke`. It never rotates.
+- **Items are pills, every label always visible** (a recruiter skims it
+  without hovering): height 30px, padding 0 12px, radius pill, 1px
+  `--line` border, ground `var(--bg)` so a front pill covers what is behind
+  it, 16px mono icon (CSS mask, `currentColor`) plus the name in Small
+  (13px). Null slug: name only. Ink is `--ink` in both modes; hover,
+  focus and selection switch border and icon to `--accent`. No brand
+  colours.
+- **Placement.** Even Fibonacci points on radius 180 (130 at phone), no
+  jitter, no runtime overlap pass. Precompute unit positions once.
+- **Depth.** Per frame: `translate3d(x, y, 0) scale(s)` with s from 0.62
+  (back) to 1 (front), opacity from 0.16 (back) to 1 (front), linear in
+  z. Stacking: `z-index` from z quantised to 8 buckets, written only when
+  an item's bucket changes.
+- **Motion.** Fixed 18deg X tilt, idle spin 6deg/s about Y. Drag rotates
+  both axes with inertia (velocity decay 0.94 per 16.7ms, frame rate
+  independent); on release X eases back to 18deg (critically damped, 600ms).
+  Hovering a pill eases spin to 0 over 400ms so it can be read; leaving
+  resumes it.
+- **Groups drive the globe.** In the grouped list beside it each group
+  title is a button (`aria-pressed`). Hover, focus or tap: that group's
+  pills take the accent and a raised opacity floor (0.5 even at the back),
+  every other pill caps at 0.3, and the globe turns so the group's
+  centroid faces front (700ms, `--ease-out`). Pressing again or Escape
+  clears it. This is the resume link: the list says what, the globe shows
+  how much.
+- **Budget.** One rAF, zero per frame allocation (preallocated typed
+  arrays), transform and opacity only, `contain: layout paint` on the
+  globe, `will-change` only while running. Stops when offscreen
+  (IntersectionObserver), hidden, or reduced motion. p95 at most 16.7ms at
+  1x and 33ms at 4x CPU while spinning, at 1440x900 and 390x844. DOM node
+  count flat over 3s.
+- **Reduced motion.** Static at tilt 18deg, Y 25deg; group highlight still
+  works, without the turn.
+
+## 14. The tach (replaces the rev bar)
+
+An E92 era analogue tachometer: a physical instrument, not a screen. No
+glass reflections, no glow rings, no digital readout, no gradients beyond
+the bezel and a faint face vignette.
+
+- **Place and size.** Fixed chrome, bottom left (the clocks and
+  availability shift right of it). 88px at desktop, 64px at max-width 700.
+  Inline SVG, viewBox 0 0 200 200, `aria-hidden`.
+- **Face.** Black (#0B0B0C) with a static radial vignette to #000 at the
+  rim. Bezel: a 3px ring, linear gradient #A7A9AD to #2B2C2F (top left
+  to bottom right) for brushed metal, then a 1px #000 inner ring. The face
+  stays black in both modes; on paper it reads as a real object.
+- **Scale.** 0 to 8 (x1000 rpm) over a 240deg sweep, 0 at lower left, 8 at
+  lower right. Major ticks every 1000 (length 9% of radius, 2.2 units
+  wide), minor every 500 (5%, 1.2 units). Numerals 1 to 8 in Instrument
+  Sans 600, size 17% of radius, upright.
+- **Red zone.** 7 to 8: a 5 unit arc at the rim in #D9231E; numerals 7 and
+  8 in the same red. (The N54 redline is 7000.)
+- **Illumination.** Day: ticks and numerals #ECEAE4. Night
+  (`[data-mode="night"]`): ticks and numerals #FF8C2E, the E9x orange,
+  crossfaded over 300ms. No glow filter.
+- **Legend.** `1/min x1000` small under the 4, from `lib/content.ts`
+  (`CHROME.tach`), same ink as the numerals at 55% opacity.
+- **The `///` mark.** Below the hub at 32% radius: three parallelograms,
+  6 by 16 units each, skewX(-20deg), 3 unit gaps, `--m-light`, `--m-dark`,
+  `--m-red`. No letter.
+- **Needle.** #FF4A12, tapered from 5 units at the hub to 1.6 at the tip,
+  reaching 80% of the radius, with a 22% counterweight tail in #B8350C.
+  Hub cap 18% of radius, #121212, 1px #3A3A3A ring, a 1 unit #2F2F2F
+  highlight arc at the top. Only the needle group moves: one `rotate()`
+  transform about the hub, `transform-box: view-box`.
+- **Behaviour.** Rests at idle, 800 rpm, never 0. Target rpm = 800 +
+  min(|Lenis velocity| x 160, 7400). Spring: stiffness 180, damping 22
+  (slightly under damped, so it reads as mechanical), frame rate
+  independent, dt clamped to 50ms. At or above 7000 for more than 120ms,
+  the limiter cuts: the target drops 350 rpm for 90ms, then returns, and
+  repeats while held. One rAF that idles when settled within 5 rpm of the
+  target.
+- **Start sweep.** On `intro:done`, the needle sweeps to 8 and back to idle
+  over 900ms (the coded E9x gauge sweep). Once per load.
+- **Reduced motion.** Static at idle, no sweep.
