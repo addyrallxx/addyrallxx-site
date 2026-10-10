@@ -7,6 +7,14 @@ sections 1 to 7 still carry the narrative spine and confidentiality rules.
 
 ## Current state (2026-10-10): Level 4 "Two skies", foundation and hero shipped, F3 on final verification
 
+### Handoff, 2026-10-10 01:15 (session ending on usage)
+
+Pushed: 14161c1 (Codex F3 sections) and 939e853 (graded E92 photos, REDESIGN 13 globe and 14 tach specs). Running unattended when this was written, read their logs before anything else:
+1. Codex F3.5 (tach, globe, phone 4x scroll spike): brief and log in C:/Users/adnan/AppData/Local/Temp/claude/briefs/f35-*.
+2. Codex F3.6 starts automatically after F3.5: fixes the Gemini review findings (review at C:/Users/adnan/AppData/Local/Temp/claude/gem-f3rev/review.md), log briefs/f36.log, findings table briefs/f36-progress.md.
+3. Gemini research on the real E92 tach: C:/Users/adnan/AppData/Local/Temp/claude/gem-tach/tach.md. Compare its table to REDESIGN section 14 and adjust the tach values.
+Then: re-run tsc, copy-gate, build and verify on YOUR OWN 3100 server (my run of F3 failed phone 4x scroll at p95 33.3ms with a 61ms long task; F3.5 must fix it). Review f35-tach-day.png, f35-tach-night.png, f35-globe.png. Next copy job: E92 car copy from vault .raw/e92/2026-10-10-chatgpt-build-breakdown.md (all seven carbon pieces confirmed; never say wrapped or painted; HP figures are tune estimates).
+
 Branch `level4`, three commits on top of `59f0628`, pushed:
 
 - `5e46a5a` Level 4 foundation: two skies, new tokens, chrome, intro.
