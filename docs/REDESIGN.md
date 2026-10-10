@@ -382,3 +382,24 @@ Picks: `20260923_152338` (bay open, halo eyes, the hero), `Snapchat-202035236`
 fourth card in the Other things fan and a photo in Info. Build detail lives
 in Adnan's ChatGPT "E92" project, which no tool here can read: copy waits
 until he pastes or exports those notes.
+
+## 12. The stripe (Adnan, 2026-10-10: "I loved the M theme and colour stripe, make it cooler")
+
+Tokens `--m-light: #6CB2E4; --m-dark: #1B4FA0; --m-red: #E7222E`, same in
+both modes. Three hard bands, never a gradient, never a background, never
+text. No BMW logo or `///M` lettering anywhere (their mark, not ours). It
+appears at exactly three moments, each one moving:
+
+1. **Intro finale.** When the count lands on 100, the 1px horizon splits
+   into three 2px bands (light, dark, red) that separate to 3px gaps over
+   280ms (`--ease-out`). As the halves part, the stripe rides the lower
+   edge of the top half and leaves the frame with it.
+2. **The rev bar.** In the fixed chrome, under the name top left, a 3px
+   tricolour bar 20px long at rest. It stretches with Lenis scroll
+   velocity, `scaleX(1 + min(|v| / 18, 5))` from the left, and settles back
+   with a critically damped spring (no overshoot) when scrolling stops.
+   Transform only, origin left, one rAF that idles when velocity is 0.
+   Reduced motion: static 20px bar.
+3. **The car.** The E92 card in the Other things fan and the Info car
+   photo carry a 3px stripe along their bottom edge. On fan hover the
+   stripe on the E92 card wipes in left to right (clip-path, 400ms).

@@ -225,11 +225,13 @@ export const WORK: Project[] = [
 export const OTHER = {
   left: "Other",
   right: "Things",
-  label: "Smaller builds",
+  label: "Smaller builds, and the car",
+  // Fan order is left, centre, right. Only the car carries a photo; the
+  // other two are typographic cards until real captures exist.
   items: [
-    { name: "This site", line: "Two skies, one page. Next.js, Three.js and GSAP." },
-    { name: "Motion studio", line: "Product reels made in code with Remotion." },
-    { name: "Team steward", line: "A Discord bot that keeps a four person venture team on its checklist." },
+    { name: "This site", line: "Two skies, one page. Next.js, Three.js and GSAP.", image: null },
+    { name: "Motion studio", line: "Product reels made in code with Remotion.", image: null },
+    { name: "The E92", line: "335xi, BMW Individual Bernina Grey wrap, mostly built by me.", image: { src: "/e92/bay.jpg", alt: "Grey BMW E92 coupe with the bonnet up and halo headlights on" } },
   ],
 };
 
