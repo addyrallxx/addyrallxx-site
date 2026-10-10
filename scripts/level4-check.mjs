@@ -533,6 +533,46 @@ async function clockChecks() {
   await sharp(png).extract({ left: 0, top: 800, width: 1000, height: 100 }).toFile(join(tmpdir(), 'claude/briefs/f7-clocks.png'));
   await capture.close();
 }
+async function scrimChecks() {
+  const p = await page({ width: 1000, height: 900, deviceScaleFactor: 1 });
+  await p.goto(url, { waitUntil: 'networkidle0' }); await p.waitForFunction(() => document.documentElement.dataset.intro === 'done');
+  await sweepPage(p);
+  // Place photography and specs beneath the fixed clocks, then measure painted pixels.
+  await p.evaluate(() => { const image = document.querySelector('.car-bay'); window.__lenis.scrollTo(image.getBoundingClientRect().top + scrollY - 760, { immediate: true }); });
+  for (const mode of ['night', 'day']) {
+    await p.evaluate(mode => { document.documentElement.dataset.mode = mode; window.dispatchEvent(new CustomEvent('sky:mode', { detail: { mode } })); }, mode);
+    await sleep(1100);
+    check('bottom scrim is fixed, 96px, inert and themed in ' + mode, await p.evaluate(() => {
+      const style = getComputedStyle(document.querySelector('.chrome-bottom'), '::before');
+      return style.position === 'fixed' && style.height === '96px' && style.pointerEvents === 'none' && style.backgroundImage.startsWith('linear-gradient') && style.backgroundImage.includes('0.85');
+    }));
+    const text = await p.evaluate(() => {
+      const canvas = document.createElement('canvas'); canvas.width = canvas.height = 1;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      return [...document.querySelectorAll('.chrome-bottom .clock-city, .chrome-bottom .clock-digits > span:first-child, .chrome-bottom .clock-digits > span:last-child, .chrome-bottom .clock-period, .chrome-bottom .availability')].map(el => {
+        const r = el.getBoundingClientRect(); ctx.fillStyle = getComputedStyle(el).color; ctx.fillRect(0, 0, 1, 1);
+        return { x: r.left, y: r.top, width: r.width, height: r.height, rgb: Array.from(ctx.getImageData(0, 0, 1, 1).data).slice(0, 3) };
+      });
+    });
+    check('E92 photo is painted directly beneath the clocks in ' + mode, await p.evaluate(() => {
+      const image = document.querySelector('.car-bay img'), r = image.getBoundingClientRect(), clocks = document.querySelector('.chrome-bottom').getBoundingClientRect();
+      return image.naturalWidth > 0 && r.top < clocks.top && r.bottom > clocks.bottom;
+    }));
+    await p.$$eval('.chrome-bottom > *', nodes => nodes.forEach(node => { node.style.visibility = 'hidden'; }));
+    const { data, info } = await sharp(await p.screenshot()).raw().toBuffer({ resolveWithObject: true });
+    await p.$$eval('.chrome-bottom > *', nodes => nodes.forEach(node => { node.style.visibility = ''; }));
+    const lum = rgb => rgb.map(c => { c /= 255; return c <= .04045 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4; }).reduce((sum, c, i) => sum + c * [.2126, .7152, .0722][i], 0);
+    let minimum = Infinity;
+    for (const rect of text) for (let y = Math.max(0, Math.floor(rect.y)); y < Math.min(info.height, Math.ceil(rect.y + rect.height)); y++) for (let x = Math.max(0, Math.floor(rect.x)); x < Math.min(info.width, Math.ceil(rect.x + rect.width)); x++) {
+      const i = (y * info.width + x) * info.channels, bg = lum([data[i], data[i + 1], data[i + 2]]), fg = lum(rect.rgb);
+      minimum = Math.min(minimum, (Math.max(bg, fg) + .05) / (Math.min(bg, fg) + .05));
+    }
+    console.log('CHROME ' + mode + ' minimum photographed contrast=' + minimum.toFixed(2) + ':1');
+    check('chrome city, digits, AM/PM and availability clear 4.5:1 over E92 pixels in ' + mode, minimum >= 4.5);
+    await p.screenshot({ path: join(tmpdir(), 'claude/briefs/f8-e92-scrim-' + mode + '.png') });
+  }
+  await p.close();
+}
 try {
   const firstPaint = await page();
   await firstPaint.evaluateOnNewDocument(() => {
@@ -720,6 +760,7 @@ try {
   await projectChecks();
   await transitionChecks();
   await clockChecks();
+  await scrimChecks();
   check("no console, runtime or HTTP errors", errors.length === 0);
   for (const b of budgets) check(`frame budget ${b.width}x${b.height} CPU ${b.rate}x ${b.spin ? "sphere" : "scroll"}`, b.p95 <= (b.rate === 4 ? 33 : 16.7) && b.maxTask <= 50);
   console.log(`${checks} Level 4 checks passed.`);

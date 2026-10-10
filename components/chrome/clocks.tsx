@@ -54,9 +54,9 @@ export function Clocks({ label = false }: { label?: boolean }) {
     return { hour: parts.find(part => part.type === "hour")?.value ?? "", minute: parts.find(part => part.type === "minute")?.value ?? "", period: parts.find(part => part.type === "dayPeriod")?.value ?? "", colon: parts.find(part => part.type === "literal")?.value ?? "", day: hour >= 6 && hour < 18 };
   }) : [];
   return <div className={`clocks ${label ? "t-label" : "t-small"}`}>
-    {CHROME.clocks.map(({ city, zone }, i) => <span className="clock" key={city} data-zone={zone} aria-label={times[i] ? `${city}, ${times[i].hour}:${times[i].minute} ${times[i].period}` : city}>
+    {CHROME.clocks.map(({ city, zone }, i) => <span className="clock" role="timer" key={city} data-zone={zone} aria-label={times[i] ? `${city}, ${times[i].hour}:${times[i].minute} ${times[i].period}` : city}>
       <ClockFigure day={times[i]?.day ?? false} /><span className="clock-city">{city}</span>
-      <span className="clock-time"><span className="clock-digits"><span>{times[i]?.hour}</span><span className="clock-colon">{times[i]?.colon}</span><span>{times[i]?.minute}</span></span><span className="clock-period">{times[i]?.period}</span></span>
+      <span className="clock-time"><span className="clock-digits"><span>{times[i]?.hour}</span><span className="clock-colon" aria-hidden="true">{times[i]?.colon}</span><span>{times[i]?.minute}</span></span><span className="clock-period">{times[i]?.period}</span></span>
     </span>)}
   </div>;
 }

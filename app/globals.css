@@ -63,7 +63,8 @@
   .chrome a:hover, .chrome button:hover { color: var(--accent); }
   .chrome-top, .chrome-bottom { position: absolute; left: var(--gutter); right: var(--gutter); display: flex; align-items: center; justify-content: space-between; }
   .chrome-top { top: calc(var(--gutter) - 8px); }
-  .chrome-bottom { bottom: var(--gutter); gap: var(--u); }
+  .chrome-bottom { bottom: var(--gutter); gap: var(--u); isolation: isolate; --ink-3: color-mix(in srgb, var(--ink) 85%, var(--bg)); }
+  .chrome-bottom::before { content: ""; position: fixed; left: 0; right: 0; bottom: 0; height: 96px; z-index: -1; pointer-events: none; background: linear-gradient(to top, color-mix(in srgb, var(--bg) 85%, transparent) 0 56px, transparent 96px); }
   .chrome-nav, .clocks { display: flex; align-items: center; gap: 24px; }
   .clock { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; font-variant-numeric: tabular-nums; }
   .clock-time { display: inline-flex; align-items: baseline; gap: 3px; }
