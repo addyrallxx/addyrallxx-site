@@ -9,7 +9,8 @@ import { Method } from "@/components/sections/method";
 import { Info } from "@/components/sections/info";
 import { E92 } from "@/components/sections/e92";
 import { Questions } from "@/components/sections/questions";
+import { Contact } from "@/components/sections/contact";
 
 export default function Home() {
-  return <main id="main"><Hero /><Work /><OtherThings /><AlongsideSchool /><Taste /><Tools /><Services /><Method /><Info /><E92 /><Questions /></main>;
+  return <main id="main"><Hero /><Work /><OtherThings /><AlongsideSchool /><Taste /><Tools /><Services /><Method /><Info /><E92 /><Questions /><Contact /></main>;
 }

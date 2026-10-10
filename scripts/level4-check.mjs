@@ -367,6 +367,42 @@ async function schoolChecks() {
   check('School phone layout has no overflow', await p.evaluate(() => document.documentElement.scrollWidth === innerWidth));
   await p.close();
 }
+async function contactChecks(p) {
+  await scrollTo(p, '#contact', 100);
+  check('Contact has supplied heading, separate mailto and three social links', await p.evaluate(() => document.querySelector('#contact-heading').getAttribute('aria-label') === "Let's build something" && document.querySelector('.contact-mailto').href === 'mailto:adnanshakib.business@gmail.com' && document.querySelectorAll('.contact-socials a').length === 3 && document.querySelectorAll('.site-footer > *').length === 3));
+  await p.evaluate(() => { window.__copiedEmail = ''; Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async value => { window.__copiedEmail = value; } } }); });
+  await p.click('.email-copy');
+  check('copy email writes the address and swaps to Copied', await p.evaluate(() => window.__copiedEmail === 'adnanshakib.business@gmail.com' && document.querySelector('.email-copy').textContent === 'Copied'));
+  await sleep(2100);
+  check('Copied resets to the email', await p.$eval('.email-copy', el => el.textContent === 'adnanshakib.business@gmail.com'));
+  await p.evaluate(() => { navigator.clipboard.writeText = async () => { throw new Error('denied'); }; });
+  await p.click('.email-copy');
+  check('clipboard failure never claims Copied and keeps mailto available', await p.evaluate(() => document.querySelector('.email-copy').textContent !== 'Copied' && !!document.querySelector('.contact-mailto')));
+  await scrollTo(p, '.glyph-pit', 180);
+  await sleep(2200);
+  check('nine glyphs settle and stop their loop', await p.evaluate(() => document.querySelectorAll('.falling-glyph').length === 9 && document.querySelector('.glyph-pit').dataset.running === 'false'));
+  for (const mode of ['day', 'night']) {
+    await p.evaluate(mode => { document.documentElement.dataset.mode = mode; }, mode);
+    await p.hover('.email-copy');
+    check('all accent buttons clear 4.5:1 in ' + mode, await p.evaluate(() => {
+      const rgb = value => value.match(/[\d.]+/g).slice(0, 3).map(Number);
+      const lum = c => c.map(n => { n /= 255; return n <= .04045 ? n / 12.92 : ((n + .055) / 1.055) ** 2.4; }).reduce((sum, n, i) => sum + n * [.2126, .7152, .0722][i], 0);
+      const probe = document.createElement('span'); document.body.append(probe);
+      probe.style.color = 'var(--bg)'; const bg = getComputedStyle(probe).color;
+      probe.style.color = 'var(--accent)'; const accent = getComputedStyle(probe).color; probe.remove();
+      return [...document.querySelectorAll('button, .contact-pill')].every(el => {
+        const s = getComputedStyle(el); if (s.color !== accent && s.backgroundColor !== accent) return true;
+        const a = lum(rgb(s.color)), b = lum(rgb(s.backgroundColor === 'rgba(0, 0, 0, 0)' ? bg : s.backgroundColor));
+        return (Math.max(a, b) + .05) / (Math.min(a, b) + .05) >= 4.5;
+      });
+    }));
+  }
+  await p.evaluate(() => { document.documentElement.dataset.mode = 'night'; });
+  await p.setViewport({ width: 1000, height: 900, deviceScaleFactor: 1 });
+  await scrollTo(p, '#contact', 100); await sleep(1000);
+  await p.screenshot({ path: join(tmpdir(), 'claude/briefs/f8-contact.png') });
+  await p.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
+}
 try {
   const firstPaint = await page();
   await firstPaint.evaluateOnNewDocument(() => {
@@ -460,6 +496,7 @@ try {
   check('tach lives only in E92, with nine spec rows after Info', await p.evaluate(() => document.querySelectorAll('#e92 .tach').length === 1 && document.querySelectorAll('#e92 .car-specs > div').length === 9 && document.querySelector('#info').nextElementSibling.id === 'e92' && !document.querySelector('.chrome .tach')));
   await tachChecks(p);
   await sphereChecks(p);
+  await contactChecks(p);
   for (const [id, heading] of [['taste', 'Taste'], ['method', 'How I work'], ['info', 'Info']]) check(id + ' section has its heading', await p.$eval('#' + id + ' h2', (el, heading) => el.textContent === heading, heading));
   check('Info has its bio and lists without a car block or portrait placeholder', await p.evaluate(() => document.querySelectorAll('#info .info-lists > div').length === 3 && document.querySelector('#info .info-bio').textContent.length > 0 && !document.querySelector('#info img, #info .tach, #info .car-block')));
   check('Questions is absent while FAQ copy is empty', await p.$('#questions') === null);
@@ -525,6 +562,7 @@ try {
   await reduced.emulateMediaFeatures([{ name: "prefers-reduced-motion", value: "reduce" }]);
   await reduced.goto(url, { waitUntil: "networkidle0" });
   check("reduced motion skips canvas and intro", await reduced.evaluate(() => !document.querySelector(".sky canvas") && document.querySelector(".intro").hidden && window.__f1.done === 1));
+  check('reduced glyph pit is static', await reduced.$eval('.glyph-pit', el => el.dataset.running === 'false'));
   check('reduced section headlines have no animation', await reduced.$$eval('.section-line', lines => lines.length > 0 && lines.every(line => {
     line.classList.add('section-armed', 'is-visible');
     return getComputedStyle(line.querySelector('span')).animationName === 'none';
