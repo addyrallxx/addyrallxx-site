@@ -398,10 +398,33 @@ async function contactChecks(p) {
     }));
   }
   await p.evaluate(() => { document.documentElement.dataset.mode = 'night'; });
-  await p.setViewport({ width: 1000, height: 900, deviceScaleFactor: 1 });
-  await scrollTo(p, '#contact', 100); await sleep(1000);
+  await p.setViewport({ width: 1000, height: 1200, deviceScaleFactor: 1 });
+  await scrollTo(p, '#contact', 80); await sleep(1000);
   await p.screenshot({ path: join(tmpdir(), 'claude/briefs/f8-contact.png') });
   await p.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
+}
+async function projectChecks() {
+  const projects = [...readFileSync('lib/content.ts', 'utf8').split('export const WORK: Project[] =')[1].split('export const CAR')[0].matchAll(/slug: "([^"]+)"/g)].map(match => match[1]);
+  const p = await page({ width: 1000, height: 900, deviceScaleFactor: 1 });
+  await p.goto(new URL('/work', url).href, { waitUntil: 'networkidle0' });
+  await p.waitForFunction(() => document.documentElement.dataset.intro === 'done');
+  check('/work has the shared project index and smaller builds', await p.evaluate(count => document.querySelectorAll('.work-row').length === count && document.querySelectorAll('.smaller-row').length === 3 && document.querySelectorAll('h1').length === 1, projects.length));
+  for (let i = 0; i < projects.length; i++) {
+    const response = await p.goto(new URL('/work/' + projects[i], url).href, { waitUntil: 'networkidle0' });
+    await p.waitForFunction(() => document.documentElement.dataset.intro === 'done');
+    check(projects[i] + ' returns its static project page and wrapping next link', response.status() === 200 && await p.evaluate(({ slug, next }) => document.querySelector('main').dataset.project === slug && document.querySelectorAll('.project-meta li').length === 4 && document.querySelectorAll('.project-does li').length >= 3 && document.querySelector('.next-project').getAttribute('href') === '/work/' + next, { slug: projects[i], next: projects[(i + 1) % projects.length] }));
+    await sweepPage(p);
+    check(projects[i] + ' project imagery loads and missing imagery renders nothing', await p.evaluate(() => [...document.querySelectorAll('.project-page img')].every(image => image.complete && image.naturalWidth > 0) && (!document.querySelector('.project-cover') || !!document.querySelector('.project-cover img'))));
+    if (projects[i] === 'totaltex-web') {
+      await p.evaluate(() => window.__lenis.scrollTo(0, { immediate: true })); await sleep(1100);
+      await p.screenshot({ path: join(tmpdir(), 'claude/briefs/f8-work-page.png') });
+    }
+    await p.setViewport({ width: 390, height: 844, deviceScaleFactor: 1 });
+    check(projects[i] + ' project phone layout has no overflow', await p.evaluate(() => document.documentElement.scrollWidth === innerWidth));
+    await p.setViewport({ width: 1000, height: 900, deviceScaleFactor: 1 });
+  }
+  check('unknown project returns 404', (await fetch(new URL('/work/not-a-project', url))).status === 404);
+  await p.close();
 }
 try {
   const firstPaint = await page();
@@ -587,6 +610,7 @@ try {
   check("no-JS headline is visible", await nojs.$eval(".hero-line > span", (el) => getComputedStyle(el).transform === "none"));
   await nojs.close();
   await schoolChecks();
+  await projectChecks();
   check("no console, runtime or HTTP errors", errors.length === 0);
   for (const b of budgets) check(`frame budget ${b.width}x${b.height} CPU ${b.rate}x ${b.spin ? "sphere" : "scroll"}`, b.p95 <= (b.rate === 4 ? 33 : 16.7) && b.maxTask <= 50);
   console.log(`${checks} Level 4 checks passed.`);

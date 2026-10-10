@@ -6,7 +6,7 @@ import Link from "next/link";
 import { WORK, WORK_LABEL } from "@/lib/content";
 import { SectionReveal } from "@/components/ui/section-reveal";
 
-export function Work() {
+export function Work({ showLabel = true }: { showLabel?: boolean }) {
   const preview = useRef<HTMLDivElement>(null);
   const pointer = useRef({ x: 0, y: 0 });
   const [active, setActive] = useState<number | null>(null);
@@ -49,8 +49,8 @@ export function Work() {
     return () => { cancelAnimationFrame(frame); clearTimeout(bloom); window.removeEventListener("pointermove", move); window.removeEventListener("resize", resize); window.removeEventListener("scroll", clear); window.removeEventListener("blur", clear); };
   }, [active]);
   const image = active === null ? undefined : WORK[active].images[0];
-  return <section className="home-section work" id="work" aria-labelledby="work-heading"><SectionReveal>
-    <h2 id="work-heading" className="t-label section-label">{WORK_LABEL}</h2>
+  return <section className="home-section work" id="work" aria-labelledby={showLabel ? "work-heading" : undefined}><SectionReveal>
+    {showLabel && <h2 id="work-heading" className="t-label section-label">{WORK_LABEL}</h2>}
     <div className="index-list">{WORK.map((item, i) => <Link prefetch={false} className="index-row work-row" href={`/work/${item.slug}`} key={item.slug} style={{ "--row-index": i } as CSSProperties}
       onPointerEnter={event => { pointer.current = { x: event.clientX, y: event.clientY }; if (fine && event.pointerType === "mouse" && item.images.length) setActive(i); }} onPointerLeave={() => setActive(null)}>
       <span className="t-label index-number">{String(i + 1).padStart(2, "0")}</span>
