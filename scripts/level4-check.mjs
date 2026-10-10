@@ -460,6 +460,7 @@ try {
   await sphereChecks(p);
   for (const [id, heading] of [['taste', 'Taste'], ['method', 'How I work'], ['info', 'Info']]) check(id + ' section has its heading', await p.$eval('#' + id + ' h2', (el, heading) => el.textContent === heading, heading));
   check('Info has its bio and lists without a car block or portrait placeholder', await p.evaluate(() => document.querySelectorAll('#info .info-lists > div').length === 3 && document.querySelector('#info .info-bio').textContent.length > 0 && !document.querySelector('#info img, #info .tach, #info .car-block')));
+  check('Questions is absent while FAQ copy is empty', await p.$('#questions') === null);
   await sweepPage(p);
   check('all three E92 images loaded after scrolling', await p.$$eval('#e92 .car-images img', images => images.length === 3 && images.every(image => image.naturalWidth > 0)));
   check('E92 stripe reveals along its top edge', await p.$eval('.e92-stripe', el => getComputedStyle(el).clipPath === 'inset(0px)' && getComputedStyle(el).top === '0px'));

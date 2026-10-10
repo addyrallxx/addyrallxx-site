@@ -188,6 +188,10 @@
   .school-course-row > ul { grid-column: 3 / 13; display: grid; grid-template-columns: 1fr 1fr; gap: var(--u); }
   .back-link { display: inline-flex; align-items: center; min-height: 44px; margin-top: calc(var(--u) * 2); }
   .back-link:hover { color: var(--accent); }
+  .question { border-top: 1px solid var(--line); padding-block: var(--u); }
+  .question:last-child { border-bottom: 1px solid var(--line); }
+  .question summary { cursor: pointer; min-height: 44px; }
+  .question p { margin-block: var(--u); color: var(--ink-2); }
   .editorial-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--gutter); }
   .taste-body, .info-lists { grid-column: 7 / 13; }
   .info-bio { grid-column: 1 / 6; }
