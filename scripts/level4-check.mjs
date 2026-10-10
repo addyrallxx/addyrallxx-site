@@ -352,6 +352,19 @@ async function skyPixels(p) {
   });
   return sharp(buffer).raw().toBuffer({ resolveWithObject: true });
 }
+async function schoolChecks() {
+  const p = await page({ width: 1000, height: 900, deviceScaleFactor: 1 });
+  const response = await p.goto(new URL('/school', url).href, { waitUntil: 'networkidle0' });
+  check('/school returns 200 with its heading', response.status() === 200 && await p.$eval('h1', el => el.getAttribute('aria-label') === 'University of Calgary'));
+  await p.waitForFunction(() => document.documentElement.dataset.intro === 'done');
+  await sleep(1100);
+  check('School uses night sky and the shared chrome', await p.evaluate(() => document.documentElement.dataset.mode === 'night' && !!document.querySelector('.chrome') && !!document.querySelector('.sky')));
+  check('School has four facts, three sections, supplied courses and a back link', await p.evaluate(() => document.querySelectorAll('.page-facts > div').length === 4 && document.querySelectorAll('.school-section-row').length === 3 && document.querySelectorAll('.school-course-row li').length === 14 && document.querySelector('.back-link').getAttribute('href') === '/'));
+  await p.screenshot({ path: join(tmpdir(), 'claude/briefs/f5-school.png') });
+  await p.setViewport({ width: 390, height: 844, deviceScaleFactor: 1 });
+  check('School phone layout has no overflow', await p.evaluate(() => document.documentElement.scrollWidth === innerWidth));
+  await p.close();
+}
 try {
   const firstPaint = await page();
   await firstPaint.evaluateOnNewDocument(() => {
@@ -532,6 +545,7 @@ try {
   check("no-JS intro fails open", await nojs.$eval(".intro", (el) => getComputedStyle(el).visibility === "hidden"));
   check("no-JS headline is visible", await nojs.$eval(".hero-line > span", (el) => getComputedStyle(el).transform === "none"));
   await nojs.close();
+  await schoolChecks();
   check("no console, runtime or HTTP errors", errors.length === 0);
   for (const b of budgets) check(`frame budget ${b.width}x${b.height} CPU ${b.rate}x ${b.spin ? "sphere" : "scroll"}`, b.p95 <= (b.rate === 4 ? 33 : 16.7) && b.maxTask <= 50);
   console.log(`${checks} Level 4 checks passed.`);
