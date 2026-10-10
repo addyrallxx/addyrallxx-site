@@ -201,8 +201,7 @@ async function f3Desktop(p) {
   await sleep(450); await fanMatrices(p, false);
   await p.hover(".other-band");
   await sleep(500); await fanMatrices(p, true);
-  if (await p.$('.car-stripe')) check("E92 stripe wipes fully on fan hover", await p.$eval(".car-stripe", el => getComputedStyle(el).clipPath === "inset(0px)"));
-  else check("Other things renders three typographic cards", await p.$$eval(".fan-card", cards => cards.length === 3 && cards.every(card => card.classList.contains("fan-type"))));
+  check("Other things renders three typographic cards as a set", await p.$$eval(".fan-card", cards => cards.length === 3 && cards.every(card => card.classList.contains("fan-type") && !card.querySelector('img') && card.title.length > 0 && card.scrollHeight <= card.clientHeight && getComputedStyle(card).backgroundColor === getComputedStyle(cards[0]).backgroundColor)));
   await sharp(await p.screenshot()).resize({ width: 1000 }).toFile(join(tmpdir(), "claude/briefs/f3-fan.png"));
 
 }
