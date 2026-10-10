@@ -349,6 +349,44 @@ async function schoolChecks() {
   check('School phone layout has no overflow', await p.evaluate(() => document.documentElement.scrollWidth === innerWidth));
   await p.close();
 }
+async function glyphChecks() {
+  for (const width of [1000, 390]) {
+    const p = await page({ width, height: 900, deviceScaleFactor: 1 });
+    await p.goto(url, { waitUntil: 'networkidle0' });
+    await p.waitForFunction(() => document.documentElement.dataset.intro === 'done' && document.querySelector('.glyph-pit').dataset.physics === 'true');
+    const result = await p.evaluate(() => new Promise(resolve => {
+      const pit = document.querySelector('.glyph-pit'), nodes = [...pit.children];
+      const y = () => nodes.map(node => new DOMMatrix(getComputedStyle(node).transform).m42);
+      let previous = y(), fell = nodes.map(() => false), bounce = false, started = false;
+      const spawnedAbove = nodes.every((node, i) => previous[i] <= -node.offsetHeight);
+      const start = performance.now();
+      window.__lenis.scrollTo(window.__lenis.animatedScroll + pit.getBoundingClientRect().top - 280, { immediate: true });
+      const sample = () => {
+        const current = y();
+        current.forEach((value, i) => { if (value > previous[i] + .01) fell[i] = true; if (fell[i] && value < previous[i] - .01) bounce = true; });
+        previous = current; started ||= pit.dataset.running === 'true';
+        const elapsed = performance.now() - start;
+        if ((started && nodes.every(node => node.dataset.asleep === 'true')) || elapsed >= 4000) {
+          const r = pit.getBoundingClientRect();
+          resolve({ spawnedAbove, bounce, elapsed, asleep: nodes.every(node => node.dataset.asleep === 'true'), stopped: pit.dataset.running === 'false', count: nodes.length, dollar: nodes.some(node => node.textContent === '$'), inside: nodes.every(node => { const b = node.getBoundingClientRect(); return b.left >= r.left - .5 && b.right <= r.right + .5 && b.top >= r.top - .5 && b.bottom <= r.bottom + .5; }) });
+        } else requestAnimationFrame(sample);
+      }; requestAnimationFrame(sample);
+    }));
+    console.log('GLYPHS', width, result);
+    check('ten glyphs include dollar at ' + width, result.count === 10 && result.dollar);
+    check('glyphs spawn fully above the pit at ' + width, result.spawnedAbove);
+    check('a glyph falls then bounces at ' + width, result.bounce);
+    check('all glyphs sleep and stop within 4s at ' + width, result.asleep && result.stopped && result.elapsed <= 4000);
+    check('settled glyph boxes stay within the pit at ' + width, result.inside);
+    for (const mode of ['night', 'day']) {
+      await p.evaluate(mode => { document.documentElement.dataset.mode = mode; }, mode);
+      check('ten distinct computed glyph colours in ' + mode + ' at ' + width, await p.$$eval('.falling-glyph', nodes => new Set(nodes.map(node => getComputedStyle(node).color)).size === 10));
+    }
+    await p.evaluate(() => { document.documentElement.dataset.mode = 'night'; });
+    if (width === 1000) await p.screenshot({ path: join(tmpdir(), 'claude/briefs/f11-glyphs.png') });
+    await p.close();
+  }
+}
 async function contactChecks(p) {
   await scrollTo(p, '#contact', 100);
   check('Contact has supplied heading, separate mailto and three social links', await p.evaluate(() => document.querySelector('#contact-heading').getAttribute('aria-label') === "Let's build something" && document.querySelector('.contact-mailto').href === 'mailto:adnanshakib.business@gmail.com' && document.querySelectorAll('.contact-socials a').length === 3 && document.querySelectorAll('.site-footer > *').length === 3));
@@ -362,7 +400,7 @@ async function contactChecks(p) {
   check('clipboard failure never claims Copied and keeps mailto available', await p.evaluate(() => document.querySelector('.email-copy').textContent !== 'Copied' && !!document.querySelector('.contact-mailto')));
   await scrollTo(p, '.glyph-pit', 180);
   await sleep(2200);
-  check('nine glyphs settle and stop their loop', await p.evaluate(() => document.querySelectorAll('.falling-glyph').length === 9 && document.querySelector('.glyph-pit').dataset.running === 'false'));
+  check('ten glyphs settle and stop their loop', await p.evaluate(() => document.querySelectorAll('.falling-glyph').length === 10 && document.querySelector('.glyph-pit').dataset.running === 'false'));
   for (const mode of ['day', 'night']) {
     await p.evaluate(mode => { document.documentElement.dataset.mode = mode; }, mode);
     await p.hover('.email-copy');
@@ -754,6 +792,7 @@ try {
   check("no-JS intro fails open", await nojs.$eval(".intro", (el) => getComputedStyle(el).visibility === "hidden"));
   check("no-JS headline is visible", await nojs.$eval(".hero-line > span", (el) => getComputedStyle(el).transform === "none"));
   await nojs.close();
+  await glyphChecks();
   await schoolChecks();
   await projectChecks();
   await transitionChecks();

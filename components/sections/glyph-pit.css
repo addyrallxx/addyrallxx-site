@@ -1,0 +1,5 @@
+@layer theme, base, components, utilities;
+@layer components {
+  .glyph-pit .falling-glyph { color: var(--glyph-night); cursor: default; touch-action: auto; pointer-events: none; }
+  :root[data-mode="day"] .falling-glyph { color: var(--glyph-day); }
+}

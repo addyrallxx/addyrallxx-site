@@ -244,9 +244,9 @@
   .contact-mailto, .contact-socials a, .site-footer a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: underline; }
   .contact-mailto:hover, .contact-socials a:hover, .site-footer a:hover { color: var(--accent); }
   .glyph-pit { position: relative; display: flex; align-items: flex-end; justify-content: space-around; height: 360px; overflow: hidden; border-bottom: 1px solid var(--line); margin-top: 32px; }
-  .falling-glyph { position: relative; display: grid; place-items: center; font-family: var(--font-display), sans-serif; font-weight: 800; line-height: 1; user-select: none; cursor: grab; touch-action: none; }
+  .falling-glyph { position: relative; display: grid; place-items: center; font-family: var(--font-display), sans-serif; font-weight: 800; line-height: 1; user-select: none;  }
   .glyph-pit[data-physics] .falling-glyph { position: absolute; top: 0; left: 0; }
-  .falling-glyph:active { cursor: grabbing; }
+
   .site-footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; padding-top: 24px; }
   .project-page, .work-page { padding-bottom: 100px; }
   .page-hero .section-heading { overflow-wrap: anywhere; }
