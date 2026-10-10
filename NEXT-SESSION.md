@@ -151,3 +151,10 @@ setting, never authorised). Level 4 reaches production only when Adnan says so.
   on port 3000, sampling resolution, `git add -A` during live agents).
 - **2026-10-09:** design floor fixes under the Jack Roberts protocol
   (`59f0628`); `docs/DESIGN.md` is superseded by `docs/REDESIGN.md`.
+
+### Handoff, 2026-10-10 late night (Claude, usage nearly out)
+
+- F3.5 landed as `2381531`: analogue tach and grouped globe. Codex reports 125 checks green and phone 4x scroll p95 12.6ms (root cause: forced layout from scrollY reads in the sky, fixed by cached Lenis positions). Claude viewed the globe and night tach captures and they look right. **Claude has NOT re-run verify on its own server yet: do that first.**
+- F3.6 (review fixes) was running; F4 (`briefs/f4-sections.md`: Taste, How I work, Info with the E92 block from `docs/e92-copy.md`, hidden Questions, Contact, /work pages, transitions) is chained to start after it. Logs and progress: `C:/Users/adnan/AppData/Local/Temp/claude/briefs/f36*.md|log`, `f4*.md|log`. Read their "Missing copy" and "Decisions I made" lists, re-run tsc, copy-gate, build and verify yourself, and look at f4-info.png, f4-contact.png and f4-work-page.png.
+- Gemini tach research failed twice (turn cap, one page opened). Dropped; spec in REDESIGN section 14 stands.
+- After F4: copy passes, Design Loop critics, impeccable detect, preship 20, twinkle audit, then production only on Adnan's word.
