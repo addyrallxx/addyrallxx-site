@@ -23,7 +23,7 @@ export function Contact() {
       <p className="t-body section-body">{CONTACT.body}</p>
       <div className="contact-actions">
         <button className="contact-pill email-copy t-small" type="button" aria-label={copied ? CONTACT.copied : CONTACT.copy} onClick={copy}><span aria-live="polite">{copied ? CONTACT.copied : SITE.email}</span></button>
-        <a className="contact-mailto t-small" href={`mailto:${SITE.email}`}>{SITE.email}</a>
+        <a className="contact-mailto t-small" href={`mailto:${SITE.email}`}>{CONTACT.mail}</a>
       </div>
       <div className="contact-socials t-small">{SITE.links.filter(link => link.href).map(link => <a key={link.label} href={link.href} target="_blank" rel="noopener noreferrer">{link.label}</a>)}</div>
       <p className="t-body section-body">{CONTACT.availability}</p>

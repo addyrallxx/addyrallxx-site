@@ -200,3 +200,6 @@ Curved GSAP wipes and centered supplied destination names are complete. Timing i
 
 ### F11 Parts D/H, 2026-10-10
 The tach and cropped gallery are retired. The supplied 2000x1125 profile now lives in a golden-hour 220vh pinned scene with lens opening, stripe, one sun sweep, build-row reveals and word-masked sign off. Phone, no-JS and reduced motion show complete unpinned content. tsc, copy-gate, build and 218 real Chrome checks passed on own 3100 PID 26908. All eight budgets and both pinned budgets passed. Grain panel cropping verified visually. E remains pending in the working tree; G remains.
+
+### F11b completion, 2026-10-10
+Part E glyph physics shipped as 560163c. Contact now uses CONTACT.mail and shows the address once. All five WORK_META labels are wired into every project page. Physics self-check, TypeScript, copy-gate and production build passed. Full real Chrome suite: 238 checks, all eight frame configurations and both E92 pinned budgets passed on confirmed own 3100 PID 25304, no runtime or HTTP errors. Screenshots are in Temp claude/briefs; project metadata capture inspected. Initial E run failed an existing wipe timing lower bound at 628.4ms; unchanged repeat and final local run passed, thresholds unchanged. Production acceptance is pending the final push and live verify; see f11-progress.md for the final result.

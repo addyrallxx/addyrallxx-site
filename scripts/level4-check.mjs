@@ -389,6 +389,7 @@ async function glyphChecks() {
 }
 async function contactChecks(p) {
   await scrollTo(p, '#contact', 100);
+  check('Contact shows the email once and supplied mail link text', await p.evaluate(() => document.querySelector('#contact').innerText.split('adnanshakib.business@gmail.com').length === 2 && document.querySelector('.contact-mailto').innerText === 'Open in mail app'));
   check('Contact has supplied heading, separate mailto and three social links', await p.evaluate(() => document.querySelector('#contact-heading').getAttribute('aria-label') === "Let's build something" && document.querySelector('.contact-mailto').href === 'mailto:adnanshakib.business@gmail.com' && document.querySelectorAll('.contact-socials a').length === 3 && document.querySelectorAll('.site-footer > *').length === 3));
   await p.evaluate(() => { window.__copiedEmail = ''; Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async value => { window.__copiedEmail = value; } } }); });
   await p.click('.email-copy');
@@ -433,7 +434,8 @@ async function projectChecks() {
     const response = await p.goto(new URL('/work/' + projects[i], url).href, { waitUntil: 'networkidle0' });
     await p.waitForFunction(() => document.documentElement.dataset.intro === 'done');
     check(projects[i] + ' returns its static project page and wrapping next link', response.status() === 200 && await p.evaluate(({ slug, next }) => document.querySelector('main').dataset.project === slug && document.querySelectorAll('.project-meta li').length === 4 && document.querySelectorAll('.project-does li').length >= 3 && document.querySelector('.next-project').getAttribute('href') === '/work/' + next, { slug: projects[i], next: projects[(i + 1) % projects.length] }));
-    if (projects[i] === 'fittrack') check('FitTrack uses supplied status while its live link is withheld', await p.evaluate(() => !document.querySelector('.project-meta a') && document.querySelector('.project-meta li:last-child').textContent === 'Live'));
+    check(projects[i] + ' renders all supplied metadata labels', await p.evaluate(() => [...document.querySelectorAll('.project-meta .t-label')].map(el => el.textContent).join('|') === 'Kind|Year|Stack|Status' && document.querySelector('.project-does').previousElementSibling.textContent === 'What it does'));
+    if (projects[i] === 'fittrack') check('FitTrack uses supplied status while its live link is withheld', await p.evaluate(() => !document.querySelector('.project-meta a') && document.querySelector('.project-meta li:last-child').lastChild.textContent === 'Live'));
     await sweepPage(p);
     check(projects[i] + ' project imagery loads and missing imagery renders nothing', await p.evaluate(() => [...document.querySelectorAll('.project-page img')].every(image => image.complete && image.naturalWidth > 0) && (!document.querySelector('.project-cover') || !!document.querySelector('.project-cover img'))));
     if (projects[i] === 'totaltex-web') {
