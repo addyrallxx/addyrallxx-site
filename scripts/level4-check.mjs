@@ -29,11 +29,6 @@ async function page(options = {}) {
   await p.evaluateOnNewDocument(() => {
     window.__f1 = { done: 0, scroll: 0, time: 0, renders: 0 };
     window.__introSamples = [];
-    window.__tachSamples = [];
-    window.addEventListener('tach:probe', () => {
-      const until = performance.now() + 1100;
-      const sample = () => { const needle = document.querySelector('.tach-needle'); if (needle) window.__tachSamples.push(parseFloat(needle.style.transform.slice(7))); if (performance.now() < until) requestAnimationFrame(sample); }; requestAnimationFrame(sample);
-    });
     window.addEventListener("intro:done", () => { window.__f1.done++; window.__f1.doneAt = performance.now(); });
     const sample = setInterval(() => {
       const el = document.querySelector(".intro");
@@ -186,63 +181,60 @@ async function f3Desktop(p) {
   await sharp(await p.screenshot()).resize({ width: 1000 }).toFile(join(tmpdir(), "claude/briefs/f3-fan.png"));
 
 }
-async function tachChecks(p) {
-  await p.evaluate(() => window.__lenis.scrollTo(0, { immediate: true }));
-  await sleep(1500);
-  await p.evaluate(() => window.dispatchEvent(new Event('tach:probe')));
-  await scrollTo(p, '.car-instrument', 120);
-  check('tach performs its one start sweep', await p.evaluate(() => Math.max(...window.__tachSamples) > 115 && Math.abs(window.__tachSamples.at(-1) + 96) < 1));
-  await tachScreenshots(p);
-  await scrollTo(p, '.car-instrument', 120);
-  const needleAngle = () => p.$eval('.tach-needle', el => parseFloat(el.style.transform.slice(7)));
-  check('tach rests at 800 rpm within 1deg', Math.abs(await needleAngle() + 96) <= 1);
-  await p.evaluate(() => {
-    window.__tachPeak = -96;
-    const until = performance.now() + 700;
-    const sample = () => { window.__tachPeak = Math.max(window.__tachPeak, parseFloat(document.querySelector('.tach-needle').style.transform.slice(7))); if (performance.now() < until) requestAnimationFrame(sample); };
-    requestAnimationFrame(sample); window.__lenis.scrollTo(window.scrollY - 160, { duration: .05 });
-  });
-  await sleep(700);
-  check('onscreen tach responds to real Lenis scroll velocity', await p.evaluate(() => window.__tachPeak > -95));
-  await p.waitForFunction(() => Math.abs(window.__lenis.velocity) < .001);
-  await sleep(1500);
-  check('tach returns within 2deg of idle in 1.5s', Math.abs(await needleAngle() + 96) <= 2);
-  const flutter = await p.evaluate(() => new Promise(resolve => {
-    const lenis = window.__lenis, descriptor = Object.getOwnPropertyDescriptor(lenis, 'velocity');
-    Object.defineProperty(lenis, 'velocity', { configurable: true, get: () => 50, set: () => {} });
-    window.dispatchEvent(new Event('scroll'));
-    const start = performance.now(); let previous = -Infinity, fell = false, peak = -96;
-    const sample = now => {
-      const a = parseFloat(document.querySelector('.tach-needle').style.transform.slice(7));
-      peak = Math.max(peak, a);
-      if (now - start > 700 && a < previous - .05) fell = true;
-      previous = a;
-      if (now - start < 1600) requestAnimationFrame(sample);
-      else { if (descriptor) Object.defineProperty(lenis, 'velocity', descriptor); else delete lenis.velocity; resolve({ fell, peak }); }
-    }; requestAnimationFrame(sample);
-  }));
-  check('tach exceeds 4000 rpm during sustained fast Lenis velocity', flutter.peak > 0);
-  check('tach limiter flutters while target stays above 7000 rpm', flutter.fell);
-  await sleep(1500);
-  await p.evaluate(() => window.__lenis.scrollTo(0, { immediate: true }));
-  await sleep(1500);
-  check('tach stops offscreen at idle', await p.$eval('.tach-needle', el => el.style.transform === 'rotate(-96deg)' && el.style.willChange === ''));
-  await p.evaluate(() => { window.__tachSamples = []; window.dispatchEvent(new Event('tach:probe')); });
-  await scrollTo(p, '.car-instrument', 120);
-  check('tach start sweep happens only once', await p.evaluate(() => window.__tachSamples.length > 10 && window.__tachSamples.every(a => a === -96)));
-  await p.evaluate(() => window.__lenis.scrollTo(0, { immediate: true }));
+async function pinnedBudget(p, rate) {
+  const cdp = await p.createCDPSession();
+  await cdp.send('Emulation.setCPUThrottlingRate', {rate});
+  const entry = await p.$eval('#e92', el => el.getBoundingClientRect().top + scrollY);
+  await p.evaluate(y => window.__lenis.scrollTo(y, {immediate:true}), entry); await sleep(1000);
+  const result = await p.evaluate(entry => new Promise(resolve => {
+    const frames=[], tasks=[];
+    const observer=new PerformanceObserver(list=>tasks.push(...list.getEntries().map(e=>e.duration)));
+    observer.observe({type:'longtask'});
+    let last;
+    const start=performance.now();
+    const probe=now=>{
+      if(last!==undefined)frames.push(now-last); last=now;
+      const t=Math.min(1,(now-start)/5000);
+      window.__lenis.scrollTo(entry+innerHeight*2.2*t,{immediate:true});
+      if(t<1)requestAnimationFrame(probe); else {
+        tasks.push(...observer.takeRecords().map(e=>e.duration)); observer.disconnect(); frames.sort((a,b)=>a-b);
+        resolve({p95:frames[Math.ceil(frames.length*.95)-1],maxTask:Math.max(0,...tasks),frames:frames.length});
+      }
+    }; requestAnimationFrame(probe);
+  }),entry);
+  console.log('E92 PIN',rate,result);
+  check('E92 pinned scrub frame budget '+rate+'x',result.p95<=(rate===4?33:16.7)&&result.maxTask<=50);
+  await cdp.send('Emulation.setCPUThrottlingRate',{rate:1}); await cdp.detach();
 }
-async function tachScreenshots(p) {
-  for (const mode of ['day', 'night']) {
-    await p.evaluate(mode => window.dispatchEvent(new CustomEvent('sky:mode', { detail: { mode } })), mode);
-    await sleep(1950);
-    if (mode === 'night') check('night tach numeral computes to E9x orange', await p.$eval('.tach-number', el => getComputedStyle(el).fill === 'rgb(255, 140, 46)'));
-    await p.setViewport({ width: 1000, height: 900, deviceScaleFactor: 1 });
-    await scrollTo(p, '.car-instrument', 120);
-    await p.screenshot({ path: join(tmpdir(), 'claude/briefs/f35-tach-' + mode + '.png') });
-    await p.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
+async function e92Checks(p) {
+  check('tach is retired everywhere in the DOM',await p.$('.tach')===null);
+  await pinnedBudget(p,1); await pinnedBudget(p,4);
+  await p.setViewport({width:1000,height:900,deviceScaleFactor:1}); await sleep(500);
+  const entry=await p.$eval('#e92',el=>el.getBoundingClientRect().top+scrollY);
+  const clips=[];
+  for(let i=0;i<8;i++) {
+    await p.evaluate(({entry,i})=>window.__lenis.scrollTo(entry+innerHeight*2.2*(.15+.4*i/7),{immediate:true}),{entry,i}); await sleep(950);
+    clips.push(await p.$eval('.car-photo',el=>getComputedStyle(el).clipPath));
   }
+  console.log('E92 clips',clips);
+  check('E92 lens opens across its own entry window',new Set(clips).size>=6);
+  await p.evaluate(entry=>window.__lenis.scrollTo(entry+innerHeight*2.2*.5,{immediate:true}),entry); await sleep(1000);
+  const shot=await p.screenshot({path:join(tmpdir(),'claude/briefs/f11-e92-mid.png')});
+  const pixel=await sharp(shot).extract({left:700,top:100,width:1,height:1}).removeAlpha().raw().toBuffer();
+  console.log('E92 warm pixel',Array.from(pixel));
+  check('E92 field is warm off the photograph at half pin',pixel[0]>pixel[2]+30);
+  await p.evaluate(entry=>window.__lenis.scrollTo(entry+innerHeight*2.2*.6,{immediate:true}),entry); await sleep(1000);
+  check('lens is fully open by 60 percent',await p.$eval('.car-photo',el=>/^inset\(0(?:px|%)?(?:\s+0(?:px|%)?){0,3}\)$/.test(getComputedStyle(el).clipPath)));
+  check('E92 has one loaded profile image',await p.$$eval('#e92 img',images=>images.length===1&&images[0].naturalWidth>0&&images[0].currentSrc.includes('profile')));
+  await p.evaluate(entry=>window.__lenis.scrollTo(entry+innerHeight*2.2*.95,{immediate:true}),entry); await sleep(1000);
+  check('all nine specs and values are visible at 95 percent',await p.$$eval('.car-specs > div',rows=>rows.length===9&&rows.every(row=>{const r=row.getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight&&+getComputedStyle(row.querySelector('dd')).opacity>.99&&new DOMMatrix(getComputedStyle(row.querySelector('.car-spec-line')).transform).a>.99;})));
+  const signOff=readFileSync('lib/content.ts','utf8').match(/signOff: "([^"]+)"/)[1];
+  check('E92 sign off equals supplied content',await p.$eval('.car-signoff',(el,text)=>el.textContent===text,signOff));
+  check('stripe runs along the photo top edge',await p.$eval('.e92-stripe',el=>new DOMMatrix(getComputedStyle(el).transform).a===1&&Math.abs(el.getBoundingClientRect().top-el.closest('.car-photo').getBoundingClientRect().top)<1));
+  await p.screenshot({path:join(tmpdir(),'claude/briefs/f11-e92.png')});
+  await p.setViewport({width:1440,height:900,deviceScaleFactor:1});
 }
+
 async function sphereChecks(p) {
   // Leave the prior Work hover so this measures idle spin rather than pill hover pause.
   await p.mouse.move(1, 100);
@@ -538,11 +530,11 @@ async function clockChecks() {
   await capture.close();
 }
 async function scrimChecks() {
-  const p = await page({ width: 1000, height: 900, deviceScaleFactor: 1 });
+  const p = await page({ width: 1000, height: 600, deviceScaleFactor: 1 });
   await p.goto(url, { waitUntil: 'networkidle0' }); await p.waitForFunction(() => document.documentElement.dataset.intro === 'done');
   await sweepPage(p);
   // Place photography and specs beneath the fixed clocks, then measure painted pixels.
-  await p.evaluate(() => { const image = document.querySelector('.car-bay'); window.__lenis.scrollTo(image.getBoundingClientRect().top + scrollY - 760, { immediate: true }); });
+  await p.evaluate(() => { const section = document.querySelector('#e92'); window.__lenis.scrollTo(section.getBoundingClientRect().top + scrollY + innerHeight * 2.2 * .6, { immediate: true }); });
   for (const mode of ['night', 'day']) {
     await p.evaluate(mode => { document.documentElement.dataset.mode = mode; window.dispatchEvent(new CustomEvent('sky:mode', { detail: { mode } })); }, mode);
     await sleep(1100);
@@ -559,7 +551,7 @@ async function scrimChecks() {
       });
     });
     check('E92 photo is painted directly beneath the clocks in ' + mode, await p.evaluate(() => {
-      const image = document.querySelector('.car-bay img'), r = image.getBoundingClientRect(), clocks = document.querySelector('.chrome-bottom').getBoundingClientRect();
+      const image = document.querySelector('.car-photo img'), r = image.getBoundingClientRect(), clocks = document.querySelector('.chrome-bottom').getBoundingClientRect();
       return image.naturalWidth > 0 && r.top < clocks.top && r.bottom > clocks.bottom;
     }));
     await p.$$eval('.chrome-bottom > *', nodes => nodes.forEach(node => { node.style.visibility = 'hidden'; }));
@@ -619,7 +611,6 @@ try {
   console.log(info);
   check("visible real Chrome", !info.hidden);
   check("single intro completion", info.done === 1);
-  if (await p.$('.tach-needle')) check('tach stays idle before car enters view', await p.$eval('.tach-needle', el => parseFloat(el.style.transform.slice(7)) === -96));
   check("counter reaches 100", info.counter === "100");
   const intro = await p.evaluate(() => ({ samples: window.__introSamples, timing: window.__f1.doneAt - window.__f1.partAt,
     ...window.__f1.halves, height: innerHeight }));
@@ -677,16 +668,13 @@ try {
   const pill = await p.$eval('.work-pill', el => { const r = el.getBoundingClientRect(); return {x:r.right-1,y:r.bottom-1}; });
   await p.mouse.move(pill.x,pill.y); await sleep(400);
   check('magnetic pull is bounded to 8px', await p.$eval('.work-pill', el => {const m=new DOMMatrix(getComputedStyle(el).transform); return Math.hypot(m.e,m.f)<=8.01 && Math.hypot(m.e,m.f)>0;}));
-  check('tach lives only in E92, with nine spec rows after Info', await p.evaluate(() => document.querySelectorAll('#e92 .tach').length === 1 && document.querySelectorAll('#e92 .car-specs > div').length === 9 && document.querySelector('#info').nextElementSibling.id === 'e92' && !document.querySelector('.chrome .tach')));
-  await tachChecks(p);
+  await e92Checks(p);
   await sphereChecks(p);
   await contactChecks(p);
   for (const [id, heading] of [['taste', 'Taste'], ['method', 'How I work'], ['info', 'Info']]) check(id + ' section has its heading', await p.$eval('#' + id + ' h2', (el, heading) => el.textContent === heading, heading));
   check('Info has its bio and lists without a car block or portrait placeholder', await p.evaluate(() => document.querySelectorAll('#info .info-lists > div').length === 3 && document.querySelector('#info .info-bio').textContent.length > 0 && !document.querySelector('#info img, #info .tach, #info .car-block')));
   check('Questions is absent while FAQ copy is empty', await p.$('#questions') === null);
   await sweepPage(p);
-  check('all three E92 images loaded after scrolling', await p.$$eval('#e92 .car-images img', images => images.length === 3 && images.every(image => image.naturalWidth > 0)));
-  check('E92 stripe reveals along its top edge', await p.$eval('.e92-stripe', el => getComputedStyle(el).clipPath === 'inset(0px)' && getComputedStyle(el).top === '0px'));
   await p.setViewport({ width: 1000, height: 900, deviceScaleFactor: 1 });
   await scrollTo(p, '#e92', 60);
   await p.screenshot({ path: join(tmpdir(), 'claude/briefs/f5-e92.png') });
@@ -752,7 +740,8 @@ try {
   await reduced.$eval("[data-sphere]", el => el.scrollIntoView());
   const staticSphere = await reduced.$eval("[data-sphere-item]", el => el.style.transform);
   await sleep(300);
-  check("reduced sphere is static and tach rests without sweep", await reduced.evaluate(transform => document.querySelector("[data-sphere-item]").style.transform === transform && (!document.querySelector('.tach-needle') || parseFloat(document.querySelector(".tach-needle").style.transform.slice(7)) === -96) && window.__tachSamples.every(a => a === -96), staticSphere));
+  check('reduced sphere is static', await reduced.evaluate(transform => document.querySelector('[data-sphere-item]').style.transform === transform, staticSphere));
+  check('reduced E92 is complete without a pin or lens mask', await reduced.evaluate(() => !document.querySelector('#e92').dataset.pin && document.querySelectorAll('#e92 img').length === 1 && getComputedStyle(document.querySelector('.car-photo')).clipPath === 'inset(0px)' && document.querySelectorAll('.car-specs > div').length === 9));
   await reduced.$eval('.skills-list button', el => el.click());
   await sleep(750);
   check('reduced group highlight works without a globe turn', await reduced.evaluate(transform => document.querySelector('.skills-list button').getAttribute('aria-pressed') === 'true' && document.querySelector('[data-sphere-item]').dataset.selected === 'true' && document.querySelector('[data-sphere-item]').style.transform === transform, staticSphere));

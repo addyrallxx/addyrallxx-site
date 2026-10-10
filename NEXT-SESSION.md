@@ -197,3 +197,6 @@ Display L heading parallax, entry hairlines, magnetic section pills and 42px/32p
 
 ### F11 Part C, 2026-10-10
 Curved GSAP wipes and centered supplied destination names are complete. Timing is 650ms cover, 180ms hold, 750ms reveal. Shared motion clock is capped at 60Hz and animated Work layers are promoted to meet the unchanged budgets. tsc, copy-gate, build and 225 Chrome checks passed on own 3100 PID 1984. All eight budgets passed; wipe p95 4.3ms. Parts D/H and E are prepared in the working tree, excluded from this checkpoint. G remains.
+
+### F11 Parts D/H, 2026-10-10
+The tach and cropped gallery are retired. The supplied 2000x1125 profile now lives in a golden-hour 220vh pinned scene with lens opening, stripe, one sun sweep, build-row reveals and word-masked sign off. Phone, no-JS and reduced motion show complete unpinned content. tsc, copy-gate, build and 218 real Chrome checks passed on own 3100 PID 26908. All eight budgets and both pinned budgets passed. Grain panel cropping verified visually. E remains pending in the working tree; G remains.

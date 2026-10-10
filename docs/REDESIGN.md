@@ -371,33 +371,34 @@ skills sphere, `components/chapter/calgary-time.tsx` (replaced by the
 clocks), JetBrains Mono, Manrope, Instrument Serif.
 `scripts/verify.mjs` is rewritten for the new page (chunk 4).
 
-## 11. The E92 (added 2026-10-10)
+## 11. The E92 (updated 2026-10-10, F11 D/H)
 
-Adnan supplied photos (Drive `E92 pics`, local copy `assets-src/e92/`,
-gitignored; publish only sharp-processed copies, which strip EXIF and GPS).
-Picks (graded 2026-10-10 from Gemini crop and grade recipes, applied with sharp, reviewed on a contact sheet): `20260923_152246` as `bay.jpg` (4:5) and `bay-wide.jpg` (bonnet fully up, halo eyes; replaces 152338, whose bonnet sat on the secondary latch), `Snapchat-202035236` as `night.jpg` (wide profile, plate blurred), `20260521_020131` as `front.jpg` (4:5 night front). Never `IMG_5153` or any sunset frame: it shows the car black, before the Bernina Grey. Never `IMG_6588` (a house is identifiable). It becomes the
-standalone #e92 section after Info. Its photos occupy the left seven desktop
-columns, with the tach and nine spec rows in the right five. Phone stacks
-photos, tach and specs. Approved build copy is CAR in lib/content.ts and
-documented in docs/e92-copy.md.
+The standalone #e92 section uses only `/e92/profile.jpg`, the supplied
+2000x1125 sunny Bernina Grey side profile, with house numbers and the other
+car's plate blurred. The night, front and bay gallery is retired.
+
+Desktop uses a 220vh GSAP ScrollTrigger pin, scrub 0.8. A golden hour field
+replaces the sky, outline N54 drifts behind, then the lens opens and the
+stripe crosses the photo's top edge. One soft sun sweep highlights the paint.
+The camera hands the full profile to the build details: caption, nine spec
+rows with drawing hairlines, then the word-masked sign off. The night sky
+returns across the next 40vh. Phone and reduced motion have no pin and show
+all content immediately on the static warm field. Approved copy remains
+CAR in lib/content.ts.
 
 ## 12. The stripe (Adnan, 2026-10-10: "I loved the M theme and colour stripe, make it cooler")
 
 Tokens `--m-light: #6CB2E4; --m-dark: #1B4FA0; --m-red: #E7222E`, same in
 both modes. Three hard bands, never a gradient, never a background, never
 text. No BMW logo or `///M` lettering anywhere (their mark, not ours). It
-appears at exactly three moments, each one moving:
+appears at two moments, each one moving:
 
 1. **Intro finale.** When the count lands on 100, the 1px horizon splits
    into three 2px bands (light, dark, red) that separate to 3px gaps over
    280ms (`--ease-out`). As the halves part, the stripe rides the lower
    edge of the top half and leaves the frame with it.
-2. **The tach** (replaces the rev bar, Adnan 2026-10-10: "a proper period
-   correct bar with quality detail, no new modern ipad screen type shit").
-   An E92 era analogue tachometer, see section 14. The stripe lives on its
-   face as the `///` mark, inside the standalone #e92 section beside the spec rows. The rev bar and its header slot are removed.
-3. **The car.** The standalone #e92 section, after Info and before Questions,
-   carries one 3px stripe along its top edge. It wipes left to right once
+2. **The car.** The standalone #e92 section, after Info and before Questions,
+   carries one 3px stripe along the profile photo top edge. It races left to right once
    on entry (clip-path, 400ms). The Other things fan has three typographic cards.
 
 ## 13. Tools, the globe (redesign, Adnan 2026-10-10: "proper 60 fps, the new ink colour aligns, much more premium, redesign it if you have to")
@@ -441,113 +442,6 @@ spinning. The redesign reads as an instrument, not a tag cloud.
 - **Reduced motion.** Static at tilt 18deg, Y 25deg; group highlight still
   works, without the turn.
 
-## 14. The tach (replaces the rev bar)
+## 14. The tach
 
-An E92 era analogue tachometer: a physical instrument, not a screen. No
-glass reflections, no glow rings, no digital readout, no gradients beyond
-the bezel and a faint face vignette.
-
-- **Place and size.** In the standalone #e92 section, above its spec rows
-  in the right five columns. 220px at desktop, 160px at max-width 700. Bottom chrome holds clocks and availability only.
-  Inline SVG, viewBox 0 0 200 200, `aria-hidden`.
-- **Face.** Black (#0B0B0C) with a static radial vignette to #000 at the
-  rim. Bezel: a 3px ring, linear gradient #A7A9AD to #2B2C2F (top left
-  to bottom right) for brushed metal, then a 1px #000 inner ring. The face
-  stays black in both modes; on paper it reads as a real object.
-- **Scale.** 0 to 8 (x1000 rpm) over a 240deg sweep, 0 at lower left, 8 at
-  lower right. Major ticks every 1000 (length 9% of radius, 2.2 units
-  wide), minor every 500 (5%, 1.2 units). Numerals 1 to 8 in Instrument
-  Sans 600, size 17% of radius, upright.
-- **Red zone.** 7 to 8: a 5 unit arc at the rim in #D9231E; numerals 7 and
-  8 in the same red. (The N54 redline is 7000.)
-- **Illumination.** Day: ticks and numerals #ECEAE4. Night
-  (`[data-mode="night"]`): ticks and numerals #FF8C2E, the E9x orange,
-  crossfaded over 300ms. No glow filter.
-- **Legend.** `1/min x1000` small under the 4, from `lib/content.ts`
-  (`CHROME.tach`), same ink as the numerals at 55% opacity.
-- **The `///` mark.** Below the hub at 32% radius: three parallelograms,
-  6 by 16 units each, skewX(-20deg), 3 unit gaps, `--m-light`, `--m-dark`,
-  `--m-red`. No letter.
-- **Needle.** #FF4A12, tapered from 5 units at the hub to 1.6 at the tip,
-  reaching 80% of the radius, with a 22% counterweight tail in #B8350C.
-  Hub cap 18% of radius, #121212, 1px #3A3A3A ring, a 1 unit #2F2F2F
-  highlight arc at the top. Only the needle group moves: one `rotate()`
-  transform about the hub, `transform-box: view-box`.
-- **Behaviour.** Rests at idle, 800 rpm, never 0. Target rpm = 800 +
-  min(|Lenis velocity| x 160, 7400). Spring: stiffness 180, damping 22
-  (slightly under damped, so it reads as mechanical), frame rate
-  independent, dt clamped to 50ms. At or above 7000 for more than 120ms,
-  the limiter cuts: the target drops 350 rpm for 90ms, then returns, and
-  repeats while held. One rAF that idles when settled within 5 rpm of the
-  target.
-- **Start sweep.** When the car specs first enter view (IntersectionObserver 0.4), the needle sweeps to 8 and back to idle
-  over 900ms (the coded E9x gauge sweep). Once per load. Revs follow scroll velocity only while the specs are visible; rAF stops offscreen.
-- **Reduced motion.** Static at idle, no sweep.
-
-### F3.5 implementation notes (2026-10-10)
-
-The tach and globe follow sections 13 and 14. Section 12 moment 2 is the
-bottom-left tach, with the header rev bar deleted. No threshold was raised.
-
-**Decisions I made where the spec is silent:**
-
-- The tach uses a 90-unit working radius inside the 200-unit SVG, with room
-  for the bezel. The legend is 8 units. The 900ms sweep uses a sine-squared
-  curve, reaching 8000 rpm halfway through and returning to 800 rpm.
-- Pills have an 8px icon-to-name gap. A selected group holds its centroid
-  facing front until cleared; then idle spin and the 18deg tilt return.
-- Hover spin uses a 100ms exponential time constant (about 98 percent
-  settled after the specified 400ms). The X return uses a critically
-  damped rate of 12 per second (about 99 percent settled after 600ms).
-- The phone availability text is capped at 125px to fit the 64px tach and
-  the clocks in the existing bottom chrome.
-- Work previews keep their image-change remount, which resets the specified
-  colour bloom. A layout effect positions each new preview before paint.
-
-**Phone profiling:** a cold 390x844, 4x CPU profile reproduced a 61ms task.
-The sky scroll handler's native scrollY read synchronously flushed pending
-styles, including 12.6ms of UpdateLayoutTree in that task. Chrome also read
-hero geometry and rewrote its boundary attribute on every scroll. Hero
-height now comes from ResizeObserver; the attribute changes only at a
-boundary crossing. Chrome and sky use Lenis's cached animated position
-while smooth scrolling, with the native position retained for native scroll.
-
-Before the final cached-position fix, one trace showed 176 forced style
-updates and 16 forced layouts inside 357 sky scroll calls. After the fix,
-411 calls caused zero forced style updates and zero forced layouts. Three
-cold profiled phone samples passed at p95 24.9, 20.9 and 20.9ms, with no
-long tasks. Traces and CPU profiles are in the temporary briefs folder;
-f35-profile-61ms.json preserves the reproduction.
-
-**Outside review dispositions:** the review was absent at task start and
-appeared during implementation. HIGH 1 is resolved by deleting RevBar and
-using a 5 rpm settling tolerance in Tach. HIGH 2 is confirmed and fixed by
-positioning Work previews before paint. HIGH 5 is confirmed and fixed by
-removing the globe overlap pass and transient projection objects. HIGH 6
-is confirmed and fixed with one accessible Other things heading, a concise
-link name and a decorative fan hidden from assistive technology.
-
-HIGH 3 is false: the existing reduced-motion rule already sets animation:
-none !important for all elements and pseudo-elements. HIGH 4 is false for
-current Safari: WebKit documented unprefixed mask support in Safari 15.4
-(https://webkit.org/blog/12445/new-webkit-features-in-safari-15-4/). MEDIUM 7
-is false: the cited CSS is already enclosed in @layer components. The
-remaining lower-severity review items are outside this brief's required
-HIGH fixes. Physical phone and Safari testing was not performed.
-
-**Final exit checks:** TypeScript, copy gate and production build pass.
-npm run verify passes 125 real-Chrome checks against the owned 3100 server
-(PID 7588, confirmed with netstat). All eight required budgets pass, plus
-two extra phone 4x scroll repeats. The final phone 4x scroll p95 readings
-are 12.6, 12.6 and 12.6ms. Desktop scroll is 4.3ms at 1x and 16.7ms at 4x;
-desktop globe is 4.4ms at 1x and 12.6ms at 4x; phone scroll is 4.3ms at 1x;
-phone globe is 4.3ms at 1x and 12.5ms at 4x. Every sample has zero long tasks.
-The harness verifies that the globe spins during each globe budget sample.
-
-Captures: f35-tach-day.png and f35-tach-night.png are 1000px-wide bottom
-viewport regions captured before the first page scroll. f35-globe.png is
-a 1000px-wide viewport after scrolling, with Languages pressed. All use
-deviceScaleFactor 1 and live real Chrome. Files are under
-C:/Users/adnan/AppData/Local/Temp/claude/briefs/. No physical handset or
-Safari run is claimed. No conflict between this brief and the design spec
-required an exception.
+Retired 2026-10-10 by Adnan. The component, styles, copy key and instrument checks are removed. The E92 now uses the supplied profile photograph and the pinned golden hour sequence from F11 H.

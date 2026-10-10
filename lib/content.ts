@@ -31,7 +31,6 @@ export const NAV = [
 ] satisfies Link[];
 
 export const CHROME = {
-  tach: "1/min x1000",
   clocks: [
     { city: "Calgary", zone: "America/Edmonton" },
     { city: "Dhaka", zone: "Asia/Dhaka" },
