@@ -9,7 +9,9 @@ const items = SKILLS.groups.flatMap((group, groupIndex) => group.items.filter(it
 function logoColor(slug: string) {
   const hex = skillColors[slug];
   const channels = [0, 2, 4].map(offset => parseInt(hex.slice(offset, offset + 2), 16) / 255).map(channel => channel <= .04045 ? channel / 12.92 : ((channel + .055) / 1.055) ** 2.4);
-  return channels[0] * .2126 + channels[1] * .7152 + channels[2] * .0722 < .2 ? "var(--ink)" : `#${hex}`;
+  const luminance = channels[0] * .2126 + channels[1] * .7152 + channels[2] * .0722;
+  // Night background #030817 has relative luminance .00251.
+  return (luminance + .05) / (.00251 + .05) < 3 ? "var(--ink)" : `#${hex}`;
 }
 const positions = new Float64Array(items.length * 3);
 const centroids = new Float64Array(SKILLS.groups.length * 3);
@@ -50,7 +52,7 @@ export function Tools() {
         const x0 = positions[i * 3], y0 = positions[i * 3 + 1], z0 = positions[i * 3 + 2];
         const y = y0 * cx - z0 * sx, z1 = y0 * sx + z0 * cx, x = x0 * cy + z1 * sy, z = -x0 * sy + z1 * cy;
         const depth = (z + 1) / 2, scale = .62 + .38 * depth;
-        let opacity = .16 + .84 * depth;
+        let opacity = .45 + .55 * depth;
         if (selected >= 0) opacity = items[i].group === selected ? 1 : Math.min(.3, opacity);
         tiles[i].style.transform = `translate3d(${x * radius}px,${y * radius}px,0) translate(-50%,-50%) scale(${scale})`;
         tiles[i].style.opacity = String(opacity);
@@ -134,7 +136,7 @@ export function Tools() {
     <div className="tools-grid">
       <div className="sphere-column"><div className="skill-sphere" ref={sphere} data-sphere>
         <svg className="globe-grid" viewBox="0 0 440 440" fill="none" stroke="var(--line)" aria-hidden="true"><circle cx="220" cy="220" r="180" vectorEffect="non-scaling-stroke" /><ellipse cx="220" cy="220" rx="180" ry="50.4" vectorEffect="non-scaling-stroke" /><ellipse cx="220" cy="220" rx="50.4" ry="180" vectorEffect="non-scaling-stroke" /></svg>
-        {items.map((item, i) => { const p = projection(i, tilt, 25 * Math.PI / 180), depth = (p.z + 1) / 2; return <div key={item.name} data-sphere-item data-group={item.group} data-slug={item.slug} className="sphere-item" role="img" aria-label={item.name} title={item.name} style={{ transform: `translate3d(calc(${p.x} * var(--globe-radius)),calc(${p.y} * var(--globe-radius)),0) translate(-50%,-50%) scale(${.62 + .38 * depth})`, opacity: .16 + .84 * depth }}>
+        {items.map((item, i) => { const p = projection(i, tilt, 25 * Math.PI / 180), depth = (p.z + 1) / 2; return <div key={item.name} data-sphere-item data-group={item.group} data-slug={item.slug} className="sphere-item" role="img" aria-label={item.name} title={item.name} style={{ transform: `translate3d(calc(${p.x} * var(--globe-radius)),calc(${p.y} * var(--globe-radius)),0) translate(-50%,-50%) scale(${.62 + .38 * depth})`, opacity: .45 + .55 * depth }}>
           <span className="skill-icon" style={{ maskImage: `url(/icons/${item.slug}.svg)`, backgroundColor: logoColor(item.slug!) }} />
         </div>; })}
       </div><p className="t-label">{SKILLS.hint}</p></div>

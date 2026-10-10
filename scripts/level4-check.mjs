@@ -274,20 +274,22 @@ async function sphereChecks(p) {
   const after = await snapshot();
   check("sphere count equals SKILLS items with logos", before.count === expected && after.count === expected);
   check('globe has no visible text and every logo has an accessible name and title', await p.$$eval('[data-sphere-item]', (logos, names) => logos.every((logo, i) => logo.textContent.trim() === '' && logo.getAttribute('aria-label') === names[i] && logo.title === names[i] && !logo.closest('[aria-hidden="true"]')), names));
-  check('globe has 30px colour logos without pills or borders', await p.$$eval('[data-sphere-item]', logos => logos.every(logo => {
+  check('globe has 34px desktop or 26px phone colour logos without pills or borders', await p.$$eval('[data-sphere-item]', logos => logos.every(logo => {
     const style = getComputedStyle(logo), icon = getComputedStyle(logo.querySelector('.skill-icon'));
-    return style.borderWidth === '0px' && style.backgroundColor === 'rgba(0, 0, 0, 0)' && icon.width === '30px' && icon.maskImage !== 'none' && icon.backgroundColor !== 'rgba(0, 0, 0, 0)';
+    return style.borderWidth === '0px' && style.backgroundColor === 'rgba(0, 0, 0, 0)' && icon.width === (innerWidth < 720 ? '26px' : '34px') && icon.maskImage !== 'none' && icon.backgroundColor !== 'rgba(0, 0, 0, 0)';
   }) && new Set(logos.map(logo => getComputedStyle(logo.querySelector('.skill-icon')).backgroundColor)).size > 3));
   check('SQL stays in the list and off the globe', await p.evaluate(() => [...document.querySelectorAll('.skills-list li')].some(li => li.textContent === 'SQL') && !document.querySelector('[data-sphere-item][aria-label="SQL"]')));
   const colours = JSON.parse(readFileSync('lib/skill-colors.ts', 'utf8').split('= ')[1].replace(/;\s*$/, ''));
-  check('logo colours follow package luminance rule', await p.$$eval('[data-sphere-item]', (logos, colours) => logos.every(logo => {
+  check('logo colours follow 3:1 contrast against night ground', await p.$$eval('[data-sphere-item]', (logos, colours) => logos.every(logo => {
     const hex = colours[logo.dataset.slug];
     const channels = [0,2,4].map(i => parseInt(hex.slice(i,i+2),16)/255).map(c => c <= .04045 ? c/12.92 : ((c+.055)/1.055)**2.4);
     const probe = document.createElement('span');
-    probe.style.color = channels[0]*.2126 + channels[1]*.7152 + channels[2]*.0722 < .2 ? 'var(--ink)' : '#'+hex;
+    probe.style.color = (channels[0]*.2126 + channels[1]*.7152 + channels[2]*.0722 + .05) / (.00251 + .05) < 3 ? 'var(--ink)' : '#'+hex;
     document.body.append(probe); const colour = getComputedStyle(probe).color; probe.remove();
     return getComputedStyle(logo.querySelector('.skill-icon')).backgroundColor === colour;
   }), colours));
+  check('TypeScript and Kotlin retain their brand fills', await p.evaluate(() => getComputedStyle(document.querySelector('[data-slug="typescript"] .skill-icon')).backgroundColor === 'rgb(49, 120, 198)' && getComputedStyle(document.querySelector('[data-slug="kotlin"] .skill-icon')).backgroundColor === 'rgb(127, 82, 255)'));
+  check('unselected globe depth opacity stays between .45 and 1', await p.$$eval('[data-sphere-item]', logos => logos.every(logo => +logo.style.opacity >= .45 && +logo.style.opacity <= 1)));
   check("sphere DOM stays flat over 3s idle spin", Math.abs(after.nodes - before.nodes) <= 5 && before.transform !== after.transform);
   await p.$eval('.skills-list button', el => el.click());
   await sleep(800);
@@ -320,7 +322,7 @@ async function sphereChecks(p) {
     await p.setViewport({ width: 1000, height: 900, deviceScaleFactor: 1 });
     await scrollTo(p, '[data-sphere]', 200);
     await p.$eval('.skills-list button', el => el.click()); await sleep(750);
-    await p.screenshot({ path: join(tmpdir(), 'claude/briefs/f5-globe.png') });
+    await p.screenshot({ path: join(tmpdir(), 'claude/briefs/f8-globe.png') });
     await p.keyboard.press('Escape');
     await p.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
   }
