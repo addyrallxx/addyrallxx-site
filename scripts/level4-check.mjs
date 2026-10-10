@@ -29,6 +29,11 @@ async function page(options = {}) {
   await p.evaluateOnNewDocument(() => {
     window.__f1 = { done: 0, scroll: 0, time: 0, renders: 0 };
     window.__introSamples = [];
+    window.__tachSamples = [];
+    window.addEventListener('intro:done', () => {
+      const until = performance.now() + 1100;
+      const sample = () => { const needle = document.querySelector('.tach-needle'); if (needle) window.__tachSamples.push(parseFloat(needle.style.transform.slice(7))); if (performance.now() < until) requestAnimationFrame(sample); }; requestAnimationFrame(sample);
+    });
     window.addEventListener("intro:done", () => { window.__f1.done++; window.__f1.doneAt = performance.now(); });
     const sample = setInterval(() => {
       const el = document.querySelector(".intro");
@@ -89,6 +94,7 @@ async function frameBudget(p, rate, spin = false) {
   await cdp.send("Emulation.setCPUThrottlingRate", { rate });
   await p.evaluate(spin => window.__lenis.scrollTo(spin ? document.querySelector("[data-sphere]").getBoundingClientRect().top + scrollY - 160 : 0, { immediate: true }), spin);
   await sleep(300);
+  const sphereBefore = spin ? await p.$eval('[data-sphere-item]', el => el.style.transform) : null;
   check("visible before frame probe", await p.evaluate(() => !document.hidden));
   const result = await p.evaluate(spin => new Promise(resolve => {
     const frames = [], tasks = [];
@@ -119,6 +125,7 @@ async function frameBudget(p, rate, spin = false) {
   }), spin);
   console.log(`FRAME ${result.width}x${result.height} CPU ${rate}x ${spin ? "sphere" : "scroll"} p95=${result.p95.toFixed(3)}ms frames=${result.frames} maxLongTask=${result.maxTask.toFixed(1)}ms`);
   check(spin ? "frame probe exercises canvas while sphere is visible" : "frame probe exercises canvas and Lenis", result.renders > 60 && (spin || result.peakScroll > result.max * .8));
+  if (spin) check('globe spins throughout sphere frame sample', sphereBefore !== await p.$eval('[data-sphere-item]', el => el.style.transform));
   budgets.push({ ...result, rate, spin });
   await cdp.send("Emulation.setCPUThrottlingRate", { rate: 1 });
   await cdp.detach();
@@ -154,6 +161,15 @@ async function f3Desktop(p) {
   check("desktop Work rows are exactly 96px", await p.$$eval(".work-row", rows => rows.every(row => row.getBoundingClientRect().height === 96)));
   check("first six home sections keep the specified order", await p.$$eval("main > section", sections => sections.length === 6 && [".hero-line", ".work-row", ".other-band", ".plain-row", "[data-sphere]", ".service-row"].every((selector, i) => sections[i].querySelector(selector))));
   check("Alongside school and Services render four rows each", await p.evaluate(() => document.querySelectorAll(".plain-row").length === 4 && document.querySelectorAll(".service-row").length === 4 && document.querySelector(".contact-pill").getAttribute("href") === "#contact"));
+  await p.mouse.move(1, 100);
+  await sleep(100);
+  await p.evaluate(() => {
+    window.__previewMounts = [];
+    window.__previewObserver = new MutationObserver(records => {
+      for (const record of records) for (const node of record.addedNodes) if (node instanceof Element && node.matches('.work-preview')) window.__previewMounts.push(node.style.transform);
+    });
+    window.__previewObserver.observe(document.querySelector('.work'), { childList: true, subtree: true });
+  });
   const row = await p.$eval(".work-row:nth-child(3)", el => { const r = el.getBoundingClientRect(); return { x: r.left + 400, y: r.top + r.height / 2 }; });
   await p.mouse.move(row.x, row.y);
   await p.waitForSelector(".work-preview");
@@ -167,40 +183,103 @@ async function f3Desktop(p) {
     const r = el.getBoundingClientRect(); return getComputedStyle(el).position === "fixed" && Math.abs(r.left - target.x) < 2 && Math.abs(r.top - target.y) < 2;
   }, after));
   await sharp(await p.screenshot()).resize({ width: 1000 }).toFile(join(tmpdir(), "claude/briefs/f3-work.png"));
+  await p.hover('.work-row:nth-child(4)');
+  await sleep(150);
+  check('Work previews mount positioned before paint on entry and row switch', await p.evaluate(() => {
+    window.__previewObserver.disconnect();
+    return window.__previewMounts.length === 2 && window.__previewMounts.every(transform => { const m = new DOMMatrix(transform); return transform !== 'none' && m.e > 0 && m.f > 0; });
+  }));
   await scrollTo(p, ".work-row:first-child");
   await p.hover(".work-row:first-child");
   check("projects without images have no floating preview", await p.$(".work-preview") === null);
   await scrollTo(p, ".other-band", 180);
+  check('Other things has one accessible heading and a concise link name', await p.$eval('.other-band', el => el.getAttribute('aria-label') === el.querySelector('h2').getAttribute('aria-label') && el.querySelector('.card-fan').getAttribute('aria-hidden') === 'true' && el.querySelectorAll('h2:not([aria-hidden="true"])').length === 1));
   await p.mouse.move(1, 100);
   await sleep(450); await fanMatrices(p, false);
   await p.hover(".other-band");
   await sleep(500); await fanMatrices(p, true);
   check("E92 stripe wipes fully on fan hover", await p.$eval(".car-stripe", el => getComputedStyle(el).clipPath === "inset(0px)"));
   await sharp(await p.screenshot()).resize({ width: 1000 }).toFile(join(tmpdir(), "claude/briefs/f3-fan.png"));
-  await p.mouse.move(1, 100);
+
+}
+async function tachChecks(p) {
   await p.evaluate(() => window.__lenis.scrollTo(0, { immediate: true }));
-  await sleep(100);
+  await sleep(1500);
+  const needleAngle = () => p.$eval('.tach-needle', el => parseFloat(el.style.transform.slice(7)));
+  check('tach rests at 800 rpm within 1deg', Math.abs(await needleAngle() + 96) <= 1);
   await p.evaluate(() => {
-    window.__revPeak = 1;
-    const until = performance.now() + 650;
-    const sample = () => { window.__revPeak = Math.max(window.__revPeak, new DOMMatrix(getComputedStyle(document.querySelector(".rev-bar")).transform).a); if (performance.now() < until) requestAnimationFrame(sample); };
-    requestAnimationFrame(sample); window.__lenis.scrollTo(1600);
+    window.__tachPeak = -96;
+    const until = performance.now() + 700;
+    const sample = () => { window.__tachPeak = Math.max(window.__tachPeak, parseFloat(document.querySelector('.tach-needle').style.transform.slice(7))); if (performance.now() < until) requestAnimationFrame(sample); };
+    requestAnimationFrame(sample); window.__lenis.scrollTo(2600, { duration: .5 });
   });
-  await sleep(650);
-  check("rev bar grows above 1.5 during Lenis scroll", await p.evaluate(() => window.__revPeak > 1.5));
+  await sleep(700);
+  check('tach exceeds 4000 rpm during fast Lenis scroll', await p.evaluate(() => window.__tachPeak > 0));
   await p.waitForFunction(() => Math.abs(window.__lenis.velocity) < .001);
-  await sleep(1200);
-  check("rev bar settles to 1 within 1.2s", await p.$eval(".rev-bar", el => Math.abs(new DOMMatrix(getComputedStyle(el).transform).a - 1) < .001));
+  await sleep(1500);
+  check('tach returns within 2deg of idle in 1.5s', Math.abs(await needleAngle() + 96) <= 2);
+  const flutter = await p.evaluate(() => new Promise(resolve => {
+    const lenis = window.__lenis, descriptor = Object.getOwnPropertyDescriptor(lenis, 'velocity');
+    Object.defineProperty(lenis, 'velocity', { configurable: true, get: () => 50, set: () => {} });
+    window.dispatchEvent(new Event('scroll'));
+    const start = performance.now(); let previous = -Infinity, fell = false;
+    const sample = now => {
+      const a = parseFloat(document.querySelector('.tach-needle').style.transform.slice(7));
+      if (now - start > 700 && a < previous - .05) fell = true;
+      previous = a;
+      if (now - start < 1600) requestAnimationFrame(sample);
+      else { if (descriptor) Object.defineProperty(lenis, 'velocity', descriptor); else delete lenis.velocity; resolve(fell); }
+    }; requestAnimationFrame(sample);
+  }));
+  check('tach limiter flutters while target stays above 7000 rpm', flutter);
+  await sleep(1500);
+  await p.evaluate(() => window.__lenis.scrollTo(0, { immediate: true }));
+  await sleep(1500);
+}
+async function tachScreenshots(p) {
+  for (const mode of ['day', 'night']) {
+    await p.evaluate(mode => window.dispatchEvent(new CustomEvent('sky:mode', { detail: { mode } })), mode);
+    await sleep(1950);
+    if (mode === 'night') check('night tach numeral computes to E9x orange', await p.$eval('.tach-number', el => getComputedStyle(el).fill === 'rgb(255, 140, 46)'));
+    await p.setViewport({ width: 1000, height: 900, deviceScaleFactor: 1 });
+    // Crop only at the top of the page, before any scroll at this viewport.
+    const box = { x: 0, y: 700, width: 1000, height: 200 };
+    await p.screenshot({ path: join(tmpdir(), 'claude/briefs/f35-tach-' + mode + '.png'), clip: box });
+    await p.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
+  }
 }
 async function sphereChecks(p) {
+  // Leave the prior Work hover so this measures idle spin rather than pill hover pause.
+  await p.mouse.move(1, 100);
   await scrollTo(p, "[data-sphere]");
-  const expected = (readFileSync("lib/content.ts", "utf8").split("export const SKILLS =")[1].split("export const SERVICES")[0].match(/name:/g) ?? []).length;
+  const names = [...readFileSync("lib/content.ts", "utf8").split("export const SKILLS =")[1].split("export const SERVICES")[0].matchAll(/name: "([^"]+)"/g)].map(match => match[1]);
+  const expected = names.length;
   const snapshot = () => p.evaluate(() => ({ count: document.querySelectorAll("[data-sphere-item]").length, nodes: document.querySelectorAll("*").length, transform: document.querySelector("[data-sphere-item]").style.transform }));
   const before = await snapshot();
   await sleep(3000);
   const after = await snapshot();
   check("sphere item count equals SKILLS item count", before.count === expected && after.count === expected);
+  check('every globe pill always shows its name', await p.$$eval('[data-sphere-item]', (pills, names) => pills.every((pill, i) => pill.textContent.trim() === names[i] && getComputedStyle(pill.querySelector('.sphere-label')).opacity === '1'), names));
   check("sphere DOM stays flat over 3s idle spin", Math.abs(after.nodes - before.nodes) <= 5 && before.transform !== after.transform);
+  await p.$eval('.skills-list button', el => el.click());
+  await sleep(750);
+  check('pressed group highlights its pills and caps the others', await p.evaluate(() => {
+    const button = document.querySelector('.skills-list button'), accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+    const probe = document.createElement('span'); probe.style.color = accent; document.body.append(probe); const colour = getComputedStyle(probe).color; probe.remove();
+    return button.getAttribute('aria-pressed') === 'true' && [...document.querySelectorAll('[data-sphere-item]')].every(pill => pill.dataset.group === '0' ? getComputedStyle(pill).borderColor === colour && +pill.style.opacity >= .5 : +pill.style.opacity <= .3);
+  }));
+  await p.keyboard.press('Escape');
+  check('Escape clears the selected group', await p.$$eval('.skills-list button', buttons => buttons.every(button => button.getAttribute('aria-pressed') === 'false')));
+  await p.$eval('.skills-list button', el => { el.click(); el.click(); });
+  check('pressing a group twice clears it', await p.$eval('.skills-list button', el => el.getAttribute('aria-pressed') === 'false'));
+  if (await p.evaluate(() => innerWidth > 700)) {
+    await p.setViewport({ width: 1000, height: 900, deviceScaleFactor: 1 });
+    await scrollTo(p, '[data-sphere]', 200);
+    await p.$eval('.skills-list button', el => el.click()); await sleep(750);
+    await p.screenshot({ path: join(tmpdir(), 'claude/briefs/f35-globe.png') });
+    await p.keyboard.press('Escape');
+    await p.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
+  }
   await p.evaluate(() => window.__lenis.scrollTo(0, { immediate: true }));
   await sleep(200);
   const stopped = await snapshot();
@@ -252,6 +331,7 @@ try {
   console.log(info);
   check("visible real Chrome", !info.hidden);
   check("single intro completion", info.done === 1);
+  check('tach performs its one start sweep', await p.evaluate(() => Math.max(...window.__tachSamples) > 115 && Math.abs(window.__tachSamples.at(-1) + 96) < 1));
   check("counter reaches 100", info.counter === "100");
   const intro = await p.evaluate(() => ({ samples: window.__introSamples, timing: window.__f1.doneAt - window.__f1.partAt,
     ...window.__f1.halves, height: innerHeight }));
@@ -267,6 +347,7 @@ try {
   check("Instrument body", info.body.includes("Instrument"));
   check("no horizontal overflow", info.width === info.viewport);
   await heroBounds(p);
+  await tachScreenshots(p);
   await p.evaluate(() => window.dispatchEvent(new CustomEvent("sky:mode", { detail: { mode: "day" } })));
   await sleep(1950);
   await sharp(await p.screenshot()).resize({ width: 1000 }).toFile(join(tmpdir(), "claude/briefs/f2-hero.png"));
@@ -298,6 +379,7 @@ try {
   await sleep(250);
   check("sky keeps rendering on blur", await p.evaluate((count) => window.__f1.renders > count, blurred));
   await f3Desktop(p);
+  await tachChecks(p);
   await sphereChecks(p);
   await sweepPage(p);
   await frameBudget(p, 1);
@@ -325,6 +407,8 @@ try {
   await sweepPage(mobile);
   check("phone no overflow after scrolling whole page", await mobile.evaluate(() => document.documentElement.scrollWidth === innerWidth));
   await frameBudget(mobile, 1);
+  await frameBudget(mobile, 4);
+  await frameBudget(mobile, 4);
   await frameBudget(mobile, 4);
   await frameBudget(mobile, 1, true);
   await frameBudget(mobile, 4, true);
@@ -359,7 +443,10 @@ try {
   await reduced.$eval("[data-sphere]", el => el.scrollIntoView());
   const staticSphere = await reduced.$eval("[data-sphere-item]", el => el.style.transform);
   await sleep(300);
-  check("reduced sphere is static and rev bar rests", await reduced.evaluate(transform => document.querySelector("[data-sphere-item]").style.transform === transform && new DOMMatrix(getComputedStyle(document.querySelector(".rev-bar")).transform).a === 1, staticSphere));
+  check("reduced sphere is static and tach rests without sweep", await reduced.evaluate(transform => document.querySelector("[data-sphere-item]").style.transform === transform && parseFloat(document.querySelector(".tach-needle").style.transform.slice(7)) === -96 && window.__tachSamples.every(a => a === -96), staticSphere));
+  await reduced.$eval('.skills-list button', el => el.click());
+  await sleep(750);
+  check('reduced group highlight works without a globe turn', await reduced.evaluate(transform => document.querySelector('.skills-list button').getAttribute('aria-pressed') === 'true' && document.querySelector('[data-sphere-item]').dataset.selected === 'true' && document.querySelector('[data-sphere-item]').style.transform === transform, staticSphere));
   await reduced.close();
 
   const nojs = await page();

@@ -6,7 +6,7 @@ import { CHROME, NAV, SITE } from "@/lib/content";
 import "@/lib/scroll";
 import { Clocks } from "./clocks";
 import { SkyToggle } from "./sky-toggle";
-import { RevBar } from "./rev-bar";
+import { Tach } from "./tach";
 
 export function Chrome() {
   const sheet = useRef<HTMLDialogElement>(null);
@@ -16,15 +16,24 @@ export function Chrome() {
   const close = () => sheet.current?.close();
   useEffect(() => {
     const dialog = sheet.current;
+    const hero = document.querySelector(".hero");
+    let heroHeight = hero?.clientHeight ?? window.innerHeight;
+    let pastHero: boolean | undefined;
     const onScroll = () => {
-      if (bottom.current) bottom.current.dataset.pastHero = String(window.scrollY >= (document.querySelector(".hero")?.clientHeight ?? window.innerHeight));
+      const lenis = window.__lenis;
+      const past = (lenis?.isScrolling === "smooth" ? lenis.animatedScroll : window.scrollY) >= heroHeight;
+      // Cached Lenis position avoids flushing styles after animated DOM writes.
+      if (bottom.current && past !== pastHero) { bottom.current.dataset.pastHero = String(past); pastHero = past; }
     };
+    const observer = new ResizeObserver(entries => { heroHeight = entries[0].target.clientHeight; onScroll(); });
+    if (hero) observer.observe(hero);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     const resize = () => { onScroll(); if (window.innerWidth >= 720) close(); };
     window.addEventListener("resize", resize);
     return () => {
       window.removeEventListener("scroll", onScroll);
+      observer.disconnect();
       window.removeEventListener("resize", resize);
       if (dialog?.open) {
         document.body.style.overflow = previousOverflow.current;
@@ -46,7 +55,7 @@ export function Chrome() {
   return <>
     <div className="chrome t-small">
       <header className="chrome-top">
-        <div className="chrome-name"><Link href="/">{SITE.name}</Link><RevBar /></div>
+        <div className="chrome-name"><Link href="/">{SITE.name}</Link></div>
         <nav className="chrome-nav" aria-label={CHROME.menu}>
           {NAV.map((link) => <a href={link.href} key={link.href}>{link.label}</a>)}
           <button ref={menu} className="menu-button" type="button" onClick={open} aria-haspopup="dialog" aria-controls="phone-menu">{CHROME.menu}</button>
@@ -54,6 +63,7 @@ export function Chrome() {
         </nav>
       </header>
       <div className="chrome-bottom" ref={bottom}>
+        <Tach />
         <Clocks />
         <p className="availability"><span className="live-dot" data-day="true" aria-hidden="true" />{CHROME.availability}</p>
       </div>

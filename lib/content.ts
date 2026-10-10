@@ -30,6 +30,7 @@ export const NAV = [
 ] satisfies Link[];
 
 export const CHROME = {
+  tach: "1/min x1000",
   clocks: [
     { city: "Calgary", zone: "America/Edmonton" },
     { city: "Dhaka", zone: "Asia/Dhaka" },
@@ -233,7 +234,7 @@ export const OTHER = {
   items: [
     { name: "This site", line: "Two skies, one page. Next.js, Three.js and GSAP.", image: null },
     { name: "Motion studio", line: "Product reels made in code with Remotion.", image: null },
-    { name: "The E92", line: "335xi, BMW Individual Bernina Grey wrap, mostly built by me.", image: { src: "/e92/bay.jpg", alt: "Grey BMW E92 coupe with the bonnet up and halo headlights on" } },
+    { name: "The E92", line: "335xi in BMW Individual Bernina Grey, mostly built by me.", image: { src: "/e92/bay.jpg", alt: "Grey BMW E92 coupe with the bonnet up and halo headlights on" } },
   ],
 };
 
@@ -254,7 +255,7 @@ export const METHOD = {
 
 export const INFO = {
   label: "Info",
-  bio: "Born in Dhaka, studying computer science in Calgary, graduating April 2028. I co-run Puzzled and I'm stepping in as managing director of TotalTex, the trims factory my father founded. Off the clock: an E92 335xi, wrapped in BMW Individual Bernina Grey, mostly built by me.",
+  bio: "Born in Dhaka, studying computer science in Calgary, graduating April 2028. I co-run Puzzled and I'm stepping in as managing director of TotalTex, the trims factory my father founded. Off the clock: an E92 335xi in BMW Individual Bernina Grey, mostly built by me.",
   lists: [
     {
       label: "Now",

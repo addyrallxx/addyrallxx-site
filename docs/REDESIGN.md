@@ -486,3 +486,71 @@ the bezel and a faint face vignette.
 - **Start sweep.** On `intro:done`, the needle sweeps to 8 and back to idle
   over 900ms (the coded E9x gauge sweep). Once per load.
 - **Reduced motion.** Static at idle, no sweep.
+
+### F3.5 implementation notes (2026-10-10)
+
+The tach and globe follow sections 13 and 14. Section 12 moment 2 is the
+bottom-left tach, with the header rev bar deleted. No threshold was raised.
+
+**Decisions I made where the spec is silent:**
+
+- The tach uses a 90-unit working radius inside the 200-unit SVG, with room
+  for the bezel. The legend is 8 units. The 900ms sweep uses a sine-squared
+  curve, reaching 8000 rpm halfway through and returning to 800 rpm.
+- Pills have an 8px icon-to-name gap. A selected group holds its centroid
+  facing front until cleared; then idle spin and the 18deg tilt return.
+- Hover spin uses a 100ms exponential time constant (about 98 percent
+  settled after the specified 400ms). The X return uses a critically
+  damped rate of 12 per second (about 99 percent settled after 600ms).
+- The phone availability text is capped at 125px to fit the 64px tach and
+  the clocks in the existing bottom chrome.
+- Work previews keep their image-change remount, which resets the specified
+  colour bloom. A layout effect positions each new preview before paint.
+
+**Phone profiling:** a cold 390x844, 4x CPU profile reproduced a 61ms task.
+The sky scroll handler's native scrollY read synchronously flushed pending
+styles, including 12.6ms of UpdateLayoutTree in that task. Chrome also read
+hero geometry and rewrote its boundary attribute on every scroll. Hero
+height now comes from ResizeObserver; the attribute changes only at a
+boundary crossing. Chrome and sky use Lenis's cached animated position
+while smooth scrolling, with the native position retained for native scroll.
+
+Before the final cached-position fix, one trace showed 176 forced style
+updates and 16 forced layouts inside 357 sky scroll calls. After the fix,
+411 calls caused zero forced style updates and zero forced layouts. Three
+cold profiled phone samples passed at p95 24.9, 20.9 and 20.9ms, with no
+long tasks. Traces and CPU profiles are in the temporary briefs folder;
+f35-profile-61ms.json preserves the reproduction.
+
+**Outside review dispositions:** the review was absent at task start and
+appeared during implementation. HIGH 1 is resolved by deleting RevBar and
+using a 5 rpm settling tolerance in Tach. HIGH 2 is confirmed and fixed by
+positioning Work previews before paint. HIGH 5 is confirmed and fixed by
+removing the globe overlap pass and transient projection objects. HIGH 6
+is confirmed and fixed with one accessible Other things heading, a concise
+link name and a decorative fan hidden from assistive technology.
+
+HIGH 3 is false: the existing reduced-motion rule already sets animation:
+none !important for all elements and pseudo-elements. HIGH 4 is false for
+current Safari: WebKit documented unprefixed mask support in Safari 15.4
+(https://webkit.org/blog/12445/new-webkit-features-in-safari-15-4/). MEDIUM 7
+is false: the cited CSS is already enclosed in @layer components. The
+remaining lower-severity review items are outside this brief's required
+HIGH fixes. Physical phone and Safari testing was not performed.
+
+**Final exit checks:** TypeScript, copy gate and production build pass.
+npm run verify passes 125 real-Chrome checks against the owned 3100 server
+(PID 7588, confirmed with netstat). All eight required budgets pass, plus
+two extra phone 4x scroll repeats. The final phone 4x scroll p95 readings
+are 12.6, 12.6 and 12.6ms. Desktop scroll is 4.3ms at 1x and 16.7ms at 4x;
+desktop globe is 4.4ms at 1x and 12.6ms at 4x; phone scroll is 4.3ms at 1x;
+phone globe is 4.3ms at 1x and 12.5ms at 4x. Every sample has zero long tasks.
+The harness verifies that the globe spins during each globe budget sample.
+
+Captures: f35-tach-day.png and f35-tach-night.png are 1000px-wide bottom
+viewport regions captured before the first page scroll. f35-globe.png is
+a 1000px-wide viewport after scrolling, with Languages pressed. All use
+deviceScaleFactor 1 and live real Chrome. Files are under
+C:/Users/adnan/AppData/Local/Temp/claude/briefs/. No physical handset or
+Safari run is claimed. No conflict between this brief and the design spec
+required an exception.

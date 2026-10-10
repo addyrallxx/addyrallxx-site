@@ -89,7 +89,11 @@ export function Sky() {
           dx += deltaX; dy += deltaY;
           speed = Math.max(speed,velocity);
         };
-        const scroll = () => { uniforms.uScroll.value = window.scrollY; };
+        // scrollY can synchronously flush pending animated styles and layout.
+        const scroll = () => {
+          const lenis = window.__lenis;
+          uniforms.uScroll.value = lenis?.isScrolling === "smooth" ? lenis.animatedScroll : window.scrollY;
+        };
         const intro = () => { uniforms.uIntro.value = 1; };
         const tick = (now: number) => {
           if (disposed || paused) return;

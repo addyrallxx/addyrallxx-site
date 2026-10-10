@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { WORK, WORK_LABEL } from "@/lib/content";
@@ -17,12 +17,14 @@ export function Work() {
     update(); media.addEventListener("change", update);
     return () => media.removeEventListener("change", update);
   }, []);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = preview.current;
     if (!el || active === null) return;
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
-    let frame = 0, x = pointer.current.x, y = pointer.current.y;
+    let frame = 0;
     let width = innerWidth, height = innerHeight;
+    let x = Math.max(0, Math.min(pointer.current.x + 24, width - 320));
+    let y = Math.max(0, Math.min(pointer.current.y + 24, height - 220));
     const resize = () => { width = innerWidth; height = innerHeight; };
     const tick = () => {
       frame = 0;
@@ -37,7 +39,8 @@ export function Work() {
     };
     const move = (event: PointerEvent) => { pointer.current = { x: event.clientX, y: event.clientY }; if (!frame) frame = requestAnimationFrame(tick); };
     const clear = () => setActive(null);
-    frame = requestAnimationFrame(tick);
+    // Position the newly mounted image before paint, including row switches.
+    tick();
     const bloom = window.setTimeout(() => { el.dataset.colour = "true"; }, 400);
     window.addEventListener("pointermove", move, { passive: true });
     window.addEventListener("resize", resize);
