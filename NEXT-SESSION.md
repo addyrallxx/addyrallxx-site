@@ -1,5 +1,32 @@
 # Portfolio rebuild handoff
 
+## F8 completion, 2026-10-10
+
+F8 finishes Contact, the Work index and five static project pages, the shared
+route wipe, 12 hour clocks, the bottom chrome scrim and the School no-grades
+guard. TypeScript and Kotlin keep their brand colours; globe depth runs .45
+to 1 without selection. Each part is committed and pushed to level4 and then
+fast-forwarded to main only after tsc, copy-gate, build and real Chrome verify
+pass on the agent's confirmed port 3100 server. Frame thresholds stay intact.
+
+Missing copy: project metadata labels Kind, Year, Stack and Status, and the
+What it does heading. These labels render nothing. Supplied project values
+and does lines render. FitTrack shows its supplied status instead of its live
+link while the existing history-cleanup restriction is unresolved. Questions
+stays hidden while FAQ.items is empty.
+
+The progress ledger and final production verification status are at
+`C:/Users/adnan/AppData/Local/Temp/claude/briefs/f8-progress.md`. The four
+requested 1000px viewport captures are there as f8-globe.png, f8-contact.png,
+f8-work-page.png and f8-clocks.png. Clock-only F7 capture and progress are
+also there. Bottom chrome contrast is measured against captured E92 pixels
+in both skies. Its tertiary period token is locally strengthened for 4.5:1.
+
+Concurrent lib/content.ts copy edits and public/e92/profile.jpg are outside
+F8 ownership and remain unstaged. Browser evidence is real Chrome with phone
+emulation, not physical phone hardware. Read the ledger for final deployment
+state before treating the older handoffs below as current.
+
 Read `GOAL.md` first (cold-start plan of record, carries the Level 4
 objective), then this file for current state, then `CLAUDE.md` for operating
 rules, then `docs/REDESIGN.md` (design of record) and `bar.md`. `PLAN.md`

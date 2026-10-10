@@ -362,6 +362,15 @@ async function schoolChecks() {
   await sleep(1100);
   check('School uses night sky and the shared chrome', await p.evaluate(() => document.documentElement.dataset.mode === 'night' && !!document.querySelector('.chrome') && !!document.querySelector('.sky')));
   check('School has four facts, three sections, supplied courses and a back link', await p.evaluate(() => document.querySelectorAll('.page-facts > div').length === 4 && document.querySelectorAll('.school-section-row').length === 3 && document.querySelectorAll('.school-course-row li').length === 14 && document.querySelector('.back-link').getAttribute('href') === '/'));
+  const hasCourseGrade = text => [...text.matchAll(/\b[A-Z]{2,5}\s*\d{3}\b/g)].some(code => {
+    const before = text.slice(0, code.index).trim().replace(/[:|,]\s*$/, '').trim().split(/\s+/).at(-1) ?? '';
+    const after = text.slice(code.index + code[0].length).trim().replace(/^[:|,-]\s*/, '').split(/\s+/)[0] ?? '';
+    return [before, after].some(token => { token = token.replace(/^[(),|:]+|[(),|:]+$/g, ''); return /^[A-DF][+-]?$/.test(token) && /\b[A-DF][+-]?\b/.test(token); });
+  });
+  check('school grade guard catches adjacent grades and preserves real course titles', ['CPSC 331 A', 'CPSC331: B+', 'A- | CPSC 331', 'CPSC 331 (F)'].every(hasCourseGrade) && ['CPSC 331 Data Structures, Algorithms and Analysis', 'CPSC 365 C++ Programming', 'CPSC 413 Design and Analysis of Algorithms'].every(text => !hasCourseGrade(text)));
+  const schoolText = await p.$eval('main', el => el.innerText);
+  check('/school text has no GPA', !/GPA/i.test(schoolText));
+  check('/school text has no letter grade beside a course code', !hasCourseGrade(schoolText));
   await p.screenshot({ path: join(tmpdir(), 'claude/briefs/f5-school.png') });
   await p.setViewport({ width: 390, height: 844, deviceScaleFactor: 1 });
   check('School phone layout has no overflow', await p.evaluate(() => document.documentElement.scrollWidth === innerWidth));
@@ -413,6 +422,7 @@ async function projectChecks() {
     const response = await p.goto(new URL('/work/' + projects[i], url).href, { waitUntil: 'networkidle0' });
     await p.waitForFunction(() => document.documentElement.dataset.intro === 'done');
     check(projects[i] + ' returns its static project page and wrapping next link', response.status() === 200 && await p.evaluate(({ slug, next }) => document.querySelector('main').dataset.project === slug && document.querySelectorAll('.project-meta li').length === 4 && document.querySelectorAll('.project-does li').length >= 3 && document.querySelector('.next-project').getAttribute('href') === '/work/' + next, { slug: projects[i], next: projects[(i + 1) % projects.length] }));
+    if (projects[i] === 'fittrack') check('FitTrack uses supplied status while its live link is withheld', await p.evaluate(() => !document.querySelector('.project-meta a') && document.querySelector('.project-meta li:last-child').textContent === 'Live'));
     await sweepPage(p);
     check(projects[i] + ' project imagery loads and missing imagery renders nothing', await p.evaluate(() => [...document.querySelectorAll('.project-page img')].every(image => image.complete && image.naturalWidth > 0) && (!document.querySelector('.project-cover') || !!document.querySelector('.project-cover img'))));
     if (projects[i] === 'totaltex-web') {

@@ -46,7 +46,7 @@ export function GlyphPit() {
           if (j !== drag) { b.vx -= impulse * nx; b.vy -= impulse * ny; }
         }
       }
-      // This is a footer illustration. Cap the drop at the authored 1.5s settle.
+      // ponytail: footer physics settles into a row after 1.5s, not a persistent simulation.
       if (drag < 0 && now >= settleAt) rest();
       else paint();
       quiet = drag < 0 && bodies.every(b => Math.hypot(b.vx, b.vy, b.spin) < .05) ? quiet + 1 : 0;

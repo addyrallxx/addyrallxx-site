@@ -18,10 +18,12 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
   const index = WORK.findIndex(item => item.slug === slug);
   if (index < 0) notFound();
   const project = WORK[index], next = WORK[(index + 1) % WORK.length];
+  // NEXT-SESSION.md withholds FitTrack links until its history cleanup is confirmed.
+  const liveLink = project.slug === "fittrack" ? undefined : project.link;
   return <main id="main" className="project-page" data-project={project.slug}>
     <section className="home-section page-hero"><SectionReveal>
       <h1 className="t-display-l section-heading" aria-label={project.name}><span className="section-line"><span>{project.name}</span></span></h1>
-      <ul className="project-meta t-small"><li>{project.kind}</li><li>{project.year}</li><li>{project.stack.join(", ")}</li><li>{project.link ? <a href={project.link.href} target="_blank" rel="noopener noreferrer">{project.link.label}</a> : project.status}</li></ul>
+      <ul className="project-meta t-small"><li>{project.kind}</li><li>{project.year}</li><li>{project.stack.join(", ")}</li><li>{liveLink ? <a href={liveLink.href} target="_blank" rel="noopener noreferrer">{liveLink.label}</a> : project.status}</li></ul>
       <p className="t-body section-body">{project.lead}</p>
     </SectionReveal></section>
     {project.images[0] && <div className="project-cover"><Image src={project.images[0].src} alt={project.images[0].alt} fill sizes="100vw" priority /></div>}
