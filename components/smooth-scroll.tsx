@@ -41,7 +41,7 @@ export default function SmoothScroll() {
       gsap.registerPlugin(ScrollTrigger);
 
       lenis = new Lenis({
-        lerp: 0.09,
+        lerp: 0.1,
         wheelMultiplier: 0.9,
         touchMultiplier: 1.4,
       });

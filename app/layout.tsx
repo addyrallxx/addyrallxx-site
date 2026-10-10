@@ -1,117 +1,34 @@
 import type { Metadata } from "next";
-import { Archivo, Manrope, Instrument_Serif, JetBrains_Mono } from "next/font/google";
+import { Archivo, Instrument_Sans } from "next/font/google";
 import SmoothScroll from "@/components/smooth-scroll";
-import { Preloader } from "@/components/ui/preloader";
-import { Starfield } from "@/components/ui/starfield";
-import { Cosmos } from "@/components/ui/cosmos";
+import { Sky } from "@/components/sky/sky";
+import { Intro } from "@/components/intro/intro";
+import { Chrome } from "@/components/chrome/chrome";
+import { SITE, CHROME } from "@/lib/content";
 import "./globals.css";
 
-/*
-  Four faces, each with one job, and none of them Inter.
+const archivo = Archivo({ variable: "--font-display", axes: ["wdth"], subsets: ["latin"], display: "swap" });
+const instrument = Instrument_Sans({ variable: "--font-body", weight: ["400", "500"], subsets: ["latin"], display: "swap" });
 
-  Archivo is the display face: an industrial grotesque with a width axis,
-  which is what lets a hero headline sit at 112px without looking like a
-  system font scaled up. Manrope carries body text, geometric enough to
-  pair with Archivo and warm enough to read at length. Instrument Serif
-  appears only inside the warm paper section, where it replaces Archivo for
-  headings and does half the work of the tonal break. JetBrains Mono is for
-  figures, tags and labels, never for prose.
-*/
-const archivo = Archivo({
-  variable: "--font-display",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const manrope = Manrope({
-  variable: "--font-sans",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const instrumentSerif = Instrument_Serif({
-  variable: "--font-serif",
-  subsets: ["latin"],
-  weight: "400",
-  display: "swap",
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-mono",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-// One description string, declared once. It was written out twice, so the
-// two copies could drift apart silently.
-const DESCRIPTION =
-  "Computer science at the University of Calgary. I co-run Puzzled, which runs the online side of more than seven Calgary dealerships, and I built the order system TotalTex runs on in Dhaka.";
 export const metadata: Metadata = {
   metadataBase: new URL("https://addyrallxx-site.vercel.app"),
-  title: {
-    default: "Adnan Shakib",
-    template: "%s | Adnan Shakib",
-  },
-  description:
-    DESCRIPTION,
-  openGraph: {
-    title: "Adnan Shakib",
-    description:
-      DESCRIPTION,
-    type: "website",
-    locale: "en_CA",
-  },
+  title: { default: SITE.name, template: `%s | ${SITE.name}` },
+  description: SITE.description,
+  openGraph: { title: SITE.name, description: SITE.description, type: "website", locale: "en_CA" },
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+const modeScript = `(()=>{let mode;try{mode=localStorage.getItem("sky")}catch{}if(mode!=="day"&&mode!=="night"){const hour=Number(new Intl.DateTimeFormat("en-GB",{timeZone:"America/Edmonton",hour:"2-digit",hourCycle:"h23"}).format(new Date()));mode=hour>=7&&hour<19?"day":"night"}document.documentElement.dataset.mode=mode})()`;
+
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    // No "js" class, and no noscript counter-rule.
-    //
-    // Both used to exist so scroll reveals could start hidden from the very
-    // first paint. The problem was that the hidden state applied before any
-    // JavaScript had proven it could run, so a failed hydration or a dropped
-    // chunk left every section at opacity 0 on top of correct server
-    // rendered markup. The noscript rule did not help, because scripting was
-    // enabled, it had just failed. Reveal now arms the hidden state itself
-    // on mount, so the page fails open. See components/reveal.tsx.
-    <html lang="en">
-      <body
-        className={`${archivo.variable} ${manrope.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable} antialiased`}
-      >
-        <a
-          href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-sm focus:bg-surface-2 focus:px-4 focus:py-2 focus:font-mono focus:text-[length:var(--step--1)] focus:text-ink"
-        >
-          Skip to content
-        </a>
-        {/*
-          Lenis is mounted now. The previous build deliberately left it out
-          because the Three.js world already eased toward the scroll target
-          at 0.05 per frame, so smoothing the scroll underneath that damped
-          the motion twice and made the world lag the wheel. That world has
-          been deleted, so the conflict is gone and the component finally
-          does the job it was ported for. It no-ops under reduced motion.
-        */}
+    <html lang="en" data-mode="day" suppressHydrationWarning>
+      <head><script dangerouslySetInnerHTML={{ __html: modeScript }} /></head>
+      <body className={`${archivo.variable} ${instrument.variable} antialiased`}>
+        <a href="#main" className="skip-link">{CHROME.skip}</a>
         <SmoothScroll />
-        {/*
-          Fixed, inert, aria-hidden roots at z-index 0. Cosmos paints first,
-          then the stars. Body stays transparent; the content gets its own
-          positioned context above both layers. Never restore an opaque body
-          or the old negative background z-index (see globals.css).
-        */}
-        <Cosmos />
-        <Starfield />
-        {/*
-          An overlay, never a gate: children are server rendered right here
-          underneath it on every load, preloader or not. Preloader decides
-          for itself whether to show (see the reduced-motion and
-          sessionStorage checks inside it) and never controls this tree.
-        */}
-        <Preloader />
+        <Sky />
+        <Intro />
+        <Chrome />
         <div className="relative z-[1]">{children}</div>
       </body>
     </html>

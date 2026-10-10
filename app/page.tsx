@@ -1,49 +1,40 @@
-import { About } from "@/components/sections/about";
-import { Contact } from "@/components/sections/contact";
-import { Currently } from "@/components/sections/currently";
-import { Education } from "@/components/sections/education";
-import { Experience } from "@/components/sections/experience";
-import { Hero } from "@/components/sections/hero";
-import { Mindset } from "@/components/sections/mindset";
-import { NextUp } from "@/components/sections/next-up";
-import { SiteFooter } from "@/components/sections/site-footer";
-import { Skills } from "@/components/sections/skills";
-import { Work } from "@/components/sections/work";
-import { SiteHeader } from "@/components/ui/site-header";
+"use client";
 
-/*
-  Section order, and why it is this one.
+import { useEffect, useRef, type CSSProperties } from "react";
+import { HERO } from "@/lib/content";
 
-  Experience sits above Selected work deliberately. The site has to serve a
-  recruiter filling an internship, a dealership owner, and a freelance
-  client at the same time, and the only fact that lands with all three is
-  that he co-runs a business with paying clients and is taking over a
-  factory. A recruiter's eye also goes hunting for an experience section
-  first and gives up quickly when there is not one.
-
-  Off the clock is the single warm section, and it sits late on purpose: by
-  the time the ground turns to paper the reader already knows what he has
-  built, so the personal material reads as a person rather than as padding.
-*/
 export default function Home() {
+  const hero = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const el = hero.current!;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let timer = 0;
+    const rise = () => {
+      el.classList.remove("hero-armed");
+      if (!reduced.matches) el.classList.add("hero-rise");
+    };
+    if (document.documentElement.dataset.intro === "done") rise();
+    else {
+      el.classList.add("hero-armed");
+      // A dropped intro chunk must not leave the headline hidden.
+      timer = window.setTimeout(rise, 4000);
+    }
+    window.addEventListener("intro:done", rise);
+    return () => { clearTimeout(timer); window.removeEventListener("intro:done", rise); };
+  }, []);
   return (
-    <>
-      <SiteHeader />
-
-      <main id="main">
-        <Hero />
-        <Currently />
-        <Mindset />
-        <Experience />
-        <Work />
-        <NextUp />
-        <Skills />
-        <Education />
-        <About />
-        <Contact />
-      </main>
-
-      <SiteFooter />
-    </>
+    <main id="main">
+      <section className="hero" ref={hero}>
+        <h1 className="t-display-xl" aria-label={HERO.lines.join(" ")}>
+          {HERO.lines.map((line, i) => (
+            <span className="hero-line" aria-hidden="true" key={line}>
+              <span style={{ "--line-index": i } as CSSProperties}>{line}</span>
+            </span>
+          ))}
+        </h1>
+        <p className="hero-lead t-body">{HERO.lead}</p>
+      </section>
+      <section id="work" className="h-[200vh] px-[var(--gutter)] pt-[var(--u)]"><h2 className="t-display-l">Work</h2></section>
+    </main>
   );
 }

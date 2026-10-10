@@ -1,693 +1,117 @@
 @import "tailwindcss";
-@import "./headings.css";
-@import "./media.css";
-@import "./space.css";
-@import "./motion.css";
-
-/*
-  Design system: "deep field, paper break".
-
-  Two tones, one system. Most of the site is a near black navy, set in a
-  wide industrial sans, sitting in front of a real 3D star volume and an
-  atmospheric bloom layer. Colour on screen comes from three places and no
-  others: real photography, product screenshots, and the stars themselves.
-  At the personal chapter the ground flips to warm paper and the display
-  face switches to a high contrast serif. That tonal break is the
-  storytelling: the site turns warm exactly where the subject does.
-
-  The governing idea is a two temperature system taken from the spiral
-  galaxy photography Adnan picked as the reference. Everything structural is
-  cold. Everything warm is a point of light in the background that cannot be
-  clicked. The interface never competes with the sky for attention.
-
-  Linear is the second reference, for the discipline of one chromatic accent
-  that appears on focus rings and a small number of intentional calls to
-  action and nowhere else.
-
-  What this deliberately is not: near black plus amber plus Inter plus a
-  decorative monospace. That combination is the default look of an AI built
-  portfolio and it is what the first version of this site shipped.
-*/
-
-@theme inline {
-  --color-canvas: var(--canvas);
-  --color-surface-1: var(--surface-1);
-  --color-surface-2: var(--surface-2);
-  --color-hairline: var(--hairline);
-  --color-hairline-strong: var(--hairline-strong);
-  --color-ink: var(--ink);
-  --color-ink-muted: var(--ink-muted);
-  --color-ink-subtle: var(--ink-subtle);
-  --color-accent: var(--accent);
-  --color-accent-deep: var(--accent-deep);
-
-  --font-display: var(--font-display);
-  --font-sans: var(--font-sans);
-  --font-serif: var(--font-serif);
-  --font-mono: var(--font-mono);
-}
 
 :root {
-  /*
-    Colour, the deep field.
-
-    Navy cast, not a warm near black and not a pure OLED void. It has to be
-    dark enough that a sparse star field reads against it and light enough
-    that panels still separate. Linear's #010102 is too absolute and kills
-    panel separation; The Verge's #131313 is warm and reads as newsprint.
-    Panels step up in small increments so a screenshot framed in a panel
-    separates from the page without a border doing all the work.
-  */
-  --canvas: #04050f;
-  /* Held separately and never overridden by a tone scope, so the seam
-     gradients in the warm section can still reach for the graphite. */
-  --canvas-dark: #04050f;
-  --surface-1: #0b0e1c; /* cards, framed screenshots */
-  --surface-2: #121629; /* raised, hover */
-  --hairline: #1b2036;
-  --hairline-strong: #2a3050;
-
-  --ink: #f1f2f7; /* 18.17:1 on canvas. Bone, not pure white. */
-  --ink-muted: #a4a9c2; /* 8.74:1 on canvas */
-  --ink-subtle: #7b809b; /* 5.23:1 on canvas, 4.61:1 on surface-2. */
-
-  /*
-    The one accent. Ion blue, and the reasoning is worth keeping because the
-    obvious choice was wrong twice in a row.
-
-    It was amber, which is the default look of an AI built portfolio and was
-    rejected with the rest of that build. It was then automotive red, on the
-    argument that the through line of the site is cars. Adnan rejected that
-    too, and he was right for a reason the car argument missed: the site is
-    now a galaxy. The reference photography he picked is emotionally and
-    chromatically COLD, deep navy with blue white cores, and the only warm
-    things in frame are individual stars. A warm accent puts the interface in
-    direct competition with the one thing the background does well.
-
-    So the entire interactive layer goes cold and the warmth lives only in
-    the star field, where it cannot be clicked. That is the strictest reading
-    of the two temperature system in the reference: a cold vast ground, a
-    cold vast interface, warm points of light you cannot touch.
-
-    Not the Tailwind violet that every AI product ships. This is pushed
-    deliberately bluer, off that centroid, so it reads as star light rather
-    than as branding.
-
-    Measured, not estimated: 6.81:1 on canvas, and canvas coloured text ON
-    the accent is the same 6.81:1, which is what the primary button uses.
-
-    WHITE ON THE DEFAULT ACCENT IS 2.98:1 AND FAILS. Do not "fix" a button
-    into white text without re-measuring. White is only legal on
-    --accent-deep, where it measures 6.08:1, which is exactly what the hover
-    state already does.
-
-    Budget: focus rings, rules, link underlines, and exactly one primary call
-    to action per screen. If it appears more than about six times in a single
-    viewport, something has gone wrong. scripts/verify.mjs enforces that
-    count against the live page.
-  */
-  --accent: #7b8cff;
-  --accent-deep: #4a56c8;
-
-  /*
-    M tricolour. Used once, as a 3px rule at the single car moment. Never as
-    a gradient, never as a background, never anywhere else on the site.
-  */
-  --m-blue-light: #6cb2e4;
-  --m-blue-dark: #1b4fa0;
-  --m-red: #e7222e;
-
-  /*
-    Ambient bloom hues, for the deep space layer only.
-
-    These exist because the one accent rule was solving the wrong problem in
-    the background. A single red on a flat near black gives a disciplined
-    interface and a dead ground: nothing behind the content has any depth,
-    so panels sit ON the page rather than IN a space. These three hues are
-    the answer, and the rule that keeps the discipline intact is that they
-    are only ever legal at very low alpha inside the fixed Cosmos layer.
-
-    Never on text. Never on a border. Never on a control. Never as a fill
-    anything sits on top of at readable opacity. If one of these shows up as
-    a recognisable shape rather than as depth, the alpha is too high.
-  */
-  --bloom-indigo: #2d3f9e;
-  --bloom-teal: #1d6672;
-  --bloom-ember: #7a3a2e; /* the only warm thing in the system, and it is unclickable */
-
-  /*
-    Elevation, for panels that are meant to read as floating in that space
-    rather than printed on it. Two shadows per float: a wide soft one for
-    the drop, a tight one for the contact edge, which is what stops a large
-    blur reading as fog.
-  */
-  --glass-bg: rgba(11, 14, 28, 0.55);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --shadow-float: 0 24px 60px -20px rgba(0, 0, 0, 0.8),
-    0 2px 8px -2px rgba(0, 0, 0, 0.6);
-  --shadow-lift: 0 40px 90px -28px rgba(0, 0, 0, 0.85),
-    0 4px 12px -4px rgba(0, 0, 0, 0.7);
-  --glow-accent: 0 0 40px -8px rgba(123, 140, 255, 0.35);
-
-  /*
-    Type scale. Fluid clamp() interpolated between a 375px and a 1440px
-    viewport, ratio 1.2 opening to 1.333 so hierarchy sharpens as the
-    viewport grows. Body resolves 16px to 18px. Nothing drops below 13.3px.
-
-    step-6 is new and it is the reason the old build read as timid: its
-    largest size topped out at 75.8px. Every reference site in the brief runs
-    its hero far past that. This reaches 112px at 1440.
-  */
-  --step--1: clamp(
-    0.833rem,
-    0.83rem + 0.016vw,
-    0.844rem
-  ); /* 13.3 -> 13.5, labels */
-  --step-0: clamp(1rem, 0.956rem + 0.188vw, 1.125rem); /* 16 -> 18, body */
-  --step-1: clamp(1.2rem, 1.095rem + 0.45vw, 1.5rem); /* 19.2 -> 24, lead */
-  --step-2: clamp(1.44rem, 1.243rem + 0.84vw, 1.999rem); /* 23 -> 32 */
-  --step-3: clamp(1.728rem, 1.398rem + 1.407vw, 2.665rem); /* 27.6 -> 42.6 */
-  --step-4: clamp(2.074rem, 1.553rem + 2.221vw, 3.552rem); /* 33.2 -> 56.8 */
-  --step-5: clamp(2.488rem, 1.697rem + 3.375vw, 4.735rem); /* 39.8 -> 75.8 */
-  --step-6: clamp(
-    2.986rem,
-    1.573rem + 6.03vw,
-    7rem
-  ); /* 47.8 -> 112 at 1440, hero only */
-
-  /*
-    Display type wants tight leading and negative tracking; body wants the
-    opposite. Holding these as tokens stops the two registers drifting
-    apart across components.
-  */
-  --leading-display: 0.94;
-  --leading-heading: 1.08;
-  --leading-body: 1.6;
-  --tracking-display: -0.03em;
-  --tracking-heading: -0.02em;
-  --tracking-label: 0.08em; /* uppercase labels only */
-
-  /* Spacing. 4px base: --space-N = N * 0.25rem. */
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.25rem;
-  --space-6: 1.5rem;
-  --space-7: 1.75rem;
-  --space-8: 2rem;
-  --space-9: 2.25rem;
-  --space-10: 2.5rem;
-  --space-11: 2.75rem;
-  --space-12: 3rem;
-  --space-13: 3.25rem;
-  --space-14: 3.5rem;
-  --space-15: 3.75rem;
-  --space-16: 4rem;
-  --space-20: 5rem;
-  --space-24: 6rem;
-  --space-32: 8rem;
-  --space-40: 10rem;
-
-  /* Layout. One content width, one gutter, one reading measure. */
-  --content-max: 76rem; /* 1216px */
-  --content-narrow: 44rem; /* 704px, long form text */
-  --measure: 68ch;
-  --gutter: var(--space-6);
-
-  /*
-    Radii. Two registers, and the split is measured rather than chosen.
-
-    All five sites in the brief were walked and their computed radii tallied.
-    Every one of them pills its controls: buttons, nav bars and tag chips sit
-    at 999px or 9999px, while card and panel radii cluster in a 6px to 22px
-    band (dheerajakula.dev cards at 22px, cade.codes inputs at 5px,
-    sawad at 6 to 16px). Sharp corners appear essentially nowhere in the
-    sample.
-
-    An earlier version of this file said "nothing on this site is a pill",
-    which was my preference and was contradicted by every reference Adnan
-    actually picked. Controls are pills. Panels are not.
-  */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 16px;
-  --radius-pill: 999px;
-
-  /* Motion. One easing family, matching lib/motion.ts EASE_SITE. */
-  --ease: cubic-bezier(0.16, 1, 0.3, 1);
-  --dur-fast: 150ms;
-  --dur-base: 300ms;
-  --dur-slow: 600ms;
+  --r-sm: 6px;
+  --r-md: 14px;
+  --r-pill: 999px;
+  --u: clamp(16px, 1.6vw, 28px);
+  --gutter: clamp(16px, 2.2vw, 36px);
+  --ease-out: cubic-bezier(.16,1,.3,1);
+  --ease-inout: cubic-bezier(.76,0,.24,1);
 }
-
-/*
-  The paper break. Applied with data-tone="warm" on a section, so the tonal
-  flip is one attribute rather than a parallel set of utility classes, and
-  every child component keeps using the same token names.
-
-  Ink is warm near black rather than pure black, and the ground is a bone
-  paper rather than white, so the transition from graphite reads as a change
-  of stock and not as a lights-on flash.
-*/
-[data-tone="warm"] {
-  --canvas: #f4f1ea;
-  --surface-1: #ebe6dc;
-  --surface-2: #e2dcd0;
-  --hairline: #d8d2c4;
-  --hairline-strong: #bfb8a7;
-
-  --ink: #14130f;
-  --ink-muted: #55514a;
-  --ink-subtle: #666056; /* Passes AA on paper and both raised surfaces. */
-
-  --accent: #4955c6; /* 5.48:1 on paper, 4.53:1 on surface-2. */
-  --accent-deep: #333d96; /* paper text on it: 8.28:1 */
+:root[data-mode="day"] {
+  --bg: #F3F0E8; --ink: #0A0F2C; --ink-2: #5C6178; --ink-3: #9A9DAA;
+  --line: rgba(10,15,44,.12); --accent: #2340FF; --panel: #0A0F2C;
+  color-scheme: light;
 }
-
-/*
-  Only html carries the page background; body stays transparent.
-
-  This is load bearing and it is not stylistic. A previous build put an
-  opaque background on body, over a fixed canvas at a negative z-index. In
-  CSS painting order a negative z-index descendant paints at step 2, before
-  the backgrounds of in-flow block level descendants at step 3, so body
-  painted straight over the canvas and hid it completely, with no console
-  error, a healthy frame counter and a valid WebGL context. Every instrument
-  read green while the screen was blank. Do not put a background back on
-  body.
-*/
-html {
-  background: var(--canvas);
+:root[data-mode="night"] {
+  --bg: #030817; --ink: #EEF1FA; --ink-2: #9AA3C0; --ink-3: #5D6684;
+  --line: rgba(238,241,250,.12); --accent: #8EA2FF; --panel: #F3F0E8;
+  color-scheme: dark;
 }
-
-html,
-body {
-  color: var(--ink);
+@theme inline {
+  --color-bg: var(--bg);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-panel: var(--panel);
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
 }
-
-body {
-  background: transparent;
-  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
-  font-size: var(--step-0);
-  line-height: var(--leading-body);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-}
-
-/* A tone section paints its own ground, since html only carries the default. */
-[data-tone] {
-  background: var(--canvas);
-  color: var(--ink);
-}
-
-/*
-  The seam between graphite and paper.
-
-  A hard cut from #08090b to #f4f1ea mid scroll reads as a broken stylesheet
-  or a flash, particularly on a phone where the change fills the whole
-  screen at once. So the warm section carries a gradient band at its top
-  edge that lets the dark ground fall away over roughly a tenth of the
-  viewport, and the same in reverse at its bottom edge where the site
-  returns to graphite.
-
-  `isolation: isolate` creates a stacking context so the z-index -1 bands
-  paint above the section's own paper background but behind all of its
-  content, without either band escaping the section or covering text. The
-  bands are inert to the pointer.
-
-  --canvas-dark is deliberately declared only at :root and never inside the
-  warm scope, so it still resolves to the graphite value while everything
-  around it has been flipped to paper.
-*/
-[data-tone="warm"] {
-  position: relative;
-  isolation: isolate;
-}
-
-[data-tone="warm"]::before,
-[data-tone="warm"]::after {
-  content: "";
-  position: absolute;
-  inset-inline: 0;
-  height: clamp(72px, 10vh, 144px);
-  z-index: -1;
-  pointer-events: none;
-}
-
-[data-tone="warm"]::before {
-  top: 0;
-  background: linear-gradient(to bottom, var(--canvas-dark), transparent);
-}
-
-[data-tone="warm"]::after {
-  bottom: 0;
-  background: linear-gradient(to top, var(--canvas-dark), transparent);
-}
-
-/*
-  Type defaults. Headings take the display face and the display register
-  automatically, so no component has to remember to set four properties.
-
-  These live in @layer base and that is load bearing, not tidiness. An
-  unlayered `h1 { font-size: ... }` outranks every Tailwind utility, because
-  Tailwind 4 puts its utilities in a layer and unlayered rules beat layered
-  ones regardless of specificity. Written unlayered, this block silently
-  pinned every h1 to --step-5 and a `text-[length:var(--step-6)]` on the
-  hero did nothing at all. Measured: 76px where 112px was intended.
-*/
 @layer base {
-  h1,
-  h2,
-  h3 {
-    font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
-    font-weight: 600;
-    line-height: var(--leading-heading);
-    letter-spacing: var(--tracking-heading);
-    text-wrap: balance;
-  }
-
-  h1 {
-    font-size: var(--step-5);
-    line-height: var(--leading-display);
-    letter-spacing: var(--tracking-display);
-  }
-
-  h2 {
-    font-size: var(--step-4);
-  }
-
-  h3 {
-    font-size: var(--step-2);
-  }
-
-  p {
-    text-wrap: pretty;
-  }
-
-  /*
-    In the warm band the display face becomes a high contrast serif. Same
-    sizes, same rhythm, different voice. This is the second half of the
-    tonal break and it does more work than the colour change on its own.
-  */
-  [data-tone="warm"] h1,
-  [data-tone="warm"] h2,
-  [data-tone="warm"] h3 {
-    font-family: var(--font-serif), ui-serif, Georgia, serif;
-    font-weight: 400;
-  }
+  html { background: var(--bg); scrollbar-color: var(--ink-3) var(--bg); }
+  body { background: var(--bg); color: var(--ink); font-family: var(--font-body), sans-serif; transition: color 300ms, background-color 300ms; }
+  button, a { -webkit-tap-highlight-color: transparent; }
+  button { cursor: pointer; }
+  a { text-underline-offset: .2em; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+  ::selection { background: var(--accent); color: var(--bg); }
 }
-
-/*
-  Monospace is for data only: figures, tags, timestamps, job numbers. Never
-  for prose and never as decoration. Decorative mono on a dark ground is
-  half of the look this site is running from.
-*/
 @layer components {
-  .data {
-    font-family: var(--font-mono), ui-monospace, monospace;
-    font-size: var(--step--1);
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 0;
+  .t-display-xl, .t-display-l { font-family: var(--font-display), sans-serif; font-weight: 800; font-variation-settings: "wdth" 125; text-transform: uppercase; letter-spacing: -.01em; line-height: .86; }
+  .t-display-xl { font-size: clamp(56px, 11.5vw, 188px); }
+  .t-display-l { font-size: clamp(40px, 7vw, 120px); }
+  .t-title { font-family: var(--font-body), sans-serif; font-size: clamp(20px, 1.6vw, 26px); font-weight: 500; letter-spacing: -.01em; }
+  .t-body { font-size: 16px; font-weight: 400; line-height: 1.5; max-width: 60ch; }
+  .t-small { font-size: 14px; font-weight: 500; line-height: 1.3; }
+  .t-label { font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-2); }
+  .skip-link { position: fixed; top: var(--gutter); left: var(--gutter); padding: 12px 16px; background: var(--bg); z-index: 100; transform: translateY(-200%); }
+  .skip-link:focus { transform: none; }
+  .sky { position: fixed; inset: 0; z-index: 0; pointer-events: none; background: var(--bg); }
+  .sky canvas { width: 100%; height: 100%; display: block; }
+  /* TODO: replace this permitted static night fallback with public/sky/night.webp. */
+  :root[data-mode="night"] .sky { background: radial-gradient(ellipse at 50% 100%, color-mix(in srgb, var(--accent) 14%, var(--bg)), var(--bg) 70%); }
+  :root[data-intro="running"] .sky canvas { opacity: 0; }
+  :root[data-intro="exiting"] .sky canvas { animation: sky-enter 1200ms linear both; }
+  .chrome { position: fixed; inset: 0; pointer-events: none; z-index: 20; }
+  .chrome a, .chrome button { pointer-events: auto; min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+  .chrome a:hover, .chrome button:hover { color: var(--accent); }
+  .chrome-top, .chrome-bottom { position: absolute; left: var(--gutter); right: var(--gutter); display: flex; align-items: center; justify-content: space-between; }
+  .chrome-top { top: calc(var(--gutter) - 8px); }
+  .chrome-bottom { bottom: var(--gutter); gap: var(--u); }
+  .chrome-nav, .clocks { display: flex; align-items: center; gap: 24px; }
+  .clock { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .live-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; border: 1px solid var(--accent); flex-shrink: 0; }
+  .live-dot[data-day="true"] { background: var(--accent); }
+  .availability { display: flex; align-items: center; gap: 8px; }
+  .menu-button { display: none !important; }
+  .sky-toggle-icon { width: 36px; height: 36px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: var(--r-pill); }
+  .sky-toggle svg { transition: transform 200ms; }
+  .sky-toggle:hover svg { transform: rotate(20deg) scale(1.1); }
+  .sky-mask { transform: translate(18px, -18px); transition: transform 400ms var(--ease-inout); }
+  .sky-toggle[aria-pressed="true"] .sky-mask { transform: translate(6px, -4px); }
+  .menu-sheet { position: fixed; inset: 0; width: 100%; max-width: none; height: 100svh; max-height: none; margin: 0; padding: var(--gutter); color: var(--ink); background: var(--bg); border: 0; }
+  .menu-sheet::backdrop { background: var(--bg); }
+  .menu-sheet a, .menu-sheet button { min-height: 44px; min-width: 44px; }
+  .menu-sheet nav { display: flex; flex-direction: column; align-items: flex-start; gap: 24px; margin-top: 20svh; }
+  .intro { position: fixed; inset: 0; z-index: 40; background: var(--bg); display: grid; place-content: center; text-align: center; gap: 24px; animation: intro-fail-open 1ms step-end 4s forwards; }
+  .intro-counter-wrap { overflow: hidden; }
+  .intro[hidden] { display: none; }
+  .intro-counter { display: block; font-variant-numeric: tabular-nums; }
+  .intro .clocks { justify-content: center; }
+  :root[data-intro="running"] .chrome { opacity: 0; }
+  :root[data-intro="exiting"] .chrome { animation: chrome-enter 300ms linear 1200ms both; }
+  .hero { height: 100svh; padding: 100px var(--gutter) 96px; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--gutter); align-items: end; }
+  .hero h1 { grid-column: 1 / 9; }
+  .hero-lead { grid-column: 9 / 13; max-width: 34ch; }
+  .hero-line { display: block; overflow: hidden; padding-bottom: .08em; margin-bottom: -.08em; }
+  .hero-line > span { display: block; }
+  .hero-armed .hero-line > span { transform: translateY(105%); }
+  .hero-rise .hero-line > span { animation: headline-rise 1000ms var(--ease-out) both; animation-delay: calc(var(--line-index) * 90ms); }
+  .reveal-armed .reveal { opacity: 0; transform: translateY(12px); transition: opacity 600ms var(--ease-out), transform 600ms var(--ease-out); }
+  .reveal-armed .reveal.is-visible { opacity: 1; transform: none; }
+  @media (min-width: 1440px) { .t-body { font-size: 17px; } }
+  @media (max-width: 719px) {
+    .chrome-nav > a { display: none; }
+    .chrome-nav { gap: 8px; }
+    .menu-button { display: inline-flex !important; }
+    .chrome-bottom { align-items: flex-start; gap: 12px; }
+    .chrome-bottom .clocks { flex-direction: column; align-items: flex-start; gap: 6px; }
+    .availability { max-width: 155px; align-items: baseline; }
+    .chrome-bottom[data-past-hero="true"] { visibility: hidden; }
+    .hero { padding-bottom: 120px; row-gap: 32px; align-content: end; }
+    .hero h1, .hero-lead { grid-column: 1 / 13; }
   }
-
-  /* Uppercase section label. The numeral carries the accent, the word does not. */
-  /*
-    In @layer components, not unlayered.
-
-    An unlayered .label { color } beats every Tailwind utility regardless of
-    specificity, because Tailwind 4 puts utilities in a cascade layer and
-    unlayered rules outrank layered ones. Written unlayered, this silently
-    killed hover:text-ink on the header link: the utility was emitted and
-    simply never applied. Same class of bug as the heading sizes, second
-    instance in one file.
-  */
-  .label {
-    font-family: var(--font-mono), ui-monospace, monospace;
-    font-size: var(--step--1);
-    text-transform: uppercase;
-    letter-spacing: var(--tracking-label);
-    color: var(--ink-subtle);
-  }
-
-  /*
-    border-color: transparent is not decorative, this class never draws a
-    border. Left unset, computed border-top-color still resolves to
-    currentColor (the CSS spec always resolves it, border-width or not),
-    which silently doubled every numeral in verify.mjs's accent budget
-    count. Pre-existing, not introduced by the motion pass: confirmed
-    against HEAD before touching it.
-  */
-  .label-index {
-    color: var(--accent);
-    border-color: transparent;
-  }
-
-  /*
-    Shared by the preloader ground (components/ui/preloader.tsx) and the
-    fixed header (components/ui/site-header.tsx), both of which borrow
-    [data-tone="warm"]'s token values to flip colour without a hardcoded
-    hex, on an element that is not a scroll section. The seam gradient
-    bands that selector paints for scroll sections are taller than either
-    of these elements and would spill past their edges, so this opts out.
-  */
-  .tone-surface[data-tone="warm"]::before,
-  .tone-surface[data-tone="warm"]::after {
-    content: none;
-  }
-}
-
-/*
-  Focus. One visible ring everywhere, on the accent, never removed. Uses
-  :focus-visible so a mouse click does not paint it but a keyboard tab does.
-*/
-:where(a, button, input, textarea, select, summary, [tabindex]):focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
-  border-radius: var(--radius-sm);
-}
-
-/* White on --accent is only 3.91:1. The canvas colour on it is 5.09:1,
-   and it passes in the warm scope too. */
-::selection {
-  background: var(--accent);
-  color: var(--canvas);
-}
-
-/* The single M tricolour rule, for the car moment. Used once on the site. */
-.m-rule {
-  height: 3px;
-  border: 0;
-  background: linear-gradient(
-    to right,
-    var(--m-blue-light) 0 33.333%,
-    var(--m-blue-dark) 33.333% 66.666%,
-    var(--m-red) 66.666% 100%
-  );
-}
-
-/*
-  Reduced motion, global floor. Neutralises every animation and transition
-  by default; components that need a deliberate static end state additionally
-  short-circuit their own JS so nothing even attempts to animate. This is the
-  CSS-only backstop for anything that does not.
-*/
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+    .intro { display: none; }
+    .hero-armed .hero-line > span, .reveal-armed .reveal { transform: none; opacity: 1; }
+    :root[data-intro] .chrome, :root[data-intro] .sky canvas { opacity: 1; }
   }
 }
-
-/* ---------------------------------------------------------------------- */
-/* Ported behavior, from totaltex-web/app/globals.css. Generic tokens
-   swapped in (--ease-site -> --ease, brand colors -> the tokens above). */
-/* ---------------------------------------------------------------------- */
-
-/*
-  Scroll reveal (components/reveal.tsx). Hidden state is scoped to `.js`,
-  rendered server-side on <html> in app/layout.tsx, so hydration matches and
-  a no-JS visit (the noscript rule in layout.tsx) is never trapped at
-  opacity 0.
-*/
-/* Travel raised from a barely-there 24px to 32px, and a small blur added to
-   match .word-in's own language, so the reveal actually registers instead
-   of needing a second look to notice it happened at all. */
-.reveal-armed .reveal {
-  opacity: 0;
-  transform: translateY(32px);
-  filter: blur(6px);
-}
-.reveal-armed .reveal.is-visible {
-  opacity: 1;
-  transform: none;
-  filter: blur(0);
-  transition:
-    opacity 0.85s var(--ease),
-    transform 0.85s var(--ease),
-    filter 0.85s var(--ease);
-}
-@media (prefers-reduced-motion: reduce) {
-  .reveal-armed .reveal,
-  .reveal-armed .reveal.is-visible {
-    opacity: 1;
-    transform: none;
-    filter: none;
-    transition: none;
-    animation: none !important;
-  }
-}
-/* Above-the-fold opt-out (<Reveal immediate>): see reveal.tsx for why this
-   has to kill the animation shorthand rather than just set opacity. */
-.reveal.is-immediate {
-  opacity: 1;
-  transform: none;
-  animation: none;
-  transition: none;
-}
-/* Scroll-bound upgrade where supported: real scroll position drives the
-   reveal instead of a one-shot IntersectionObserver trip. */
-@media (prefers-reduced-motion: no-preference) {
-  @supports (animation-timeline: view()) {
-    .reveal {
-      animation: reveal-in linear both;
-      animation-timeline: view();
-      animation-range: entry calc(0% + var(--reveal-shift, 0) * 1%) entry
-        calc(60% + var(--reveal-shift, 0) * 1%);
-      animation-duration: 1ms;
-    }
-  }
-}
-@keyframes reveal-in {
-  from {
-    opacity: 0;
-    transform: translateY(32px);
-    filter: blur(6px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-    filter: blur(0);
-  }
-}
-
-/* Word-by-word reveal (components/story/word-reveal.tsx). Pure CSS, no JS,
-   no hydration dependency. */
-@media (prefers-reduced-motion: no-preference) {
-  @supports (animation-timeline: view()) {
-    .word-in {
-      display: inline-block;
-      animation: word-in linear both;
-      animation-timeline: view();
-      animation-range: entry calc(0% + var(--w, 0) * 3%) entry
-        calc(55% + var(--w, 0) * 3%);
-      animation-duration: 1ms;
-    }
-  }
-}
-@keyframes word-in {
-  from {
-    opacity: 0;
-    transform: translateY(0.4em);
-    filter: blur(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-    filter: blur(0);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .word-in {
-    animation: none;
-    opacity: 1;
-    transform: none;
-    filter: none;
-  }
-}
-
-/*
-  Hero load entrance (components/sections/hero.tsx). Everything in the hero
-  is already in the first viewport, so it gets a clock driven entrance
-  instead of the scroll driven .reveal/.word-in above: a view() timeline
-  never has scroll room to complete for content that starts fully in view
-  (see the `immediate` prop on components/reveal.tsx for the general
-  version of that bug), and a fixed delay is the correct tool for something
-  that plays once, on mount, regardless of scroll position.
-
-  .hero-intro .word-in reuses the existing @keyframes word-in (same blur and
-  rise, just driven by time instead of animation-timeline) and wins over the
-  plain .word-in rule above on specificity alone, so the headline still gets
-  the per-word cascade without needing scroll to drive it.
-*/
-@media (prefers-reduced-motion: no-preference) {
-  .hero-intro .word-in {
-    animation: word-in 0.7s var(--ease) both;
-    animation-delay: calc(180ms + var(--w, 0) * 40ms);
-  }
-
-  .hero-in {
-    animation: hero-in 0.8s var(--ease) both;
-    animation-delay: calc(var(--stagger, 0) * 180ms);
-  }
-}
-@keyframes hero-in {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-    filter: blur(4px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-    filter: blur(0);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .hero-in {
-    animation: none;
-    opacity: 1;
-    transform: none;
-    filter: none;
-  }
-}
-
-/* Press feedback. Named properties, not the `transition` shorthand: an
-   unlayered rule here would otherwise beat Tailwind's own layered
-   `transition-colors` utilities and silently strip them on any element that
-   carries both. */
-.press {
-  transition-property:
-    transform, color, background-color, border-color, outline-color, box-shadow;
-  transition-timing-function: var(--tw-ease, var(--ease));
-  transition-duration: var(--tw-duration, var(--dur-fast));
-}
-.press:active:not(:disabled):not([aria-disabled="true"]) {
-  transform: scale(0.97);
-}
-
-@layer components {
-  .press:disabled, .press[aria-disabled="true"] {
-    opacity: 0.5;
-    cursor: not-allowed;
-    pointer-events: none;
-    transform: none;
-  }
-}
-
-/* WCAG 2.2.2 pause mechanism (components/home/marquee-pause.tsx). */
-.marquee-paused .marquee-track,
-.marquee-paused .marquee-track-slow,
-.marquee-paused .marquee-track-reverse {
-  animation-play-state: paused;
-}
-
-/* Thread divider (components/home/thread-divider.tsx). Scopes its paint
-   work to its own box. */
-.thread-divider {
-  contain: layout paint;
-}
+@keyframes intro-fail-open { to { visibility: hidden; pointer-events: none; } }
+@keyframes headline-rise { from { transform: translateY(105%); } to { transform: translateY(0); } }
+@keyframes sky-enter { from { opacity: 0; } to { opacity: 1; } }
+@keyframes chrome-enter { from { opacity: 0; } to { opacity: 1; } }

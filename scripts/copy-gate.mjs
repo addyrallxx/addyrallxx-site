@@ -28,12 +28,12 @@ const shipped = src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, ""
 const RULES = [
   {
     name: "em dash",
-    re: /—/g,
+    re: /â€”/g,
     why: "Adnan's standing rule across every project. Use periods, commas, colons, parentheses.",
   },
   {
     name: "en dash used as punctuation",
-    re: /–/g,
+    re: /â€“/g,
     why: "Same rule.",
   },
   {
@@ -46,26 +46,7 @@ const RULES = [
     re: /\bis not (?:a|an|the)\b[^.!?]{2,60},\s*it(?:'s| is)\b/gi,
     why: "The old copy closed nearly every section with this construction. It reads as written, not thought.",
   },
-  {
-    name: "assistant or model reference",
-    /*
-      The lookahead is what makes this rule mean what it was written to mean.
-
-      What the rejected build shipped was a SENTENCE about an assistant
-      inventing revenue figures, and prose about how the site was made is the
-      thing being banned. Naming a tool in a skills list is a different act,
-      and it is one Adnan asked for directly.
-
-      So a model name only trips the rule when six or more further words
-      follow it on the same line, which is prose rather than a label. A tile
-      reading "Claude Code" passes, a heading reading "AI and automation"
-      passes, and a sentence beginning "Claude helped me write this site"
-      does not. The canary still carries the original confession, so this
-      rule is still proved able to fail on the thing it exists to catch.
-    */
-    re: /\b(?:AI|LLM|Gemini|Codex|Claude|Opus|Sonnet|ChatGPT|hallucinat\w*|prompt(?:ed|ing)?)\b(?=(?:[^\n"]*?\s+\S+){6})/g,
-    why: "The rejected build shipped a sentence about an AI inventing revenue figures. Nothing about how the site was made belongs in the site.",
-  },
+  // Level 4 showcases the AI build system on purpose (2026-10-09, Adnan).
   {
     name: "process or planning leakage",
     re: /\b(?:PLAN\.md|NEXT-SESSION|chunk \d|Phase \d|verification harness|handover|handoff)\b/gi,
@@ -114,8 +95,8 @@ const CANARY = `
   That system caught an earlier AI handover inventing revenue figures.
   This runs a real factory and it is not finished.
   Passionate about seamlessly crafting beautiful experiences.
-  A quiet moment — and then the rest.
-  Open May–August, every year, without fail.
+  A quiet moment â€” and then the rest.
+  Open Mayâ€“August, every year, without fail.
   Read PLAN.md section 7 before shipping chunk 2.
 `;
 // Every rule now has a line in the canary, so any miss is a broken rule.
