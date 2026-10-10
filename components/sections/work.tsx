@@ -56,7 +56,7 @@ export function Work() {
       <span className="t-label index-number">{String(i + 1).padStart(2, "0")}</span>
       <h3 className="t-title work-name">{item.name}</h3><p className="t-body section-body">{item.line}</p>
       <div className="work-meta t-small"><span>{item.kind}</span><span>{item.year}</span></div>
-      {item.images[0] && <div className="work-inline-image image-treatment"><Image src={item.images[0].src} alt={item.images[0].alt} fill sizes="88px" /></div>}
+      {item.images[0] && <div className="work-inline-image image-treatment"><Image src={item.images[0].src} alt="" fill sizes="88px" /></div>}
     </Link>)}</div>
     {fine && image && <div key={active} ref={preview} className="work-preview image-treatment" aria-hidden="true"><Image src={image.src} alt="" fill sizes="320px" /></div>}
   </SectionReveal></section>;

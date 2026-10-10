@@ -157,6 +157,7 @@ async function fanMatrices(p, hover) {
   }));
 }
 async function f3Desktop(p) {
+  check('Work thumbnails do not repeat the link description', await p.$$eval('.work-inline-image img', images => images.length > 0 && images.every(image => image.alt === '')));
   await scrollTo(p, "#work", 100);
   check("desktop Work rows are exactly 96px", await p.$$eval(".work-row", rows => rows.every(row => row.getBoundingClientRect().height === 96)));
   check("first six home sections keep the specified order", await p.$$eval("main > section", sections => sections.length === 6 && [".hero-line", ".work-row", ".other-band", ".plain-row", "[data-sphere]", ".service-row"].every((selector, i) => sections[i].querySelector(selector))));
@@ -261,6 +262,22 @@ async function sphereChecks(p) {
   check("sphere item count equals SKILLS item count", before.count === expected && after.count === expected);
   check('every globe pill always shows its name', await p.$$eval('[data-sphere-item]', (pills, names) => pills.every((pill, i) => pill.textContent.trim() === names[i] && getComputedStyle(pill.querySelector('.sphere-label')).opacity === '1'), names));
   check("sphere DOM stays flat over 3s idle spin", Math.abs(after.nodes - before.nodes) <= 5 && before.transform !== after.transform);
+  await p.$eval('.skills-list button', el => el.click());
+  await sleep(800);
+  const held = await p.evaluate(async () => {
+    const el = document.querySelector('[data-sphere]'), r = el.getBoundingClientRect();
+    const event = (type, x) => el.dispatchEvent(new PointerEvent(type, { pointerId: 91, clientX: x, clientY: r.top + 200, bubbles: true }));
+    // Synthetic pointers cannot acquire native capture, so isolate that platform call.
+    const capture = el.setPointerCapture; el.setPointerCapture = () => {};
+    event('pointerdown', r.left + 200); event('pointermove', r.left + 240);
+    await new Promise(resolve => setTimeout(resolve, 500));
+    const before = document.querySelector('[data-sphere-item]').style.transform;
+    event('pointerup', r.left + 240); el.setPointerCapture = capture;
+    await new Promise(resolve => setTimeout(resolve, 100));
+    return { before, after: document.querySelector('[data-sphere-item]').style.transform };
+  });
+  check('held globe drag releases without stale horizontal fling', Math.abs(new DOMMatrix(held.before).e - new DOMMatrix(held.after).e) < .1);
+  await p.keyboard.press('Escape');
   await p.$eval('.skills-list button', el => el.click());
   await sleep(750);
   check('pressed group highlights its pills and caps the others', await p.evaluate(() => {
@@ -437,6 +454,10 @@ try {
   await reduced.emulateMediaFeatures([{ name: "prefers-reduced-motion", value: "reduce" }]);
   await reduced.goto(url, { waitUntil: "networkidle0" });
   check("reduced motion skips canvas and intro", await reduced.evaluate(() => !document.querySelector(".sky canvas") && document.querySelector(".intro").hidden && window.__f1.done === 1));
+  check('reduced section headlines have no animation', await reduced.$$eval('.section-line', lines => lines.length > 0 && lines.every(line => {
+    line.classList.add('section-armed', 'is-visible');
+    return getComputedStyle(line.querySelector('span')).animationName === 'none';
+  })));
   const reducedMode = await reduced.evaluate(() => document.documentElement.dataset.mode);
   await reduced.click(".sky-toggle");
   check("reduced toggle is immediate", await reduced.evaluate((previous) => document.documentElement.dataset.mode !== previous, reducedMode));

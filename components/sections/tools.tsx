@@ -68,6 +68,7 @@ export function Tools() {
         rx = (selected >= 0 ? toX : tilt) + (offset + c * dt) * d; xSpeed = (xSpeed - 12 * c * dt) * d;
         rx += vx * dt;
       }
+      if (dragId >= 0) { vx *= Math.exp(-dt * 40); vy *= Math.exp(-dt * 40); }
       paint(); frame = requestAnimationFrame(tick);
     };
     const sync = () => {
