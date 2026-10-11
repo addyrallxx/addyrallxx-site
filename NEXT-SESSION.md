@@ -2,10 +2,10 @@
 
 ## Current state (2026-10-11): Level 4 "Two skies" live in production
 
-- Live at https://addyrallxx-site.vercel.app. Latest implementation: `8577f6d`; prior documentation checkpoint `19b5172`; this F10 refresh records the same shipped implementation. Both origin `level4` and `main` contain these commits. Older handoffs below are historical, including the superseded F12 uncommitted state and F8 missing metadata labels.
-- F5/F8 shipped always-night entry, two skies, intro/resume facts, logo globe, Services, Alongside school, Taste, Method, Info, standalone E92 tach/photos, smaller-build cards, Contact pit (`59dcc1b`), Work pages (`54fcc0f`), route wipes (`423fbf9`), clocks (`388ea1f`), chrome scrim and School privacy guard (`76a9434`, `d8eebb3`).
-- Shipped stacking Work cards (`8622a7d`), pinned E92 (`bd670e8`), metadata labels (`ab0e4e6`), kinetic type, meshes, marquees and split flaps (`519d45d`), School banner/tree (`61e3c63`), contrast/accessibility/metadata/404 repairs (`e133e83`), active nav and uncovered terminal entry (`6bde5f2`).
-- Phone layouts shipped (`8577f6d`): sequential Work/E92, touch fluid off, compact chrome, full-screen Menu and responsive School. F9/F13 production ledgers report 246 live Chrome assertions and all eight unchanged frame budgets passing, no console/runtime/HTTP errors. Phone evidence is Chrome emulation; physical handset/Safari acceptance remains open. F13 records its review coverage exception and warmed-frame method. Empty Questions stays hidden.
+- Live at https://addyrallxx-site.vercel.app. Implementation through `8577f6d`; preceding docs checkpoint `06abb7b` is on origin `level4` and `main`. Older handoffs below are historical.
+- Shipped: always-night two skies, resume hero, logo globe and sections, stacking Work cards, pinned E92 photos/tach, Contact glyph pit, Work routes, destination wipes and clocks (`17baba9`, `59dcc1b`, `54fcc0f`, `423fbf9`, `388ea1f`, `8622a7d`, `bd670e8`, `4097579`).
+- Shipped: metadata labels, kinetic type, meshes, marquees, split flaps, School banner/tree, contrast/accessibility/metadata/404 repairs and active nav (`ab0e4e6`, `519d45d`, `61e3c63`, `e133e83`, `6bde5f2`), plus phone layouts (`8577f6d`). Empty Questions stays hidden.
+- F9 records 246 production Chrome assertions and all eight unchanged frame budgets passing, with no console/runtime/HTTP errors. Phone checks use Chrome emulation; physical handset/Safari acceptance remains open. This docs checkpoint does not rerun browser acceptance. Existing F13 coverage and warmed-frame caveats remain applicable.
 
 ### Next
 
