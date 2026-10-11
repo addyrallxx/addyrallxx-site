@@ -1,0 +1,24 @@
+@layer components {
+  .school-ascii, .course-tree { font-family: ui-monospace, "Cascadia Mono", Menlo, monospace; }
+  .school-ascii { max-width: 100%; color: var(--ink); opacity: .9; margin-bottom: var(--u); }
+  .ascii-row { font: inherit; font-size: var(--ascii-size, clamp(6px, .78vw, 11px)); line-height: 1; white-space: pre; width: max-content; margin: 0; }
+  .ascii-row:nth-child(5n + 6) { margin-top: 1em; }
+  .course-tree { font-size: 16px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .course-tree ul { list-style: none; margin: 0; padding: 0; }
+  .course-tree > ul > li { position: relative; padding-left: 4ch; }
+  .tree-folder::before, .tree-course::before { position: absolute; left: 0; content: "├── "; }
+  .tree-last > .tree-folder::before, .tree-course.tree-last::before { content: "└── "; }
+  .course-tree > ul > li:not(.tree-last)::before { position: absolute; left: 0; top: 1.6em; bottom: 0; border-left: 1px solid var(--ink); content: ""; }
+  .tree-course { position: relative; padding-left: 4ch; }
+  .course-code { color: var(--ink); }
+  .course-name { color: var(--ink-2); }
+  .tree-armed .tree-line { opacity: 0; transform: translateY(4px); }
+  .tree-visible .tree-line { opacity: 1; transform: none; transition: opacity 200ms, transform 200ms; transition-delay: calc(var(--tree-index) * 40ms); }
+  .tree-cursor { margin-left: 1ch; animation: terminal-cursor 1s steps(1, end) infinite; }
+  .terminal-paused .tree-cursor { animation-play-state: paused; }
+}
+@keyframes terminal-cursor { 50% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .tree-armed .tree-line { opacity: 1; transform: none; transition: none; }
+  .tree-cursor { animation: none; }
+}

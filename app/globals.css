@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./f12.css";
+@import "./school-terminal.css";
 
 :root {
   --r-sm: 6px;

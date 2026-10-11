@@ -336,7 +336,7 @@ async function schoolChecks() {
   await p.waitForFunction(() => document.documentElement.dataset.intro === 'done');
   await sleep(1100);
   check('School uses night sky and the shared chrome', await p.evaluate(() => document.documentElement.dataset.mode === 'night' && !!document.querySelector('.chrome') && !!document.querySelector('.sky')));
-  check('School has four facts, three sections, supplied courses and a back link', await p.evaluate(() => document.querySelectorAll('.page-facts > div').length === 4 && document.querySelectorAll('.school-section-row').length === 3 && document.querySelectorAll('.school-course-row li').length === 14 && document.querySelector('.back-link').getAttribute('href') === '/'));
+  check('School has four facts, three sections, supplied courses and a back link', await p.evaluate(() => document.querySelectorAll('.page-facts > div').length === 4 && document.querySelectorAll('.school-section-row').length === 3 && document.querySelectorAll('.tree-course').length === 14 && document.querySelector('.back-link').getAttribute('href') === '/'));
   const hasCourseGrade = text => [...text.matchAll(/\b[A-Z]{2,5}\s*\d{3}\b/g)].some(code => {
     const before = text.slice(0, code.index).trim().replace(/[:|,]\s*$/, '').trim().split(/\s+/).at(-1) ?? '';
     const after = text.slice(code.index + code[0].length).trim().replace(/^[:|,-]\s*/, '').split(/\s+/)[0] ?? '';
