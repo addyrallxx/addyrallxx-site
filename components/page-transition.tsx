@@ -49,6 +49,7 @@ export function PageTransition({ children }: { children: ReactNode }) {
       else if (anchor) anchor.scrollIntoView(); else window.scrollTo(0, 0);
       await new Promise(resolve => setTimeout(resolve, Math.max(0, 180 - (performance.now() - coveredAt.current))));
       if (cancelled || pending.current !== target) return;
+      gsap.ticker.tick();
       document.documentElement.dataset.transition = "revealing";
       window.dispatchEvent(new Event("route:ready"));
       const curve = { bulge: 0 };
@@ -81,6 +82,8 @@ export function PageTransition({ children }: { children: ReactNode }) {
     const curve = { bulge: 180 };
     const edge = el.querySelector(".route-curve-top path")!;
     gsap.set(el.querySelector(".route-curve-bottom path"), { attr: { d: "M0 0 Q500 0 1000 0 L1000 -1 L0 -1 Z" } });
+    // Input can land between ticker frames. Start the authored duration from this clock instant.
+    gsap.ticker.tick();
     animation.current = gsap.timeline().fromTo(el, { y: 0, yPercent: 118 }, { y: 0, yPercent: 0, duration: .65, ease: "route-wipe" }, 0)
       .fromTo(el.querySelector(".route-name > span"), { yPercent: 110, opacity: 0 }, { yPercent: 0, opacity: 1, duration: .3, ease: "power3.out" }, .1)
       .to(curve, { bulge: 0, duration: .65, ease: "route-wipe", onUpdate: () => edge.setAttribute("d", `M0 180 Q500 ${180 - curve.bulge * 2} 1000 180 L1000 181 L0 181 Z`) }, 0);

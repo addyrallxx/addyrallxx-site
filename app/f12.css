@@ -1,0 +1,66 @@
+﻿@property --mesh-x1 { syntax: "<percentage>"; inherits: false; initial-value: 15%; }
+@property --mesh-y1 { syntax: "<percentage>"; inherits: false; initial-value: 25%; }
+@property --mesh-x2 { syntax: "<percentage>"; inherits: false; initial-value: 80%; }
+@property --mesh-y2 { syntax: "<percentage>"; inherits: false; initial-value: 65%; }
+@property --mesh-x3 { syntax: "<percentage>"; inherits: false; initial-value: 40%; }
+@property --mesh-y3 { syntax: "<percentage>"; inherits: false; initial-value: 85%; }
+@property --mesh-x4 { syntax: "<percentage>"; inherits: false; initial-value: 70%; }
+@property --mesh-y4 { syntax: "<percentage>"; inherits: false; initial-value: 15%; }
+@property --cta-shadow { syntax: "<length>"; inherits: false; initial-value: 6px; }
+
+@layer components {
+  .kinetic-letter { display: inline-block; font-variation-settings: "wdth" 125, "wght" var(--letter-weight, 800); }
+  .hero h1 { transform-origin: center bottom; }
+  .lit-word { opacity: 1; }
+  .lit-text { display: block; contain: paint; transform: translateZ(0); pointer-events: none; }
+  .section-atmosphere { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
+  .section-atmosphere > div { position: absolute; inset: 0; opacity: 0; }
+  .kinetic-marquee { width: 100%; overflow: hidden; padding: 3vw 0; contain: paint; content-visibility: auto; contain-intrinsic-size: auto 18.6vw; pointer-events: none; }
+  .marquee-track, .marquee-copy { display: flex; width: max-content; }
+  .marquee-track { will-change: transform; }
+  .marquee-item { font-family: var(--font-display), sans-serif; font-weight: 800; font-variation-settings: "wdth" 125; font-size: 12vw; line-height: 1.05; text-transform: uppercase; white-space: nowrap; color: transparent; -webkit-text-stroke: 1px var(--ink-3); }
+  .marquee-filled { color: var(--ink); -webkit-text-stroke: 0; }
+  .marquee-separator { white-space: pre; }
+  .split-flap { display: inline; font-family: ui-monospace, monospace; letter-spacing: 0; text-transform: none; color: inherit; }
+  .flap-visual { display: inline-block; max-width: 100%; contain: paint; transform: translateZ(0); pointer-events: none; }
+  .split-flap[data-visible="false"] .flap-visual { opacity: 0; }
+  .flap-word { display: inline-flex; gap: 1px; vertical-align: baseline; }
+  .flap-space::before { content: attr(data-space); white-space: pre-wrap; }
+  .flap-card { position: relative; display: inline-block; width: .62em; height: 1.35em; vertical-align: bottom; background: color-mix(in srgb, var(--bg) 94%, white); border: 1px solid var(--line); border-radius: 3px; }
+  .flap-card::before { content: attr(data-target); position: absolute; inset: 0; text-align: center; line-height: 1.35; overflow: hidden; }
+  .flap-card[data-flipping] { perspective: 400px; }
+  .flap-card[data-flipping]::before { content: attr(data-glyph); }
+  .flap-card::after { content: ""; position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #0A0A0A; }
+  .flap-face { position: absolute; left: 0; right: 0; height: 50%; overflow: hidden; backface-visibility: hidden; background: color-mix(in srgb, var(--bg) 94%, white); }
+  .flap-face::before { content: attr(data-glyph); position: absolute; left: 50%; transform: translateX(-50%); height: 200%; line-height: 1.35; }
+  .flap-top { top: 0; transform-origin: center bottom; border-radius: 2px 2px 0 0; }
+  .flap-bottom { bottom: 0; transform-origin: center top; border-radius: 0 0 2px 2px; }
+  .flap-bottom::before { bottom: 0; }
+  .services, .contact, .school-page .page-hero { position: relative; isolation: isolate; }
+  .gradient-mesh { position: absolute; inset: 0; z-index: -1; pointer-events: none; --mesh-a: .25; --mesh-c1: 28 105 212; --mesh-c2: 124 92 255; --mesh-c3: 11 15 42; --mesh-play: running; opacity: 1; overflow: hidden; mask-image: linear-gradient(to bottom, transparent, black 120px, black calc(100% - 120px), transparent); transition: opacity 600ms; }
+  /* Soft colour fields paint at quarter size, then composite beneath the full-size edge mask. */
+  .mesh-field { position: absolute; top: 37.5%; left: 37.5%; width: 25%; height: 25%; transform: scale(4); background: radial-gradient(ellipse at var(--mesh-x1) var(--mesh-y1), rgb(var(--mesh-c1) / var(--mesh-a)), transparent 65%), radial-gradient(ellipse at var(--mesh-x2) var(--mesh-y2), rgb(var(--mesh-c2) / var(--mesh-a)), transparent 65%), radial-gradient(ellipse at var(--mesh-x3) var(--mesh-y3), rgb(var(--mesh-c3) / var(--mesh-a)), transparent 70%), radial-gradient(ellipse at var(--mesh-x4) var(--mesh-y4), rgb(var(--mesh-c1) / var(--mesh-a)), transparent 65%); animation: mesh-one 24s steps(720) infinite alternate, mesh-two 29s steps(870) infinite alternate, mesh-three 34s steps(1020) infinite alternate, mesh-four 40s steps(1200) infinite alternate; animation-play-state: var(--mesh-play); will-change: transform; }
+  .gradient-mesh[data-visible="false"] { opacity: 0; --mesh-play: paused; }
+  .gradient-mesh[data-paused="true"] { --mesh-play: paused; }
+  .mesh-contact { --mesh-c1: 255 74 18; --mesh-c2: 255 93 143; --mesh-c3: 255 194 51; --mesh-a: .3; }
+  .mesh-school { --mesh-c1: 46 196 182; --mesh-c2: 28 105 212; }
+  :root[data-mode="day"] .gradient-mesh { --mesh-a: .1; }
+  :root[data-mode="day"] .mesh-contact { --mesh-a: .12; }
+  .service-strip { display: none; position: relative; height: 220px; overflow: hidden; pointer-events: none; }
+  .service-strip img { object-fit: cover; object-position: top; }
+  .service-strip .work-outline { display: grid; place-items: center; height: 100%; }
+  .service-entry[data-open="true"] .service-strip { display: block; animation: service-open 400ms var(--ease-out) both; }
+  .email-copy.contact-pill { position: relative; border: 3px solid #0A0A0A; background: var(--accent); color: var(--bg); box-shadow: var(--cta-shadow) var(--cta-shadow) 0 #0A0A0A; transition: transform 100ms, --cta-shadow 100ms; }
+  .email-copy.contact-pill:active { transform: translate(4px, 4px); --cta-shadow: 2px; }
+  @media (prefers-reduced-motion: reduce) {
+    .mesh-field, .service-entry[data-open="true"] .service-strip { animation: none; }
+    .gradient-mesh, .section-atmosphere, .email-copy.contact-pill, .email-copy.contact-pill::after { transition: none; }
+    .marquee-track { transform: none; will-change: auto; }
+    .lit-word { opacity: 1 !important; }
+  }
+}
+@keyframes mesh-one { to { --mesh-x1: 75%; --mesh-y1: 70%; } }
+@keyframes mesh-two { to { --mesh-x2: 25%; --mesh-y2: 20%; } }
+@keyframes mesh-three { to { --mesh-x3: 85%; --mesh-y3: 35%; } }
+@keyframes mesh-four { to { --mesh-x4: 20%; --mesh-y4: 80%; } }
+@keyframes service-open { from { clip-path: inset(0 0 100%); } to { clip-path: inset(0); } }

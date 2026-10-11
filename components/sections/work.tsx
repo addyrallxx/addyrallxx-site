@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type CSSProperties } from "react";
+import { SplitFlap } from "@/components/ui/split-flap";
 import Image from "next/image";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -76,7 +77,7 @@ export function Work({ showLabel = true }: { showLabel?: boolean }) {
   }, []);
   return <section ref={root} className="home-section work" id="work" aria-labelledby={showLabel ? "work-heading" : undefined}>
     <span className="section-hairline" aria-hidden="true" />
-    {showLabel && <h2 id="work-heading" className="t-label section-label">{WORK_LABEL}</h2>}
+    {showLabel && <h2 id="work-heading" className="t-label section-label"><SplitFlap text={WORK_LABEL} /></h2>}
     <div className="work-stack">{WORK.map((item, i) => <article className="work-card" key={item.slug} style={{ "--i": i } as CSSProperties}>
       <div className="work-card-content">
         <div className="work-copy">

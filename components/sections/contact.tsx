@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { CONTACT, FOOTER, SITE } from "@/lib/content";
 import { SectionReveal } from "@/components/ui/section-reveal";
 import { GlyphPit } from "./glyph-pit";
+import { GradientMesh } from "@/components/ui/gradient-mesh";
 
 export function Contact() {
   const [copied, setCopied] = useState(false);
@@ -18,6 +19,7 @@ export function Contact() {
     } catch { setCopied(false); }
   };
   return <section id="contact" className="home-section contact" aria-labelledby="contact-heading">
+    <GradientMesh place="contact" />
     <SectionReveal>
       <h2 id="contact-heading" className="t-display-xl section-heading" aria-label={CONTACT.lines.join(" ")}>{CONTACT.lines.map((line, i) => <span className="section-line" aria-hidden="true" key={line} style={{ "--line-index": i } as React.CSSProperties}><span>{line}</span></span>)}</h2>
       <p className="t-body section-body">{CONTACT.body}</p>

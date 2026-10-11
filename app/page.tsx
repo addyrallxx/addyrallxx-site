@@ -10,7 +10,9 @@ import { Info } from "@/components/sections/info";
 import { E92 } from "@/components/sections/e92";
 import { Questions } from "@/components/sections/questions";
 import { Contact } from "@/components/sections/contact";
+import { HomeMotion } from "@/components/home-motion";
+import { KineticMarquee } from "@/components/ui/kinetic-marquee";
 
 export default function Home() {
-  return <main id="main"><Hero /><Work /><OtherThings /><AlongsideSchool /><Taste /><Tools /><Services /><Method /><Info /><E92 /><Questions /><Contact /></main>;
+  return <main id="main"><HomeMotion /><Hero /><Work /><KineticMarquee /><OtherThings /><AlongsideSchool /><Taste /><Tools /><Services /><Method /><Info /><KineticMarquee cities /><E92 /><Questions /><Contact /></main>;
 }

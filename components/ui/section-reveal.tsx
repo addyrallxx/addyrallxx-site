@@ -10,7 +10,7 @@ export function SectionReveal({ children }: { children: ReactNode }) {
   useEffect(() => {
     const el = ref.current!;
     gsap.registerPlugin(ScrollTrigger);
-    const magnets = Array.from(el.querySelectorAll<HTMLElement>(".contact-pill")).map(button => attachMagnetic(button));
+    const magnets = Array.from(el.querySelectorAll<HTMLElement>(".contact-pill:not(.email-copy)")).map(button => attachMagnetic(button));
     const media = gsap.matchMedia();
     media.add("(prefers-reduced-motion: no-preference)", () => {
       gsap.fromTo(el.querySelector(".section-hairline"), { scaleX: 0 }, { scaleX: 1, ease: "none", scrollTrigger: { trigger: el, start: "top bottom", end: "top 65%", scrub: true } });

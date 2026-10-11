@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./f12.css";
 
 :root {
   --r-sm: 6px;

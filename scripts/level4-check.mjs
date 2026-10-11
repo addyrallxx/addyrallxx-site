@@ -90,6 +90,7 @@ async function frameBudget(p, rate, spin = false) {
   await p.evaluate(spin => window.__lenis.scrollTo(spin ? document.querySelector("[data-sphere]").getBoundingClientRect().top + scrollY - 160 : 0, { immediate: true }), spin);
   await sleep(300);
   const sphereBefore = spin ? await p.$eval('[data-sphere-item]', el => el.style.transform) : null;
+  const marqueeBefore = await p.$$eval('.marquee-track', tracks => tracks.map(el => el.style.transform));
   check("visible before frame probe", await p.evaluate(() => !document.hidden));
   const result = await p.evaluate(spin => new Promise(resolve => {
     const frames = [], tasks = [];
@@ -121,6 +122,7 @@ async function frameBudget(p, rate, spin = false) {
   console.log(`FRAME ${result.width}x${result.height} CPU ${rate}x ${spin ? "sphere" : "scroll"} p95=${result.p95.toFixed(3)}ms frames=${result.frames} maxLongTask=${result.maxTask.toFixed(1)}ms`);
   check(spin ? "frame probe exercises canvas while sphere is visible" : "frame probe exercises canvas and Lenis", result.renders > 60 && (spin || result.peakScroll > result.max * .8));
   if (spin) check('globe spins throughout sphere frame sample', sphereBefore !== await p.$eval('[data-sphere-item]', el => el.style.transform));
+  check('both marquees run throughout frame sample', await p.$$eval('.marquee-track', (tracks, previous) => tracks.length === 2 && tracks.every((el,i) => el.style.transform !== previous[i]), marqueeBefore));
   budgets.push({ ...result, rate, spin });
   await cdp.send("Emulation.setCPUThrottlingRate", { rate: 1 });
   await cdp.detach();
@@ -380,7 +382,7 @@ async function glyphChecks() {
     check('settled glyph boxes stay within the pit at ' + width, result.inside);
     for (const mode of ['night', 'day']) {
       await p.evaluate(mode => { document.documentElement.dataset.mode = mode; }, mode);
-      check('ten distinct computed glyph colours in ' + mode + ' at ' + width, await p.$$eval('.falling-glyph', nodes => new Set(nodes.map(node => getComputedStyle(node).color)).size === 10));
+      check('ten distinct computed glyph fills in ' + mode + ' at ' + width, await p.$$eval('.falling-glyph', nodes => new Set(nodes.map(node => getComputedStyle(node).backgroundColor)).size === 10));
     }
     await p.evaluate(() => { document.documentElement.dataset.mode = 'night'; });
     if (width === 1000) await p.screenshot({ path: join(tmpdir(), 'claude/briefs/f11-glyphs.png') });

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { SplitFlap } from "@/components/ui/split-flap";
 import Image from "next/image";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -77,7 +78,7 @@ export function E92() {
           <span className="m-stripe e92-stripe" aria-hidden="true"><span /><span /><span /></span>
           <span className="car-sun" aria-hidden="true" />
           <div className="car-caption">
-            <p className="t-label">{CAR.label}</p>
+            <p className="t-label"><SplitFlap text={CAR.label} /></p>
             <h2 id="e92-heading" className="t-display-l" aria-label={CAR.lines.join(" ")}>{CAR.lines.map(line => <span key={line}>{line}{" "}</span>)}</h2>
           </div>
         </div>

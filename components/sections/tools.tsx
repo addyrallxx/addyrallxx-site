@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { SplitFlap } from "@/components/ui/split-flap";
 import { gsap } from "gsap";
 import { SKILLS } from "@/lib/content";
 import { skillColors } from "@/lib/skill-colors";
@@ -134,7 +135,7 @@ export function Tools() {
     };
   }, []);
   return <section className="home-section tools" aria-labelledby="tools-heading"><SectionReveal>
-    <h2 className="t-label section-label" id="tools-heading">{SKILLS.label}</h2>
+    <h2 className="t-label section-label" id="tools-heading"><SplitFlap text={SKILLS.label} /></h2>
     <div className="tools-grid">
       <div className="sphere-column"><div className="skill-sphere" ref={sphere} data-sphere>
         <svg className="globe-grid" viewBox="0 0 440 440" fill="none" stroke="var(--line)" aria-hidden="true"><circle cx="220" cy="220" r="180" vectorEffect="non-scaling-stroke" /><ellipse cx="220" cy="220" rx="180" ry="50.4" vectorEffect="non-scaling-stroke" /><ellipse cx="220" cy="220" rx="50.4" ry="180" vectorEffect="non-scaling-stroke" /></svg>

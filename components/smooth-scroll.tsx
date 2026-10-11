@@ -50,7 +50,7 @@ export default function SmoothScroll() {
 
       lenis.on("scroll", ScrollTrigger.update);
 
-      raf = (time: number) => lenis!.raf(time * 1000);
+      raf = (time: number) => { if (!document.hidden) lenis!.raf(time * 1000); };
       gsap.ticker.add(raf);
       gsap.ticker.lagSmoothing(0);
       gsap.ticker.fps(60);

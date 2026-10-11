@@ -1,5 +1,36 @@
 # Portfolio rebuild handoff
 
+## F12 local implementation, 2026-10-10, image gate blocked
+
+F12 is uncommitted on `level4`, based on F11 commit
+`ab0e4e69eafe26d3b24ffb48df278e8ca9c6da4d`. No site copy or dependencies changed.
+It adds lit paragraphs, kinetic hero letters and marquee bands, the three
+scoped meshes, facts/clocks/labels split flaps, boxed glyph physics and the
+brutal copy pill, service media strips and section tint. Settled flaps retain
+flat cards and exact generated glyphs; two animated faces exist only during
+each character's flip. Tickers use the shared GSAP/Lenis clock.
+
+Required image acceptance is RED: TotalTex Ops and Puzzled have empty `WORK`
+image arrays in `lib/content.ts`, with no approved matching files in `public`.
+Internal tools, Automation and Dealership operations use provisional existing
+typographic project visuals. Adnan was asked whether this fallback is acceptable.
+No response or approved paths received. Nothing is staged, committed or pushed.
+Do not commit or push while that required image gate is red.
+
+Build, TypeScript, copy-gate, 90 seeded rectangular physics cases and 41 focused
+F12 Chrome assertions and all 246 Level 4 assertions pass. All eight unchanged
+frame budgets pass with both marquees running and no long tasks. Final status is recorded in
+`C:/Users/adnan/AppData/Local/Temp/claude/briefs/f12-progress.md`; read it before
+claiming the complete acceptance gate is green. Phone checks are real Chrome
+emulation, not physical hardware.
+
+Owned production server: port 3100, PID 27368, command line confirmed. Confirm
+that PID again before stopping it. Port 3000 was untouched. Diagnostic scripts
+were removed. The four requested DPR 1, 1000px viewport captures are in the
+briefs directory: `f12-hero.png`, `f12-marquee.png`, `f12-services.png`,
+`f12-pit.png`. Browser verification uses `scripts/f12-check.mjs` and the unchanged
+budget thresholds in `scripts/level4-check.mjs`.
+
 ## F8 completion, 2026-10-10
 
 F8 finishes Contact, the Work index and five static project pages, the shared

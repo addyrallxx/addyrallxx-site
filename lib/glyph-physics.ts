@@ -5,21 +5,28 @@ export type GlyphBody = {
 export const GLYPH_STEP = 1 / 120;
 
 export function createGlyphBodies(boxes: { width: number; height: number }[], width: number, random = Math.random): GlyphBody[] {
-  const slots = boxes.map((_, i) => i);
-  for (let i = slots.length - 1; i > 0; i--) { const j = Math.floor(random() * (i + 1)); [slots[i], slots[j]] = [slots[j], slots[i]]; }
   const radii = boxes.map(box => .42 * Math.hypot(box.width, box.height));
-  const free = Math.max(0, width - radii.reduce((sum, radius) => sum + radius * 2, 0));
-  const gaps = Array.from({ length: boxes.length + 1 }, () => .1 + random());
-  const gapTotal = gaps.reduce((sum, gap) => sum + gap, 0);
+  const columns = Math.max(1, Math.floor(width / Math.max(...boxes.map(box => box.width * 1.3))));
+  const loads = new Array<number>(columns).fill(0);
+  const order = Array.from({ length: columns }, (_, i) => i);
+  for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
   const positions = new Array<number>(boxes.length);
-  let cursor = free * gaps[0] / gapTotal;
-  slots.forEach((index, i) => { positions[index] = cursor + radii[index]; cursor += radii[index] * 2 + free * gaps[i + 1] / gapTotal; });
+  const lanes = new Array<number>(boxes.length);
+  const releaseTimes = new Array<number>(columns).fill(-1);
+  boxes.map((box, i) => ({ box, i })).sort((a,b) => b.box.height - a.box.height).forEach(({ box, i }) => {
+    const column = order.reduce((best, candidate) => loads[candidate] < loads[best] ? candidate : best, order[0]);
+    positions[i] = (column + .5) * width / columns;
+    lanes[i] = column;
+    loads[column] += box.height;
+  });
   return boxes.map((box, i) => {
     const radius = radii[i];
-    // Random order and gaps distribute the drop without an initial pile-up.
+    // Random columns balance the larger tiles so a narrow pit cannot form one tall clump.
     const x = Math.max(radius, Math.min(width - radius, positions[i]));
+    const release = Math.max(i * .11, releaseTimes[lanes[i]] + 1);
+    releaseTimes[lanes[i]] = release;
     return { ...box, radius, x, y: -box.height / 2 - random() * 160,
-      vx: 0, vy: 0, angle: 0, spin: (random() * 2 - 1) * 35, release: i * .11, quiet: 0, asleep: false, grounded: false };
+      vx: 0, vy: 0, angle: 0, spin: (random() * 2 - 1) * 35, release, quiet: 0, asleep: false, grounded: false };
   });
 }
 
@@ -29,8 +36,8 @@ export function stepGlyphBodies(bodies: GlyphBody[], width: number, height: numb
   const floorContacts = new Set<GlyphBody>();
   const bounds = (b: GlyphBody) => {
     const angle = b.angle * Math.PI / 180;
-    const hx = Math.max(b.radius, (Math.abs(Math.cos(angle)) * b.width + Math.abs(Math.sin(angle)) * b.height) / 2);
-    const hy = Math.max(b.radius, (Math.abs(Math.sin(angle)) * b.width + Math.abs(Math.cos(angle)) * b.height) / 2);
+    const hx = (Math.abs(Math.cos(angle)) * b.width + Math.abs(Math.sin(angle)) * b.height) / 2;
+    const hy = (Math.abs(Math.sin(angle)) * b.width + Math.abs(Math.cos(angle)) * b.height) / 2;
     if (b.x < hx || b.x > width - hx) {
       if ((b.x < hx && b.vx < 0) || (b.x > width - hx && b.vx > 0)) b.vx *= -.38 * .8;
       b.x = Math.max(hx, Math.min(width - hx, b.x));
@@ -49,14 +56,18 @@ export function stepGlyphBodies(bodies: GlyphBody[], width: number, height: numb
     b.angle += b.spin * GLYPH_STEP; b.spin *= .985;
     bounds(b);
   }
-  // Four small solver passes keep piled circles from sinking into the floor.
+  // Rotated bounding boxes include the entire tile and give stable resting contacts.
   for (let pass = 0; pass < 4; pass++) {
     for (let i = 0; i < active.length; i++) for (let j = i + 1; j < active.length; j++) {
       const a = active[i], b = active[j];
-      const dx = b.x - a.x, dy = b.y - a.y, distance = Math.hypot(dx, dy);
-      const overlap = a.radius + b.radius - distance;
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const aa = a.angle * Math.PI / 180, ba = b.angle * Math.PI / 180;
+      const ac = Math.cos(aa), as = Math.sin(aa), bc = Math.cos(ba), bs = Math.sin(ba);
+      const ox = (Math.abs(ac) * a.width + Math.abs(as) * a.height + Math.abs(bc) * b.width + Math.abs(bs) * b.height) / 2 - Math.abs(dx);
+      const oy = (Math.abs(as) * a.width + Math.abs(ac) * a.height + Math.abs(bs) * b.width + Math.abs(bc) * b.height) / 2 - Math.abs(dy);
+      const overlap = Math.min(ox, oy);
+      const nx = ox < oy ? (dx < 0 ? -1 : 1) : 0, ny = ox < oy ? 0 : (dy < 0 ? -1 : 1);
       if (overlap < -.25) continue;
-      const nx = distance > .001 ? dx / distance : 1, ny = distance > .001 ? dy / distance : 0;
       if (ny > .3 && (b.asleep || b.grounded)) supported.add(a);
       if (ny < -.3 && (a.asleep || a.grounded)) supported.add(b);
       if (overlap <= 0) continue;

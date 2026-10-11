@@ -2,6 +2,7 @@
 
 import { useId, useSyncExternalStore } from "react";
 import { CHROME } from "@/lib/content";
+import { SplitFlap } from "@/components/ui/split-flap";
 
 const formatters = CHROME.clocks.map(({ zone }) => ({
   time: new Intl.DateTimeFormat("en-US", { timeZone: zone, hour: "numeric", minute: "2-digit", hour12: true }),
@@ -56,7 +57,7 @@ export function Clocks({ label = false }: { label?: boolean }) {
   return <div className={`clocks ${label ? "t-label" : "t-small"}`}>
     {CHROME.clocks.map(({ city, zone }, i) => <span className="clock" role="timer" key={city} data-zone={zone} aria-label={times[i] ? `${city}, ${times[i].hour}:${times[i].minute} ${times[i].period}` : city}>
       <ClockFigure day={times[i]?.day ?? false} /><span className="clock-city">{city}</span>
-      <span className="clock-time"><span className="clock-digits"><span>{times[i]?.hour}</span><span className="clock-colon" aria-hidden="true">{times[i]?.colon}</span><span>{times[i]?.minute}</span></span><span className="clock-period">{times[i]?.period}</span></span>
+      <span className="clock-time"><span className="clock-digits"><span><SplitFlap text={times[i]?.hour ?? ""} clock /></span><span className="clock-colon" aria-hidden="true">{times[i]?.colon}</span><span><SplitFlap text={times[i]?.minute ?? ""} clock /></span></span><span className="clock-period">{times[i]?.period}</span></span>
     </span>)}
   </div>;
 }

@@ -77,5 +77,5 @@ export function GlyphPit() {
     motion.addEventListener("change", run); document.addEventListener("visibilitychange", visibility);
     return () => { disposed = true; stop(); resize.disconnect(); observer.disconnect(); motion.removeEventListener("change", run); document.removeEventListener("visibilitychange", visibility); };
   }, []);
-  return <div className="glyph-pit" ref={pit} aria-hidden="true">{glyphs.map((glyph, i) => <span key={glyph} className={`falling-glyph ${i === 0 || i === 4 ? bangla.className : ""}`} style={{ "--glyph-night": night[i], "--glyph-day": day[i], fontSize: `calc(${sizes[i]} / 1440 * (100vw - 2 * var(--gutter)))` } as CSSProperties}>{glyph}</span>)}</div>;
+  return <div className="glyph-pit" ref={pit} aria-hidden="true">{glyphs.map((glyph, i) => <span key={glyph} className={`falling-glyph ${i === 0 || i === 4 ? bangla.className : ""}`} style={{ "--glyph-night": night[i], "--glyph-day": day[i], "--glyph-ink": i === 7 ? "#F5F3EE" : "#0A0A0A", fontSize: `calc(${sizes[i]} * .9 / 1440 * (100vw - 2 * var(--gutter)))` } as CSSProperties}>{glyph}</span>)}</div>;
 }

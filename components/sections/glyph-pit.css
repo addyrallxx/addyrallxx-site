@@ -1,5 +1,5 @@
 @layer theme, base, components, utilities;
 @layer components {
-  .glyph-pit .falling-glyph { color: var(--glyph-night); cursor: default; touch-action: auto; pointer-events: none; }
-  :root[data-mode="day"] .falling-glyph { color: var(--glyph-day); }
+  .glyph-pit .falling-glyph { color: var(--glyph-ink); background: var(--glyph-night); padding: .18em; border: 3px solid #0A0A0A; border-radius: 16px; box-shadow: 6px 6px 0 #0A0A0A; cursor: default; touch-action: auto; pointer-events: none; }
+  :root[data-mode="day"] .glyph-pit .falling-glyph { background: var(--glyph-day); color: #0A0A0A; }
 }
