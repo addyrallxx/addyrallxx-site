@@ -82,27 +82,22 @@ He grades the site in levels and expects each session to move it up one.
   co-founder, incoming TotalTex managing director, summer 2027 internships)
   before any boast. Frame budget is a hard gate: p95 under 16.7ms at 1440 and
   390, under 33ms at 4x CPU.
-  **Done (2026-10-10):** foundation, horizon intro and hero shipped and
-  pushed (`5e46a5a`, `9e558ef`, `ade9967`; 52 real Chrome checks via
-  `scripts/level4-check.mjs`, including frame budgets at 1440 and 390),
-  calmer fluid trail (smaller brush, shorter life), resume facts row, stripe
-  and E92 spec, E92 photos in. F3 (stripe, Work index, Other things card fan,
-  Alongside school, Tools sphere, Services) is on its final verification
-  rerun; read its real diff before trusting it.
-  **Adnan's direction:** the site is also his resume (UCalgary CS 2028,
-  Puzzled co-founder, incoming TotalTex managing director, summer 2027
-  internships first); keep and redesign the skill sphere (60fps, premium, ink
-  aligned); Questions last; the rev bar becomes a period-correct analogue
-  E92-era tach; stripe at three moving moments, no BMW logo; E92 photos
-  graded; an optional `///` mark of three slanted tricolour bars (no M).
-  Public colour copy for the car says only "BMW Individual Bernina Grey".
-  **To call Level 4 complete:** F3 processed and verified; tach and sphere
-  redesigned; photos graded; E92 copy written from the vault notes; F4
-  (Taste, How I work, Info, Questions, Contact pit, `/work` pages,
-  transitions); humanizer plus Codex rival copy pass; Design Loop critics;
-  `impeccable detect`; preship 20 at 390 and 1440; twinkle audit (Adnan:
-  stars twinkle a bit too much; only after a stable version). Level 4 reaches
-  production only when Adnan says so.
+  **Status (2026-10-11): shipped to production**, https://addyrallxx-site.vercel.app,
+  through `8577f6d` on origin `level4` and `main` before this docs checkpoint.
+  F5/F8 shipped the sections, standalone E92 tach/photos, logo globe, Contact
+  pit, Work pages, route wipes, clocks and School guard. F11/F12 added stacking
+  cards, the pinned E92 scene, kinetic type, meshes, marquees and split flaps.
+  F9 shipped the School banner/tree, contrast and accessibility fixes, metadata,
+  custom 404 and current-nav states (`61e3c63`, `e133e83`, `6bde5f2`). F13 shipped
+  phone layouts (`8577f6d`). Always night on entry supersedes the earlier
+  Calgary-time opening; E92 is a standalone section, and Work uses stacking cards.
+  Production acceptance in the F9/F13 ledgers: 246 real Chrome checks and all
+  eight unchanged frame budgets pass, no console/runtime/HTTP errors.
+  Phone evidence is Chrome emulation, with physical handset/Safari acceptance open.
+  F13's review coverage exception and warmed-frame method remain documented.
+  **Next:** copy pass by Claude (humanizer, slopmonster), Design Loop critics
+  on the hero, twinkle audit, FAQ copy, portrait from Adnan. Questions stays
+  hidden while its copy is empty. Engineering shipped; these polish items remain.
 
 ### Standing feedback from Adnan, carried forward
 
