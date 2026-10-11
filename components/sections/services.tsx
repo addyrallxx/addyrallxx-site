@@ -46,7 +46,7 @@ export function Services() {
   const slugs = ["totaltex-web", "totaltex-ops", "puzzled", "puzzled"];
   return <section ref={root} className="home-section services" aria-labelledby="services-heading"><GradientMesh place="services" /><SectionReveal>
     <h2 className="t-display-l section-heading" id="services-heading" aria-label={SERVICES.lines.join(" ")}>{SERVICES.lines.map((line, i) => <span className="section-line" key={line} aria-hidden="true" style={{ "--line-index": i } as React.CSSProperties}><span>{line}</span></span>)}</h2>
-    <div className="index-list">{SERVICES.items.map((item, i) => <div className="service-entry" data-open={open === i} key={item.name} onPointerEnter={event => { if (event.pointerType === "mouse" && matchMedia("(hover: hover) and (pointer: fine)").matches) setOpen(i); }} onFocus={() => setOpen(i)}>
+    <div className="index-list">{SERVICES.items.map((item, i) => <div className="service-entry" role="group" aria-label={item.name} tabIndex={0} data-open={open === i} key={item.name} onPointerEnter={event => { if (event.pointerType === "mouse" && matchMedia("(hover: hover) and (pointer: fine)").matches) setOpen(i); }} onFocus={() => setOpen(i)}>
       <div className="index-row service-row" style={{ "--row-index": i } as React.CSSProperties}>
       <span className="t-label index-number">{String(i + 1).padStart(2, "0")}</span><h3 className="t-title">{item.name}</h3><p className="t-body section-body">{item.line}</p>
       </div>

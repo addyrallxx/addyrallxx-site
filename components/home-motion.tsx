@@ -28,7 +28,7 @@ export function HomeMotion() {
       const cleanups: (() => void)[] = [];
       originals.forEach((_text, el) => {
         const words = Array.from(el.querySelectorAll<HTMLElement>(".lit-word"));
-        gsap.set(words, { opacity: .18 });
+        gsap.set(words, { opacity: .9 });
         let previous = 0;
         const light = (progress: number) => {
           const position = progress * (words.length - 1 + .3);
@@ -36,7 +36,7 @@ export function HomeMotion() {
           const last = Math.min(words.length - 1, Math.ceil(Math.max(position, previous)));
           // Only newly crossed words need a write, including large jumps and reverse scroll.
           for (let i = first; i <= last; i++) {
-            const opacity = (.18 + .82 * Math.max(0, Math.min(1, (position - i) / .3))).toFixed(3);
+            const opacity = (.9 + .1 * Math.max(0, Math.min(1, (position - i) / .3))).toFixed(3);
             if (words[i].style.opacity !== opacity) words[i].style.opacity = opacity;
           }
           previous = position;

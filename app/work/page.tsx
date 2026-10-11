@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { OTHER, WORK_LABEL } from "@/lib/content";
+import { OTHER, WORK_LABEL, WORK } from "@/lib/content";
 import { Work } from "@/components/sections/work";
 import { SectionReveal } from "@/components/ui/section-reveal";
 
-export const metadata: Metadata = { title: WORK_LABEL };
+export const metadata: Metadata = { title: WORK_LABEL, description: WORK.map(project => project.line).join(" ") };
 
 export default function WorkPage() {
   return <main id="main" className="work-page">

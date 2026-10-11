@@ -43,7 +43,7 @@ try {
     const sample = async y => { await p.evaluate(y => window.__lenis.scrollTo(y, { immediate: true }), y); await sleep(150); return p.$eval('.taste-body', el => { const words = [...el.querySelectorAll('.lit-word')]; return +getComputedStyle(words[Math.floor(words.length / 2)]).opacity; }); };
     const before = await sample(lit.y - 900 * .8), after = await sample(lit.y + lit.height - 900 * .45);
     console.log('lit opacity', width, before, after);
-    check('mid paragraph lights across its scroll window ' + width, after > before + .5);
+    check('mid paragraph lights across its scroll window within the contrast floor ' + width, before >= .9 && after > before + .05);
     const ax = await p.createCDPSession();
     const tree = await ax.send('Accessibility.getFullAXTree');
     check('accessibility tree retains full sentence ' + width, tree.nodes.some(node => !node.ignored && node.name?.value === lit.text)); await ax.detach();
@@ -55,7 +55,7 @@ try {
         values.push(await p.$eval('.car-lead', el => { const words = [...el.querySelectorAll('.lit-word')]; return +getComputedStyle(words[Math.floor(words.length / 2)]).opacity; }));
       }
       console.log('pinned E92 word opacity', values);
-      check('E92 words follow the moving pinned paragraph', values[0] === .18 && values[2] === 1);
+      check('E92 words follow the moving pinned paragraph within the contrast floor', values[0] === .9 && values[2] === 1);
     }
     check('meshes are confined to Services and Contact ' + width, await p.$$eval('.gradient-mesh', nodes => nodes.length === 2 && nodes.every(node => node.parentElement.matches('.services, #contact'))));
     await scroll(p, '.kinetic-marquee');

@@ -17,6 +17,11 @@ try {
     await cdp.send('Emulation.setCPUThrottlingRate', { rate });
     await page.evaluateOnNewDocument(() => {
       window.__decodeFrames = [];
+      new MutationObserver(entries => entries.forEach(entry => {
+        if (!entry.target.matches?.('.school-ascii')) return;
+        if (entry.target.dataset.settled === 'false') window.__decodeStarted = performance.now();
+        else if (window.__decodeStarted) window.__decodeDuration = performance.now() - window.__decodeStarted;
+      })).observe(document, { subtree: true, attributes: true, attributeFilter: ['data-settled'] });
       let last;
       const tick = now => {
         const banner = document.querySelector('.school-ascii');
@@ -34,6 +39,7 @@ try {
     await page.waitForFunction(() => document.documentElement.dataset.intro === 'done');
     await sleep(1500);
     assert(await page.$eval('.school-ascii', el => el.getAttribute('aria-hidden') === 'true' && el.dataset.settled === 'true' && [...el.children].map(row => row.textContent).join('\n') === el.dataset.final));
+    assert(await page.evaluate(() => window.__decodeDuration > 300 && window.__decodeDuration <= 1500), 'decode settles within 1.5 seconds of entry');
     assert(await page.evaluate(() => document.documentElement.scrollWidth === innerWidth && [...document.querySelectorAll('.ascii-row')].every(el => el.getBoundingClientRect().right <= innerWidth)));
     const timing = await page.evaluate(() => [...window.__decodeFrames].sort((a,b) => a-b));
     assert(timing.length > 10, 'decode was actually measured');
@@ -44,6 +50,7 @@ try {
     const accessibility = await cdp.send('Accessibility.getFullAXTree');
     assert(accessibility.nodes.filter(node => node.role?.value === 'listitem').length >= 17);
     assert(accessibility.nodes.some(node => node.name?.value === 'Data Structures, Algorithms and Analysis'));
+    assert(!accessibility.nodes.some(node => /[├└│]/.test(node.name?.value ?? '')), 'tree art is silent in the accessibility tree');
     assert(!/GPA|\b[A-DF][+-]?\s*\|\s*CPSC/.test(await page.$eval('main', el => el.innerText)));
     if (rate === 1) {
       await page.setViewport({ width: width === 1440 ? 1000 : 390, height: width === 1440 ? 900 : 844, deviceScaleFactor: 1 });
@@ -57,6 +64,9 @@ try {
   await page.goto(base + '/school');
   assert(await page.$eval('.school-ascii', el => el.dataset.settled === 'true' && [...el.children].map(row => row.textContent).join('\n') === el.dataset.final));
   assert(await page.$eval('.tree-cursor', el => getComputedStyle(el).animationName === 'none'));
+  await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'no-preference' }]);
+  await page.evaluate(() => { Object.defineProperty(document, 'hidden', { configurable: true, value: true }); document.dispatchEvent(new Event('visibilitychange')); });
+  assert(await page.$eval('.tree-cursor', el => getComputedStyle(el).animationPlayState === 'paused'));
   assert.equal(errors.length, 0, errors.join('\n'));
   console.log('F9 School checks passed');
 } finally { await browser.close(); }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, type CSSProperties } from "react";
 
 // Five rows, five columns, authored here rather than fetched from a font service.
 const glyphs: Record<string, string[]> = Object.fromEntries(Object.entries({
@@ -22,7 +22,7 @@ const glyphs: Record<string, string[]> = Object.fromEntries(Object.entries({
 
 export function SchoolBanner({ lines }: { lines: string[] }) {
   const root = useRef<HTMLDivElement>(null);
-  const rows = lines.flatMap(line => Array.from({ length: 5 }, (_, row) => [...line.toUpperCase()].map(letter => glyphs[letter]?.[row] ?? glyphs[" "][row]).join(" ")));
+  const rows = useMemo(() => lines.flatMap(line => Array.from({ length: 5 }, (_, row) => [...line.toUpperCase()].map(letter => glyphs[letter]?.[row] ?? glyphs[" "][row]).join(" "))), [lines]);
   const final = rows.join("\n");
   useEffect(() => {
     const el = root.current!;
@@ -59,7 +59,7 @@ export function SchoolBanner({ lines }: { lines: string[] }) {
     const changed = () => { if (motion.matches) { observer.disconnect(); finish(); } };
     motion.addEventListener("change", changed);
     return () => { finish(); resize.disconnect(); observer.disconnect(); motion.removeEventListener("change", changed); };
-  }, [final]); // The joined string is the complete banner identity.
+  }, [rows]);
   return <div ref={root} className="school-ascii" aria-hidden="true" data-final={final} data-settled="true">{rows.map((row, i) => <pre className="ascii-row" key={i}>{row}</pre>)}</div>;
 }
 

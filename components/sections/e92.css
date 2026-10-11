@@ -1,6 +1,6 @@
 @layer theme, base, components, utilities;
 @layer components {
-  .e92 { position: relative; padding: 0; scroll-margin-top: 0; --bg: #0B0B10; --ink: #EEF1FA; --ink-2: #9AA3C0; --ink-3: #9AA3C0; --line: rgba(238,241,250,.12); color: var(--ink); }
+  .e92 { position: relative; padding: 0; scroll-margin-top: 0; --bg: #0B0B10; --ink: #EEF1FA; --ink-2: #D2D8E8; --ink-3: #D2D8E8; --line: rgba(238,241,250,.12); color: var(--ink); text-shadow: 0 0 1px var(--bg), 0 0 3px var(--bg); }
   .e92-stage { position: relative; height: auto; overflow: visible; }
   .e92[data-pin] .e92-stage { height: 100svh; overflow: hidden; }
   .e92-warm { position: absolute; inset: 0; background: radial-gradient(ellipse 60% 60% at 70% 35%, rgba(242,166,90,.55), rgba(107,58,42,.35) 65%, #0B0B10); }
@@ -13,10 +13,10 @@
   .car-saturation { position: absolute; inset: 0; background: url('/e92/profile.jpg') 50% 55% / cover; filter: saturate(1.06); opacity: 0; }
   .e92-stripe { position: absolute; inset: 0 0 auto; transform-origin: left; }
   .car-sun { position: absolute; inset: 0 auto 0 0; width: 30%; background: linear-gradient(105deg, transparent, rgba(255,255,255,.28) 50%, transparent); mix-blend-mode: soft-light; opacity: 0; pointer-events: none; }
-  .car-photo::after { content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 40%; background: linear-gradient(transparent, color-mix(in oklab, var(--bg) 70%, transparent)); pointer-events: none; }
+  .car-photo::after { content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 70%; background: linear-gradient(transparent, color-mix(in srgb, var(--bg) 90%, transparent) 40%, color-mix(in srgb, var(--bg) 95%, transparent)); pointer-events: none; }
   .car-caption { position: absolute; z-index: 1; bottom: var(--u); left: var(--gutter); }
   .car-caption .t-label { margin-bottom: 12px; }
-  .car-details { position: relative; padding: calc(var(--u) * 1.5) var(--gutter); }
+  .car-details { position: relative; padding: calc(var(--u) * 1.5) var(--gutter); background: color-mix(in srgb, var(--bg) 85%, transparent); }
   .car-intro { grid-column: 1 / 6; }
   .car-lead { margin-top: var(--u); }
   .car-signoff { margin-top: calc(var(--u) * 2); }

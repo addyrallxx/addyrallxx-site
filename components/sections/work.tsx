@@ -32,7 +32,7 @@ export function Work({ showLabel = true }: { showLabel?: boolean }) {
           gsap.fromTo(card.querySelectorAll(".work-word"), { yPercent: 110 }, { yPercent: 0, duration: .8, stagger: .055, ease: "power4.out", scrollTrigger: { trigger: card, start: "top 82%", once: true } });
           if (cards[i + 1] && innerWidth >= 720) {
             const timeline = gsap.timeline({ scrollTrigger: { trigger: cards[i + 1], start: "top 85%", end: `top ${9 + (i + 1) * 16 / innerHeight * 100}%`, scrub: true } });
-            timeline.to(card, { scale: .93, ease: "none" }, 0).to(card.querySelector(".work-card-content"), { opacity: .35, ease: "none" }, 0);
+            timeline.to(card, { scale: .93, ease: "none" }, 0).to(card.querySelector(".work-card-content"), { opacity: .9, ease: "none" }, 0);
           }
         });
       }, el);

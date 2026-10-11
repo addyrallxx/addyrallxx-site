@@ -6,7 +6,7 @@ import { GradientMesh } from "@/components/ui/gradient-mesh";
 import { SplitFlap } from "@/components/ui/split-flap";
 import { SchoolBanner, CourseTree } from "@/components/school-terminal";
 
-export const metadata: Metadata = { title: SCHOOL.label };
+export const metadata: Metadata = { title: SCHOOL.label, description: SCHOOL.lead };
 
 export default function School() {
   return <main id="main" className="school-page">
