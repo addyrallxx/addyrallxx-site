@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Archivo, Instrument_Sans } from "next/font/google";
 import SmoothScroll from "@/components/smooth-scroll";
 import { Sky } from "@/components/sky/sky";
@@ -19,6 +19,7 @@ export const metadata: Metadata = {
 };
 
 const modeScript = `document.documentElement.dataset.mode="night"`;
+export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (

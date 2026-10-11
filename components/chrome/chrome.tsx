@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { usePathname } from "next/navigation";
 import { TransitionLink as Link } from "@/components/page-transition";
 import { CHROME, NAV, SITE } from "@/lib/content";
@@ -17,6 +17,14 @@ export function Chrome() {
   const bottom = useRef<HTMLDivElement>(null);
   const previousOverflow = useRef("");
   const close = () => sheet.current?.close();
+  const trapFocus = (event: KeyboardEvent<HTMLDialogElement>) => {
+    if (event.key !== "Tab") return;
+    const controls = Array.from(event.currentTarget.querySelectorAll<HTMLElement>("button, a[href]"));
+    if (!controls.length) return;
+    const index = controls.indexOf(document.activeElement as HTMLElement);
+    event.preventDefault();
+    controls[(index + (event.shiftKey ? -1 : 1) + controls.length) % controls.length].focus();
+  };
   useEffect(() => {
     if (pathname !== "/") return;
     const visible = new Map<string, number>();
@@ -37,9 +45,15 @@ export function Chrome() {
     const hero = document.querySelector(".hero");
     let heroHeight = hero?.clientHeight ?? window.innerHeight;
     let pastHero: boolean | undefined;
+    let previousScroll = 0;
     const onScroll = () => {
       const lenis = window.__lenis;
-      const past = (lenis?.animatedScroll ?? window.scrollY) >= heroHeight;
+      const position = lenis?.animatedScroll ?? window.scrollY;
+      const past = position >= heroHeight;
+      if (Math.abs(position - previousScroll) > 1) {
+        if (bottom.current && innerWidth < 720) bottom.current.dataset.scrollUp = String(position < previousScroll);
+        previousScroll = position;
+      }
       // Cached Lenis position avoids flushing styles after animated DOM writes.
       if (bottom.current && past !== pastHero) { bottom.current.dataset.pastHero = String(past); pastHero = past; }
     };
@@ -86,7 +100,7 @@ export function Chrome() {
       </div>
     </div>
     {/* Native modal dialog supplies the focus trap, inert background and Escape handling. */}
-    <dialog id="phone-menu" className="menu-sheet" ref={sheet} aria-label={CHROME.menu} onClose={restore} onCancel={close} data-lenis-prevent>
+    <dialog id="phone-menu" className="menu-sheet" ref={sheet} aria-label={CHROME.menu} onClose={restore} onCancel={close} onKeyDown={trapFocus} data-lenis-prevent>
       <div className="flex justify-end"><button type="button" onClick={close} autoFocus className="t-small">{CHROME.close}</button></div>
       <nav>{NAV.map((link) => <Link href={link.href} key={link.href} onClick={close} className="t-display-l" aria-current={current(link.href)}>{link.label}</Link>)}</nav>
     </dialog>

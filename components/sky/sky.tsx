@@ -74,13 +74,19 @@ export function Sky() {
         const frameWindow: { at: number; duration: number }[] = [];
         const resize = () => {
           width = window.innerWidth; height = window.innerHeight;
+          container.dataset.fluid = coarse.matches || width < 720 ? "off" : "on";
+          if (container.dataset.fluid === "off") {
+            px = -1; dx = dy = speed = 0;
+            for (const buffer of [simulation.dye.read, simulation.dye.write]) { gpu.setRenderTarget(buffer); gpu.clear(); }
+            gpu.setRenderTarget(null);
+          }
           gpu.setPixelRatio(Math.min(window.devicePixelRatio, coarse.matches ? 1.25 : 1.5) * resolutionScale);
           gpu.setSize(width,height);
           // Screen space remains in CSS pixels so parallax is independent of DPR.
           uniforms.uResolution.value.set(width,height);
         };
         const pointer = (event: PointerEvent) => {
-          if (paused) return;
+          if (paused || coarse.matches || width < 720 || event.pointerType === "touch") return;
           if (px < 0) { px = event.clientX; py = event.clientY; return; }
           const deltaX = event.clientX-px, deltaY = event.clientY-py;
           const velocity = Math.hypot(deltaX,deltaY);
@@ -117,7 +123,7 @@ export function Sky() {
             simulation.splat(x,y,dx,dy,speed,desired === "night",width/height);
             dx = 0; dy = 0; speed = 0;
           }
-          simulation.step(dt,desired === "night");
+          if (!coarse.matches && width >= 720) simulation.step(dt,desired === "night");
           uniforms.uDye.value = simulation.dye.read.texture;
           gpu.setRenderTarget(null);
           gpu.render(scene,camera);

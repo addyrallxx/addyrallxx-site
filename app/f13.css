@@ -1,0 +1,53 @@
+@media (max-width: 719px) { html:root { --gutter: 20px; } }
+@layer components {
+  @media (max-width: 719px) {
+    html .t-display-xl { font-size: 15vw; }
+    html .t-display-l { font-size: 12vw; }
+    html .t-body { font-size: 17px; max-width: 40ch; }
+    html .hero .kinetic-letter { font-variation-settings: "wdth" 100, "wght" 800; }
+    html .hero-line { white-space: nowrap; }
+    html .contact .t-display-xl { font-variation-settings: "wdth" 75; }
+    html .school-page .page-hero h1 { font-variation-settings: "wdth" 100; overflow-wrap: normal; }
+    html .work-outline { font-size: clamp(32px, 10vw, 48px); overflow-wrap: normal; }
+    html .home-section, html .hero { padding-left: max(20px, env(safe-area-inset-left)); padding-right: max(20px, env(safe-area-inset-right)); }
+    html .hero { min-height: 100svh; height: auto; padding-top: max(100px, calc(64px + env(safe-area-inset-top))); padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+    html .chrome-top { top: max(12px, env(safe-area-inset-top)); }
+    html .chrome-top::before { height: calc(96px + env(safe-area-inset-top)); background: linear-gradient(to bottom, var(--bg) 0 calc(64px + env(safe-area-inset-top)), transparent); }
+    html .chrome-top, html .chrome-bottom { left: max(20px, env(safe-area-inset-left)); right: max(20px, env(safe-area-inset-right)); }
+    html .chrome-bottom { bottom: max(16px, env(safe-area-inset-bottom)); align-items: center; gap: 8px; font-size: 12px; }
+    html .chrome-bottom::before { height: calc(64px + env(safe-area-inset-bottom)); background: linear-gradient(to top, var(--bg) 0 calc(40px + env(safe-area-inset-bottom)), transparent); }
+    html .chrome-bottom .clocks { flex-direction: row; gap: 8px; font-size: 12px; }
+    html .chrome-bottom .split-flap { font-family: inherit; }
+    html .chrome-bottom .split-flap .flap-visual { display: none; }
+    /* Tailwind's sr-only utility layer must yield for these visible phone clock digits. */
+    html .chrome-bottom .split-flap > .sr-only { all: unset !important; }
+    html .chrome-bottom .clock { gap: 0; }
+    html .chrome-bottom .clock-city, html .chrome-bottom .clock-figure { display: none; }
+    html .chrome-bottom .availability { max-width: none; white-space: nowrap; gap: 4px; font-size: 11px; }
+    html .chrome-bottom[data-past-hero="true"][data-scroll-up="true"] { visibility: visible; }
+    html .menu-sheet { height: 100dvh; padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left)); }
+    html .menu-sheet nav a { display: flex; align-items: center; font-size: clamp(32px, 8vw, 64px); line-height: .95; }
+    html .menu-sheet[open] nav a { animation: phone-menu-rise 400ms var(--ease-out) both; }
+    html .menu-sheet[open] nav a:nth-child(2) { animation-delay: 60ms; }
+    html .menu-sheet[open] nav a:nth-child(3) { animation-delay: 120ms; }
+    html .menu-sheet[open] nav a:nth-child(4) { animation-delay: 180ms; }
+    html .work-media-inner { top: 0; height: 100%; }
+    html .work-follower { display: none; }
+    html .work-stack { padding-bottom: 0; }
+    html .marquee-item { font-size: 9vw; }
+    html .kinetic-marquee { contain-intrinsic-size: auto 15.45vw; }
+    html .e92 .car-photo { height: 76vw; }
+    html .e92 .car-caption .t-display-l { font-size: 12vw; }
+    html .e92 .car-caption { right: var(--gutter); }
+    html .glyph-pit { height: 300px; }
+    html .contact, html .project-page, html .work-page { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+    html .contact a, html .contact button, html .back-link, html .project-page a { min-width: 44px; min-height: 44px; }
+    html .email-copy { min-width: 0; max-width: calc(100% - 6px); padding-inline: 16px; overflow-wrap: anywhere; }
+    html .hero-facts > div, html .project-meta li { min-width: 0; }
+    html .page-hero, html .work-copy, html .course-tree { overflow-wrap: anywhere; }
+  }
+  @media (max-width: 719px) and (prefers-reduced-motion: reduce) {
+    html .menu-sheet[open] nav a { animation: none; }
+  }
+}
+@keyframes phone-menu-rise { from { transform: translateY(24px); opacity: .9; } to { transform: none; opacity: 1; } }

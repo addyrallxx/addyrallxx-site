@@ -18,6 +18,12 @@ export function E92() {
     let striped = false;
     let sweep: gsap.core.Timeline | undefined;
     let stripe: gsap.core.Tween | undefined;
+    media.add("(max-width: 719px) and (prefers-reduced-motion: no-preference)", () => {
+      [".car-photo", ".car-intro", ".car-specs"].forEach(selector => {
+        const target = section.querySelector(selector);
+        gsap.fromTo(target, { y: 20, opacity: .9 }, { y: 0, opacity: 1, duration: .6, ease: "power3.out", scrollTrigger: { trigger: target, start: "top 85%", once: true } });
+      });
+    });
     media.add("(min-width: 720px) and (prefers-reduced-motion: no-preference)", () => {
       section.dataset.pin = "true";
       const sky = document.querySelector(".sky");

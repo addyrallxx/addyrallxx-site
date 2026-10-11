@@ -16,7 +16,12 @@ export function Work({ showLabel = true }: { showLabel?: boolean }) {
     const el = root.current!;
     const media = gsap.matchMedia();
     const cleanups = Array.from(el.querySelectorAll<HTMLElement>(".work-pill")).map(el => attachMagnetic(el));
-    media.add("(prefers-reduced-motion: no-preference)", () => {
+    media.add("(max-width: 719px) and (prefers-reduced-motion: no-preference)", () => {
+      el.querySelectorAll(".work-card").forEach(card => {
+        gsap.fromTo(card.querySelector(".work-card-content"), { y: 20, opacity: .9 }, { y: 0, opacity: 1, duration: .6, ease: "power3.out", scrollTrigger: { trigger: card, start: "top 85%", once: true } });
+      });
+    });
+    media.add("(min-width: 720px) and (prefers-reduced-motion: no-preference)", () => {
       const cards = Array.from(el.querySelectorAll<HTMLElement>(".work-card"));
       const context = gsap.context(() => {
         gsap.fromTo(el.querySelector(".section-hairline"), { scaleX: 0 }, { scaleX: 1, ease: "none", scrollTrigger: { trigger: el, start: "top bottom", end: "top 65%", scrub: true } });

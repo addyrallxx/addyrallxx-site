@@ -1,3 +1,13 @@
+# F13 phone variant, 2026-10-11
+
+Phone-only CSS and motion branches preserve the desktop composition. Work and E92 are unpinned entry sequences; touch fluid simulation is off; type, safe areas, full-screen Menu focus cycling, compact scroll-aware chrome, 9vw marquees and 300px glyph pit follow Brief F13. Copy, brand colours, M stripe and project assets are unchanged.
+
+Local acceptance: production build, TypeScript, copy-gate, 90 seeded physics cases, 246 regression assertions, 41 F12 assertions and F9 nav checks pass. All eight original frame budgets and E92 pin budgets pass. Focused phone checks cover 390x844 and 360x780, visible clock digits, complete heading words, targets, overflow and fractional upward scrolling. Desktop reference comparisons span 31 viewport captures over /, /school, /work and /work/totaltex-web; maximum region difference 0.4454%, below 0.5%, with documented live-layer masks. Raw references and failed diagnostic comparisons remain in Temp.
+
+Two Gemini rounds were run. Round 1 hit its 14-turn cap; round 2 succeeded and inspected nine captures. School heading and status-line fixes were accepted. Capture-selection exception: Gemini reviewed TotalTex Web instead of first Work item Puzzled. Puzzled was independently captured and checked at both widths afterward; no third review was run, per the brief. Phone acceptance remains laptop Chrome emulation, not physical-device evidence. The initial faster cold-scroll stress failure and warmed frame methodology are recorded explicitly.
+
+Authoritative release/live status, all review verdicts and f13-*.png evidence: C:/Users/adnan/AppData/Local/Temp/claude/briefs/f13-progress.md. The owned server is port 3100 PID 15084; confirm again before stopping. Port 3000 untouched. No new dependencies or copy changes.
+
 # F9 final local checkpoint, 2026-10-11
 
 F9 Part 1 is 61e3c63. School now has the authored ASCII decode banner and semantic coursework tree. Part 2 fixes capture-measured text contrast, keyboard preview/focus equivalence, route descriptions, Open Graph PNG and a custom 404, without new copy or project dependencies. The 20-point table and numeric evidence live at C:/Users/adnan/AppData/Local/Temp/claude/briefs/f9-progress.md.
