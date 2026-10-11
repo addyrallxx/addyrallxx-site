@@ -83,7 +83,7 @@ He grades the site in levels and expects each session to move it up one.
   before any boast. Frame budget is a hard gate: p95 under 16.7ms at 1440 and
   390, under 33ms at 4x CPU.
   **Status (2026-10-11): shipped to production**, https://addyrallxx-site.vercel.app,
-  with implementation through `8577f6d` and documentation through `6d6e01d`
+  with implementation through `8577f6d` and documentation through `819377c`
   on both origin `level4` and `main`.
   F5/F8 shipped the sections, standalone E92 tach/photos, logo globe, Contact
   pit, Work pages, route wipes, clocks and School guard. F11/F12 added stacking
