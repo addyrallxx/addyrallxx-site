@@ -19,7 +19,7 @@ try {
       window.__decodeFrames = [];
       new MutationObserver(entries => entries.forEach(entry => {
         if (!entry.target.matches?.('.school-ascii')) return;
-        if (entry.target.dataset.settled === 'false') window.__decodeStarted = performance.now();
+        if (entry.target.dataset.settled === 'false') { window.__decodeStarted = performance.now(); window.__decodeUncovered = document.documentElement.dataset.intro === 'done' && !document.documentElement.dataset.transition; }
         else if (window.__decodeStarted) window.__decodeDuration = performance.now() - window.__decodeStarted;
       })).observe(document, { subtree: true, attributes: true, attributeFilter: ['data-settled'] });
       let last;
@@ -40,6 +40,7 @@ try {
     await sleep(1500);
     assert(await page.$eval('.school-ascii', el => el.getAttribute('aria-hidden') === 'true' && el.dataset.settled === 'true' && [...el.children].map(row => row.textContent).join('\n') === el.dataset.final));
     assert(await page.evaluate(() => window.__decodeDuration > 300 && window.__decodeDuration <= 1500), 'decode settles within 1.5 seconds of entry');
+    assert(await page.evaluate(() => window.__decodeUncovered), 'decode runs after the intro and route cover have gone');
     assert(await page.evaluate(() => document.documentElement.scrollWidth === innerWidth && [...document.querySelectorAll('.ascii-row')].every(el => el.getBoundingClientRect().right <= innerWidth)));
     const timing = await page.evaluate(() => [...window.__decodeFrames].sort((a,b) => a-b));
     assert(timing.length > 10, 'decode was actually measured');

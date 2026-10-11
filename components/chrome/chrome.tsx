@@ -1,18 +1,37 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { TransitionLink as Link } from "@/components/page-transition";
 import { CHROME, NAV, SITE } from "@/lib/content";
 import "@/lib/scroll";
 import { Clocks } from "./clocks";
 import { SkyToggle } from "./sky-toggle";
+import "./current-route.css";
 
 export function Chrome() {
+  const pathname = usePathname();
+  const [section, setSection] = useState("");
   const sheet = useRef<HTMLDialogElement>(null);
   const menu = useRef<HTMLButtonElement>(null);
   const bottom = useRef<HTMLDivElement>(null);
   const previousOverflow = useRef("");
   const close = () => sheet.current?.close();
+  useEffect(() => {
+    if (pathname !== "/") return;
+    const visible = new Map<string, number>();
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => { if (entry.isIntersecting) visible.set(entry.target.id, entry.intersectionRect.height); else visible.delete(entry.target.id); });
+      setSection([...visible].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "");
+    }, { rootMargin: "-20% 0px -40% 0px", threshold: 0 });
+    NAV.forEach(link => { const id = link.href.split("#")[1]; const target = id && document.getElementById(id); if (target) observer.observe(target); });
+    return () => observer.disconnect();
+  }, [pathname]);
+  const current = (href: string) => {
+    if (href === "/#work" && (pathname === "/work" || pathname.startsWith("/work/"))) return "page" as const;
+    if (href === pathname || (pathname === "/" && href === `/#${section}`)) return "page" as const;
+    return undefined;
+  };
   useEffect(() => {
     const dialog = sheet.current;
     const hero = document.querySelector(".hero");
@@ -56,7 +75,7 @@ export function Chrome() {
       <header className="chrome-top">
         <div className="chrome-name"><Link href="/">{SITE.name}</Link></div>
         <nav className="chrome-nav" aria-label={CHROME.menu}>
-          {NAV.map((link) => <Link href={link.href} key={link.href}>{link.label}</Link>)}
+          {NAV.map((link) => <Link href={link.href} key={link.href} aria-current={current(link.href)}>{link.label}</Link>)}
           <button ref={menu} className="menu-button" type="button" onClick={open} aria-haspopup="dialog" aria-controls="phone-menu">{CHROME.menu}</button>
           <SkyToggle />
         </nav>
@@ -69,7 +88,7 @@ export function Chrome() {
     {/* Native modal dialog supplies the focus trap, inert background and Escape handling. */}
     <dialog id="phone-menu" className="menu-sheet" ref={sheet} aria-label={CHROME.menu} onClose={restore} onCancel={close} data-lenis-prevent>
       <div className="flex justify-end"><button type="button" onClick={close} autoFocus className="t-small">{CHROME.close}</button></div>
-      <nav>{NAV.map((link) => <Link href={link.href} key={link.href} onClick={close} className="t-display-l">{link.label}</Link>)}</nav>
+      <nav>{NAV.map((link) => <Link href={link.href} key={link.href} onClick={close} className="t-display-l" aria-current={current(link.href)}>{link.label}</Link>)}</nav>
     </dialog>
   </>;
 }

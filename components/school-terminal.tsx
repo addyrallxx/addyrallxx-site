@@ -20,6 +20,20 @@ const glyphs: Record<string, string[]> = Object.fromEntries(Object.entries({
   " ": ["000", "000", "000", "000", "000"],
 }).map(([letter, rows]) => [letter, rows.map(row => row.replaceAll("1", "█").replaceAll("0", " "))]));
 
+function observeUncovered(observer: IntersectionObserver, el: HTMLElement) {
+  // Viewport intersection can occur behind the intro or route wipe.
+  const arm = () => {
+    if (document.documentElement.dataset.intro === "done" && !document.documentElement.dataset.transition) {
+      observer.observe(el);
+      gate.disconnect();
+    }
+  };
+  const gate = new MutationObserver(arm);
+  gate.observe(document.documentElement, { attributes: true, attributeFilter: ["data-intro", "data-transition"] });
+  arm();
+  return () => gate.disconnect();
+}
+
 export function SchoolBanner({ lines }: { lines: string[] }) {
   const root = useRef<HTMLDivElement>(null);
   const rows = useMemo(() => lines.flatMap(line => Array.from({ length: 5 }, (_, row) => [...line.toUpperCase()].map(letter => glyphs[letter]?.[row] ?? glyphs[" "][row]).join(" "))), [lines]);
@@ -55,10 +69,10 @@ export function SchoolBanner({ lines }: { lines: string[] }) {
       };
       frame = requestAnimationFrame(tick);
     }, { threshold: .3 });
-    observer.observe(el);
-    const changed = () => { if (motion.matches) { observer.disconnect(); finish(); } };
+    const stopWatching = motion.matches ? () => {} : observeUncovered(observer, el);
+    const changed = () => { if (motion.matches) { stopWatching(); observer.disconnect(); finish(); } };
     motion.addEventListener("change", changed);
-    return () => { finish(); resize.disconnect(); observer.disconnect(); motion.removeEventListener("change", changed); };
+    return () => { finish(); stopWatching(); resize.disconnect(); observer.disconnect(); motion.removeEventListener("change", changed); };
   }, [rows]);
   return <div ref={root} className="school-ascii" aria-hidden="true" data-final={final} data-settled="true">{rows.map((row, i) => <pre className="ascii-row" key={i}>{row}</pre>)}</div>;
 }
@@ -74,10 +88,11 @@ export function CourseTree({ label, groups }: { label: string; groups: { label: 
     const observer = new IntersectionObserver(entries => {
       if (entries.some(entry => entry.isIntersecting)) { el.classList.add("tree-visible"); observer.disconnect(); }
     }, { threshold: .3 });
-    if (!motion.matches) { el.classList.add("tree-armed"); observer.observe(el); }
-    const changed = () => { if (motion.matches) { el.classList.remove("tree-armed"); observer.disconnect(); } };
+    let stopWatching = () => {};
+    if (!motion.matches) { el.classList.add("tree-armed"); stopWatching = observeUncovered(observer, el); }
+    const changed = () => { if (motion.matches) { stopWatching(); el.classList.remove("tree-armed"); observer.disconnect(); } };
     motion.addEventListener("change", changed);
-    return () => { observer.disconnect(); el.classList.remove("tree-armed"); document.removeEventListener("visibilitychange", pause); motion.removeEventListener("change", changed); };
+    return () => { stopWatching(); observer.disconnect(); el.classList.remove("tree-armed"); document.removeEventListener("visibilitychange", pause); motion.removeEventListener("change", changed); };
   }, []);
   let index = 0;
   const style = () => ({ "--tree-index": index++ } as CSSProperties);

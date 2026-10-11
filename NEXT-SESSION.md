@@ -1,8 +1,8 @@
-# F9 preship checkpoint, 2026-10-11
+# F9 final local checkpoint, 2026-10-11
 
 F9 Part 1 is 61e3c63. School now has the authored ASCII decode banner and semantic coursework tree. Part 2 fixes capture-measured text contrast, keyboard preview/focus equivalence, route descriptions, Open Graph PNG and a custom 404, without new copy or project dependencies. The 20-point table and numeric evidence live at C:/Users/adnan/AppData/Local/Temp/claude/briefs/f9-progress.md.
 
-Current build passes 246 Level 4 checks, all eight unchanged frame budgets, 41 F12 checks and focused School checks on owned port 3100, PID 7844. Confirm that PID and command line again before stopping. Port 3000 untouched. Phone evidence is Chrome emulation. Active nav Part 3 is prepared separately and awaits its own build, checks and push.
+Part 2 is e133e83. Final local build passes 246 Level 4 checks and all eight unchanged frame budgets, plus focused School and active-nav checks. Part 2 also passed 41 F12 checks and the full 20-point preship sweep. Owned port 3100 is PID 5196, command line confirmed. Confirm again before stopping. Port 3000 untouched. Phone evidence is Chrome emulation. Part 3 adds current-route/section semantics and styling, and waits for the intro or route wipe to clear before terminal entry animation. Production verification results are appended to the F9 progress ledger after the final push.
 
 The older F12 uncommitted/red note below predates committed HEAD 519d45d. Current scripts/f12-check.mjs passes and logs typographic service fallbacks. Existing School and WORK_META copy was already committed before F9 started.
 # Portfolio rebuild handoff
