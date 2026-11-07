@@ -13,7 +13,7 @@ const Navigation = createContext<((href: string) => void) | null>(null);
 
 export function PageTransition({ children }: { children: ReactNode }) {
   const router = useRouter(), pathname = usePathname(), reduced = usePrefersReducedMotion();
-  const panel = useRef<HTMLDivElement>(null), content = useRef<HTMLDivElement>(null);
+  const panel = useRef<HTMLDivElement>(null), content = useRef<HTMLDivElement>(null), backplate = useRef<HTMLDivElement>(null);
   const [name, setName] = useState("");
   const [index, setIndex] = useState(1);
   const lettering = useRef<gsap.core.Tween | null>(null);
@@ -25,6 +25,7 @@ export function PageTransition({ children }: { children: ReactNode }) {
     clearTimeout(deadline.current); lettering.current?.kill();
     if (panel.current) { gsap.killTweensOf(panel.current.querySelector(".route-hairline")); gsap.set(panel.current.querySelectorAll(".route-letter > span"), { clearProps: "transform,willChange" }); } animation.current?.kill(); animation.current = null; pending.current = null;
     if (panel.current) { panel.current.hidden = true; panel.current.style.transform = "translate3d(0, 118vh, 0)"; panel.current.style.willChange = "auto"; }
+    if (backplate.current) { gsap.killTweensOf(backplate.current); backplate.current.hidden = true; gsap.set(backplate.current, { yPercent: 100, clearProps: "willChange" }); }
     if (content.current) { content.current.inert = false; content.current.removeAttribute("aria-busy"); }
     content.current?.querySelector(".route-heading-armed")?.classList.remove("route-heading-armed");
     delete document.documentElement.dataset.transition;
@@ -58,6 +59,7 @@ export function PageTransition({ children }: { children: ReactNode }) {
       el.style.willChange = "transform";
       const edge = el.querySelector(".route-curve-bottom")!;
       animation.current = gsap.timeline().to({ y: 0 }, { y: -Math.ceil(window.innerHeight * 1.18), duration: .75, ease: "route-wipe", onUpdate: function () { el.style.transform = `translate3d(0, ${Math.round(this.targets()[0].y)}px, 0)`; }, onComplete: () => { el.style.willChange = "auto"; } }, 0)
+        .to(backplate.current, { yPercent: -100, duration: .65, ease: "route-wipe" }, .1)
         .fromTo(edge, { scaleY: 0 }, { scaleY: 1, duration: .375, ease: "sine.inOut" }, 0)
         .to(edge, { scaleY: 0, duration: .375, ease: "sine.inOut" }, .375);
       await animation.current.then();
@@ -82,6 +84,8 @@ export function PageTransition({ children }: { children: ReactNode }) {
     if (content.current) { content.current.inert = true; content.current.setAttribute("aria-busy", "true"); }
     document.documentElement.dataset.transition = "covering";
     el.hidden = false;
+    // Reference B clips 9 and 18: two colour planes travel at different depths.
+    if (backplate.current) { backplate.current.hidden = false; gsap.set(backplate.current, { yPercent: 100, willChange: "transform" }); }
     const edge = el.querySelector(".route-curve-top")!;
     // Input can land between ticker frames. Start the authored duration from this clock instant.
     gsap.ticker.tick();
@@ -90,6 +94,7 @@ export function PageTransition({ children }: { children: ReactNode }) {
     el.style.transform = `translate3d(0, ${travel.y}px, 0)`;
     gsap.set(el.querySelector(".route-hairline"), { scaleX: 0 });
     animation.current = gsap.timeline().to(travel, { y: 0, duration: .65, ease: "route-wipe", onUpdate: () => { el.style.transform = `translate3d(0, ${Math.round(travel.y)}px, 0)`; }, onComplete: () => { el.style.willChange = "auto"; } }, 0)
+      .to(backplate.current, { yPercent: 0, duration: .5, ease: "route-wipe" }, 0)
       .fromTo(edge, { scaleY: 1 }, { scaleY: 0, duration: .65, ease: "route-wipe" }, 0);
     deadline.current = setTimeout(reset, 8000);
     window.dispatchEvent(new Event("route:wipe-start"));
@@ -103,13 +108,13 @@ export function PageTransition({ children }: { children: ReactNode }) {
     window.dispatchEvent(new Event("route:covered"));
     router.push(href, { scroll: false });
   };
-  return <Navigation.Provider value={navigate}><div ref={content} className="route-content relative z-[1]">{children}</div>{!reduced && <div className="route-panel" ref={panel} hidden aria-hidden="true">
+  return <Navigation.Provider value={navigate}><div ref={content} className="route-content relative z-[1]">{children}</div>{!reduced && <><div className="route-backplate" ref={backplate} hidden aria-hidden="true" /><div className="route-panel" ref={panel} hidden aria-hidden="true">
     <svg className="route-curve route-curve-top" viewBox="0 0 1000 180" preserveAspectRatio="none"><path d="M0 180 Q500 -180 1000 180 L1000 181 L0 181 Z" /></svg>
     <div className="route-title"><div className="route-index t-label">{String(index).padStart(2, "0")} / {String(NAV.length).padStart(2, "0")}</div>
     <div className="route-name t-display-l"><span aria-label={name}>{Array.from(name).map((letter, i) => <span className="route-letter" key={i} aria-hidden="true"><span>{letter === " " ? "\u00a0" : letter}</span></span>)}</span></div>
     <div className="route-hairline" /></div>
     <svg className="route-curve route-curve-bottom" viewBox="0 0 1000 180" preserveAspectRatio="none"><path d="M0 0 Q500 360 1000 0 L1000 -1 L0 -1 Z" /></svg>
-  </div>}</Navigation.Provider>;
+  </div></>}</Navigation.Provider>;
 }
 
 export function TransitionLink({ onClick, ...props }: ComponentProps<typeof Link>) {

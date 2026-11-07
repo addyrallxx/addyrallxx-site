@@ -1,12 +1,15 @@
 @layer theme, base, components, utilities;
 @layer components {
+  .route-backplate { position: fixed; inset: 0; z-index: 49; background: var(--accent); transform: translateY(100%); pointer-events: none; }
+  .route-backplate[hidden] { display: none; }
   .route-panel.route-panel { background: var(--ink); will-change: auto; }
   .route-curve { position: absolute; left: 0; width: 100%; height: 18vh; fill: var(--ink); }
   .route-curve-top { transform-origin: bottom; bottom: 100%; }
   .route-curve-bottom { transform-origin: top; top: 100%; }
-  .route-title { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: var(--gutter); color: var(--bg); }
+  .route-title { height: 100%; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 32px; padding: max(32px, 8vw); color: var(--bg); perspective: 1000px; }
   .route-index { font-variant-numeric: tabular-nums; }
-  .route-name.route-name { height: auto; max-width: 100%; overflow: hidden; padding: 0; text-align: center; color: var(--bg); text-shadow: none; }
+  .route-name.route-name { height: auto; max-width: 100%; overflow: hidden; padding: 0; text-align: left; color: var(--bg); text-shadow: none; }
+  .route-index.route-index { color: var(--bg); opacity: .72; }
   .route-name > span { display: block; text-shadow: none; }
   .route-letter { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .12em; margin-bottom: -.12em; }
   .route-letter > span { display: block; }
