@@ -1,0 +1,13 @@
+@layer theme, base, components, utilities;
+@layer components {
+  .project-media .project-media-inner { position: absolute; inset: -12% 0; }
+  .project-hero-media { width: min(1100px, 88vw); margin-inline: auto; }
+  .project-media.project-media-phone .project-cover,
+  .project-media.project-media-phone .project-image { aspect-ratio: 430 / 932; width: min(100%, 360px); margin-inline: auto; border-radius: 28px; background: var(--panel); }
+  .project-media-phone .project-media-inner { inset: 11% 0; }
+  .project-media-phone .project-media-inner img { object-fit: contain; }
+  .project-type-panel { min-height: 50svh; display: flex; flex-direction: column; justify-content: space-between; gap: 48px; padding: clamp(24px, 5vw, 80px); background: var(--panel); color: var(--bg); text-shadow: none; }
+  .project-type-panel > span { color: transparent; -webkit-text-stroke: 1px var(--bg); text-shadow: none; overflow-wrap: anywhere; }
+  .project-type-panel ul { display: flex; flex-wrap: wrap; gap: 12px; list-style: none; font-family: var(--font-mono), monospace; }
+  .project-type-panel li { padding: 6px 12px; border: 1px solid currentColor; border-radius: var(--r-pill); }
+}

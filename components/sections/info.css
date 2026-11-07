@@ -1,0 +1,7 @@
+@layer theme, base, components, utilities;
+@layer components {
+  .info-title .info-mask { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .12em; margin-bottom: -.12em; }
+  .info-title .info-char { display: inline-block; }
+  .info-lists li { position: relative; padding-top: 10px; list-style: none; }
+  .info-lists .info-rule { position: absolute; inset: 0 0 auto 0; height: 1px; background: var(--line); transform-origin: left center; }
+}

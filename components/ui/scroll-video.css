@@ -1,0 +1,9 @@
+@layer theme, base, components, utilities;
+@layer components {
+  .scroll-video { width: 100%; margin: 0; }
+  .scroll-video-frame { position: relative; aspect-ratio: var(--video-aspect); overflow: hidden; border-radius: 14px; }
+  .scroll-video video { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .scroll-video figcaption { padding-top: 10px; }
+  .scroll-video-control { position: absolute; right: 16px; bottom: 16px; width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid currentColor; border-radius: 50%; color: #F3F0E8; background: #0A0F2C; cursor: pointer; }
+  .scroll-video-control:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
+}

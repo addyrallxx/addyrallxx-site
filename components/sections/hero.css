@@ -1,0 +1,20 @@
+@layer theme, base, components, utilities;
+@layer components {
+  .hero { position: relative; isolation: isolate; }
+  .hero-portal { position: absolute; inset: 0; z-index: -1; clip-path: inset(69% 8% 13% 76% round 28px); pointer-events: none; }
+  .hero-portal img { width: 100%; height: 100%; object-fit: cover; }
+  @media (prefers-reduced-motion: reduce) { .hero-portal { clip-path: none; opacity: .08; } }
+  .hero { overflow: clip; height: auto; min-height: 100svh; }
+  .hero .hero-desktop-line { display: block; }
+  .hero .hero-phone-line { display: none; }
+  .hero .hero-line { overflow: visible; }
+  .hero .hero-fit { display: block; width: max-content; transform: scaleX(var(--hero-fit, 1)); transform-origin: left center; }
+  .hero-letter-mask, .hero-letter-peel, .hero-letter-enter { display: inline-block; }
+  .hero-letter-mask { overflow: hidden; padding-block: .15em; margin-block: -.15em; vertical-align: bottom; }
+  .hero h1 { font-size: clamp(56px, 11.5vw, 188px); }
+  @media (max-width: 719px) {
+    .hero .hero-desktop-line { display: none; }
+    .hero .hero-phone-line { display: block; }
+    .hero h1 { font-size: clamp(56px, 10vw, 72px); font-variation-settings: "wdth" 75; }
+  }
+}

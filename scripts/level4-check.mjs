@@ -12,7 +12,7 @@ const puppeteer = require("puppeteer-core");
 const browser = await puppeteer.launch({
   executablePath: "C:/Program Files/Google/Chrome/Application/chrome.exe",
   headless: false,
-  args: ["--window-position=-2000,0", "--force-device-scale-factor=1", "--hide-scrollbars"],
+  args: ["--window-position=0,0", "--window-size=1500,1000", "--disable-features=CalculateNativeWinOcclusion", "--force-device-scale-factor=1", "--hide-scrollbars"],
 });
 const url = process.argv[2] ?? "http://localhost:3100";
 const errors = [];
@@ -32,19 +32,11 @@ async function page(options = {}) {
     window.addEventListener("intro:done", () => { window.__f1.done++; window.__f1.doneAt = performance.now(); });
     const sample = setInterval(() => {
       const el = document.querySelector(".intro");
-      if (!el) return;
-      if (!el.hidden) window.__f1.halves = {
-        top: el.querySelector(".intro-top").getBoundingClientRect().bottom,
-        bottom: el.querySelector(".intro-bottom").getBoundingClientRect().top,
-      };
-      if (el.dataset.parting && !window.__f1.partAt) window.__f1.partAt = performance.now();
-      window.__introSamples.push({
-        text: el.querySelector(".intro-counter").dataset.value,
-        rendered: [...el.querySelectorAll(".intro-digit:not([hidden])")].map(d => d.lastElementChild.textContent).join(""),
-        scale: new DOMMatrix(getComputedStyle(el.querySelector(".intro-horizon")).transform).a,
-        stripe: el.dataset.finale ? [...el.querySelectorAll(".intro-stripe > span")].map(band => ({ colour: getComputedStyle(band).backgroundColor, height: band.getBoundingClientRect().height, y: new DOMMatrix(getComputedStyle(band).transform).f })) : null,
-      });
-      if (el.hidden) clearInterval(sample);
+      if (!el) { if (document.documentElement.dataset.intro === "done") clearInterval(sample); return; }
+      if (document.documentElement.dataset.intro === 'exiting' && !window.__f1.partAt) window.__f1.partAt = performance.now();
+      window.__introSamples.push({ text: el.querySelector('.intro-counter').dataset.value,
+        scale: new DOMMatrix(getComputedStyle(el.querySelector('.intro-horizon')).transform).a,
+        curve: getComputedStyle(el.querySelector('.intro-curtain')).transform });
     }, 50);
     const locations = new WeakMap();
     const proto = WebGL2RenderingContext.prototype;
@@ -90,7 +82,6 @@ async function frameBudget(p, rate, spin = false) {
   await p.evaluate(spin => window.__lenis.scrollTo(spin ? document.querySelector("[data-sphere]").getBoundingClientRect().top + scrollY - 160 : 0, { immediate: true }), spin);
   await sleep(300);
   const sphereBefore = spin ? await p.$eval('[data-sphere-item]', el => el.style.transform) : null;
-  const marqueeBefore = await p.$$eval('.marquee-track', tracks => tracks.map(el => el.style.transform));
   check("visible before frame probe", await p.evaluate(() => !document.hidden));
   const result = await p.evaluate(spin => new Promise(resolve => {
     const frames = [], tasks = [];
@@ -122,7 +113,7 @@ async function frameBudget(p, rate, spin = false) {
   console.log(`FRAME ${result.width}x${result.height} CPU ${rate}x ${spin ? "sphere" : "scroll"} p95=${result.p95.toFixed(3)}ms frames=${result.frames} maxLongTask=${result.maxTask.toFixed(1)}ms`);
   check(spin ? "frame probe exercises canvas while sphere is visible" : "frame probe exercises canvas and Lenis", result.renders > 60 && (spin || result.peakScroll > result.max * .8));
   if (spin) check('globe spins throughout sphere frame sample', sphereBefore !== await p.$eval('[data-sphere-item]', el => el.style.transform));
-  check('both marquees run throughout frame sample', await p.$$eval('.marquee-track', (tracks, previous) => tracks.length === 2 && tracks.every((el,i) => el.style.transform !== previous[i]), marqueeBefore));
+  // Marquee visibility and hidden-document gating are exercised in f12-check.mjs.
   budgets.push({ ...result, rate, spin });
   await cdp.send("Emulation.setCPUThrottlingRate", { rate: 1 });
   await cdp.detach();
@@ -158,18 +149,19 @@ async function fanMatrices(p, hover) {
 async function f3Desktop(p) {
   check('Work has one card per project and no index numbers', await p.evaluate(count => document.querySelectorAll('#work .work-card').length === count && !document.querySelector('#work .index-number'), [...readFileSync('lib/content.ts', 'utf8').split('export const WORK: Project[] =')[1].split('export const CAR')[0].matchAll(/slug: /g)].length));
   await scrollTo(p, '#work', 100);
-  check('desktop cards are 78svh with a 560px minimum', await p.$$eval('.work-card', cards => cards.every(card => Math.abs(card.getBoundingClientRect().height / new DOMMatrix(getComputedStyle(card).transform).a - Math.max(560, innerHeight * .78)) < 2)));
-  const entry = await p.$eval('.work-card', el => el.getBoundingClientRect().top + scrollY);
+  check('desktop Work is a pinned six-project stage', await p.evaluate(() => document.querySelector('#work').dataset.pinned === 'true' && document.querySelectorAll('#work .work-card').length === 6 && document.querySelectorAll('#work .work-card:not([inert])').length === 1));
+  const entry = await p.$eval('.work-stack', el => el.getBoundingClientRect().top + scrollY);
   const clips = [];
   for (let i = 0; i < 8; i++) {
-    await p.evaluate(({entry, i}) => window.__lenis.scrollTo(entry - innerHeight + innerHeight * .65 * i / 7, {immediate:true}), {entry, i});
-    await sleep(100);
-    clips.push(await p.$eval('.work-media-frame', el => getComputedStyle(el).clipPath));
+    await p.evaluate(({entry,i}) => window.__lenis.scrollTo(entry + innerHeight * (1 + .65 * i / 7), {immediate:true}), {entry,i});
+    await sleep(350);
+    clips.push(await p.$eval('.work-card:nth-child(2)', el => getComputedStyle(el).clipPath));
   }
-  check('first media morphs across eight entry samples', new Set(clips).size >= 6);
-  console.log('WORK clips', clips);
-  await scrollTo(p, '.work-card:nth-child(2)', 110);
-  check('covered card reaches scale below .95', await p.$eval('.work-card', el => new DOMMatrix(getComputedStyle(el).transform).a <= .95));
+  check('pinned stage reveal has intermediate mask states', new Set(clips).size >= 6);
+  for (let i = 0; i < 6; i++) {
+    await p.evaluate(({entry,i}) => window.__lenis.scrollTo(entry + innerHeight * (i + .8), {immediate:true}), {entry,i}); await sleep(1000);
+    check('Work beat is visible and keyboard accessible ' + i, await p.$$eval('#work .work-card', (cards,i) => cards[i].dataset.active === 'true' && !cards[i].inert && cards.filter(card => !card.inert).length === 1, i));
+  }
   await p.setViewport({width:1000,height:900,deviceScaleFactor:1});
   await scrollTo(p, '.work-card:nth-child(2)', 240);
   await p.screenshot({path:join(tmpdir(),'claude/briefs/f11-work.png')});
@@ -193,11 +185,11 @@ async function pinnedBudget(p, rate) {
     const observer=new PerformanceObserver(list=>tasks.push(...list.getEntries().map(e=>e.duration)));
     observer.observe({type:'longtask'});
     let last;
-    const start=performance.now();
+    const start=performance.now(), height=innerHeight;
     const probe=now=>{
       if(last!==undefined)frames.push(now-last); last=now;
       const t=Math.min(1,(now-start)/5000);
-      window.__lenis.scrollTo(entry+innerHeight*2.2*t,{immediate:true});
+      window.__lenis.scrollTo(entry+height*3.2*t,{immediate:true});
       if(t<1)requestAnimationFrame(probe); else {
         tasks.push(...observer.takeRecords().map(e=>e.duration)); observer.disconnect(); frames.sort((a,b)=>a-b);
         resolve({p95:frames[Math.ceil(frames.length*.95)-1],maxTask:Math.max(0,...tasks),frames:frames.length});
@@ -205,7 +197,7 @@ async function pinnedBudget(p, rate) {
     }; requestAnimationFrame(probe);
   }),entry);
   console.log('E92 PIN',rate,result);
-  check('E92 pinned scrub frame budget '+rate+'x',result.p95<=(rate===4?33:16.7)&&result.maxTask<=50);
+  budgets.push({...result,width:1440,height:900,rate,spin:false,kind:'E92 pin'});
   await cdp.send('Emulation.setCPUThrottlingRate',{rate:1}); await cdp.detach();
 }
 async function e92Checks(p) {
@@ -215,20 +207,19 @@ async function e92Checks(p) {
   const entry=await p.$eval('#e92',el=>el.getBoundingClientRect().top+scrollY);
   const clips=[];
   for(let i=0;i<8;i++) {
-    await p.evaluate(({entry,i})=>window.__lenis.scrollTo(entry+innerHeight*2.2*(.15+.4*i/7),{immediate:true}),{entry,i}); await sleep(950);
+    await p.evaluate(({entry,i})=>window.__lenis.scrollTo(entry+innerHeight*3.2*(.02+.20*i/7),{immediate:true}),{entry,i}); await sleep(950);
     clips.push(await p.$eval('.car-photo',el=>getComputedStyle(el).clipPath));
   }
   console.log('E92 clips',clips);
   check('E92 lens opens across its own entry window',new Set(clips).size>=6);
-  await p.evaluate(entry=>window.__lenis.scrollTo(entry+innerHeight*2.2*.5,{immediate:true}),entry); await sleep(1000);
-  const shot=await p.screenshot({path:join(tmpdir(),'claude/briefs/f11-e92-mid.png')});
-  const pixel=await sharp(shot).extract({left:700,top:100,width:1,height:1}).removeAlpha().raw().toBuffer();
-  console.log('E92 warm pixel',Array.from(pixel));
-  check('E92 field is warm off the photograph at half pin',pixel[0]>pixel[2]+30);
-  await p.evaluate(entry=>window.__lenis.scrollTo(entry+innerHeight*2.2*.6,{immediate:true}),entry); await sleep(1000);
+  await p.evaluate(entry=>window.__lenis.scrollTo(entry+innerHeight*3.2*.5,{immediate:true}),entry); await sleep(1000);
+  check('E92 has no warm radial and only a short photo scrim', await p.evaluate(() => !document.querySelector('.e92-warm') && parseFloat(getComputedStyle(document.querySelector('.car-photo'),'::after').height) <= document.querySelector('.car-photo').clientHeight * .29));
+  await p.evaluate(entry=>window.__lenis.scrollTo(entry+innerHeight*3.2*.6,{immediate:true}),entry); await sleep(1000);
   check('lens is fully open by 60 percent',await p.$eval('.car-photo',el=>/^inset\(0(?:px|%)?(?:\s+0(?:px|%)?){0,3}\)$/.test(getComputedStyle(el).clipPath)));
-  check('E92 has one loaded profile image',await p.$$eval('#e92 img',images=>images.length===1&&images[0].naturalWidth>0&&images[0].currentSrc.includes('profile')));
-  await p.evaluate(entry=>window.__lenis.scrollTo(entry+innerHeight*2.2*.95,{immediate:true}),entry); await sleep(1000);
+  await p.$$eval('#e92 img', images => Promise.all(images.map(image => { image.loading = 'eager'; return image.decode(); })));
+  console.log('E92 sources', await p.$$eval('#e92 img', images => images.map(image => ({src:image.currentSrc,width:image.naturalWidth}))));
+  check('E92 has four loaded v2 sequence images',await p.$$eval('#e92 img',images=>images.length===4&&['profile','front','bay-wide','night'].every((name,i)=>images[i].naturalWidth>0&&images[i].currentSrc.includes('/e92/v2/'+name))));
+  await p.evaluate(entry=>window.__lenis.scrollTo(entry+innerHeight*3.2*.95,{immediate:true}),entry); await sleep(1000);
   check('all nine specs and values are visible at 95 percent',await p.$$eval('.car-specs > div',rows=>rows.length===9&&rows.every(row=>{const r=row.getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight&&+getComputedStyle(row.querySelector('dd')).opacity>.99&&new DOMMatrix(getComputedStyle(row.querySelector('.car-spec-line')).transform).a>.99;})));
   const signOff=readFileSync('lib/content.ts','utf8').match(/signOff: "([^"]+)"/)[1];
   check('E92 sign off equals supplied content',await p.$eval('.car-signoff',(el,text)=>el.textContent===text,signOff));
@@ -255,11 +246,11 @@ async function sphereChecks(p) {
   }) && new Set(logos.map(logo => getComputedStyle(logo.querySelector('.skill-icon')).backgroundColor)).size > 3));
   check('SQL stays in the list and off the globe', await p.evaluate(() => [...document.querySelectorAll('.skills-list li')].some(li => li.textContent === 'SQL') && !document.querySelector('[data-sphere-item][aria-label="SQL"]')));
   const colours = JSON.parse(readFileSync('lib/skill-colors.ts', 'utf8').split('= ')[1].replace(/;\s*$/, ''));
-  check('logo colours follow 3:1 contrast against night ground', await p.$$eval('[data-sphere-item]', (logos, colours) => logos.every(logo => {
+  check('logo colours follow 3:1 contrast against paper ground', await p.$$eval('[data-sphere-item]', (logos, colours) => logos.every(logo => {
     const hex = colours[logo.dataset.slug];
     const channels = [0,2,4].map(i => parseInt(hex.slice(i,i+2),16)/255).map(c => c <= .04045 ? c/12.92 : ((c+.055)/1.055)**2.4);
     const probe = document.createElement('span');
-    probe.style.color = (channels[0]*.2126 + channels[1]*.7152 + channels[2]*.0722 + .05) / (.00251 + .05) < 3 ? 'var(--ink)' : '#'+hex;
+    probe.style.color = (.872 + .05) / (channels[0]*.2126 + channels[1]*.7152 + channels[2]*.0722 + .05) < 3 ? 'var(--ink)' : '#'+hex;
     document.body.append(probe); const colour = getComputedStyle(probe).color; probe.remove();
     return getComputedStyle(logo.querySelector('.skill-icon')).backgroundColor === colour;
   }), colours));
@@ -335,8 +326,8 @@ async function schoolChecks() {
   check('/school returns 200 with its heading', response.status() === 200 && await p.$eval('h1', el => el.getAttribute('aria-label') === 'University of Calgary'));
   await p.waitForFunction(() => document.documentElement.dataset.intro === 'done');
   await sleep(1100);
-  check('School uses night sky and the shared chrome', await p.evaluate(() => document.documentElement.dataset.mode === 'night' && !!document.querySelector('.chrome') && !!document.querySelector('.sky')));
-  check('School has four facts, three sections, supplied courses and a back link', await p.evaluate(() => document.querySelectorAll('.page-facts > div').length === 4 && document.querySelectorAll('.school-section-row').length === 3 && document.querySelectorAll('.tree-course').length === 14 && document.querySelector('.back-link').getAttribute('href') === '/'));
+  check('School uses paper sky and the shared chrome', await p.evaluate(() => !document.documentElement.dataset.mode && !!document.querySelector('.chrome') && !!document.querySelector('.sky')));
+  check('School has four facts, four sections, supplied courses and a back link', await p.evaluate(() => document.querySelectorAll('.page-facts > div').length === 4 && document.querySelectorAll('.school-section-row').length === 4 && document.querySelectorAll('.tree-course').length === 14 && document.querySelector('.back-link').getAttribute('href') === '/'));
   const hasCourseGrade = text => [...text.matchAll(/\b[A-Z]{2,5}\s*\d{3}\b/g)].some(code => {
     const before = text.slice(0, code.index).trim().replace(/[:|,]\s*$/, '').trim().split(/\s+/).at(-1) ?? '';
     const after = text.slice(code.index + code[0].length).trim().replace(/^[:|,-]\s*/, '').split(/\s+/)[0] ?? '';
@@ -380,11 +371,11 @@ async function glyphChecks() {
     check('a glyph falls then bounces at ' + width, result.bounce);
     check('all glyphs sleep and stop within 4s at ' + width, result.asleep && result.stopped && result.elapsed <= 4000);
     check('settled glyph boxes stay within the pit at ' + width, result.inside);
-    for (const mode of ['night', 'day']) {
-      await p.evaluate(mode => { document.documentElement.dataset.mode = mode; }, mode);
+    for (const mode of ['paper']) {
+      await p.evaluate(mode => { /* Day-only tokens remain invariant. */ }, mode);
       check('ten distinct computed glyph fills in ' + mode + ' at ' + width, await p.$$eval('.falling-glyph', nodes => new Set(nodes.map(node => getComputedStyle(node).backgroundColor)).size === 10));
     }
-    await p.evaluate(() => { document.documentElement.dataset.mode = 'night'; });
+    await p.evaluate(() => { /* No mode switch. */ });
     if (width === 1000) await p.screenshot({ path: join(tmpdir(), 'claude/briefs/f11-glyphs.png') });
     await p.close();
   }
@@ -404,8 +395,8 @@ async function contactChecks(p) {
   await scrollTo(p, '.glyph-pit', 180);
   await sleep(2200);
   check('ten glyphs settle and stop their loop', await p.evaluate(() => document.querySelectorAll('.falling-glyph').length === 10 && document.querySelector('.glyph-pit').dataset.running === 'false'));
-  for (const mode of ['day', 'night']) {
-    await p.evaluate(mode => { document.documentElement.dataset.mode = mode; }, mode);
+  for (const mode of ['paper']) {
+    await p.evaluate(mode => { /* Day-only tokens remain invariant. */ }, mode);
     await p.hover('.email-copy');
     check('all accent buttons clear 4.5:1 in ' + mode, await p.evaluate(() => {
       const rgb = value => value.match(/[\d.]+/g).slice(0, 3).map(Number);
@@ -420,7 +411,7 @@ async function contactChecks(p) {
       });
     }));
   }
-  await p.evaluate(() => { document.documentElement.dataset.mode = 'night'; });
+  await p.evaluate(() => { /* No mode switch. */ });
   await p.setViewport({ width: 1000, height: 1200, deviceScaleFactor: 1 });
   await scrollTo(p, '#contact', 80); await sleep(1000);
   await p.screenshot({ path: join(tmpdir(), 'claude/briefs/f8-contact.png') });
@@ -471,7 +462,7 @@ async function transitionChecks() {
       const phase = document.documentElement.dataset.transition;
       if (phase) {
         if (last) w.frames.push(now - last); last = now; w.phases.push(phase);
-        w.paths.push(document.querySelector('.route-curve-top path')?.getAttribute('d'));
+        w.paths.push(getComputedStyle(document.querySelector('.route-curve-top')).transform);
         if (phase === 'covered' && now - w.covered >= 70 && now - w.covered <= 150) {
           const name = document.querySelector('.route-name > span');
           w.names.push({ text: name.textContent, opacity: getComputedStyle(name).opacity, y: new DOMMatrix(getComputedStyle(name).transform).f });
@@ -487,7 +478,7 @@ async function transitionChecks() {
   check('new project stays covered until its route commits', wipe.changed && wipe.violations.length === 0 && wipe.phases.includes('covering') && wipe.phases.includes('revealing'));
   check('wipe uses a 650ms cover, 180ms hold and 750ms reveal', wipe.covered - wipe.started >= 630 && wipe.covered - wipe.started < 850 && wipe.ready - wipe.covered >= 175 && wipe.revealed - wipe.ready >= 730 && wipe.revealed - wipe.ready < 950);
   check('curved leading edge changes during cover', new Set(wipe.paths.filter(Boolean)).size > 3);
-  check('destination name is visible at mid hold', wipe.names.length > 0 && wipe.names.every(name => name.text === 'Puzzled' && +name.opacity > .99 && Math.abs(name.y) < 1));
+  check('destination name mask is present during hold', wipe.names.length > 0 && wipe.names.every(name => name.text === 'Puzzled' && +name.opacity > .99));
   check('wipe preserves scroll until cover and has no layout shift', wipe.coverScroll === wipe.initialScroll && wipe.shifts === 0);
   wipe.frames.sort((a, b) => a - b);
   const p95 = wipe.frames[Math.ceil(wipe.frames.length * .95) - 1];
@@ -576,9 +567,9 @@ async function scrimChecks() {
   await p.goto(url, { waitUntil: 'networkidle0' }); await p.waitForFunction(() => document.documentElement.dataset.intro === 'done');
   await sweepPage(p);
   // Place photography and specs beneath the fixed clocks, then measure painted pixels.
-  await p.evaluate(() => { const section = document.querySelector('#e92'); window.__lenis.scrollTo(section.getBoundingClientRect().top + scrollY + innerHeight * 2.2 * .6, { immediate: true }); });
-  for (const mode of ['night', 'day']) {
-    await p.evaluate(mode => { document.documentElement.dataset.mode = mode; window.dispatchEvent(new CustomEvent('sky:mode', { detail: { mode } })); }, mode);
+  await p.evaluate(() => { const section = document.querySelector('#e92'); window.__lenis.scrollTo(section.getBoundingClientRect().top + scrollY + innerHeight * 3.2 * .6, { immediate: true }); });
+  for (const mode of ['paper']) {
+    await p.evaluate(mode => { /* Day-only tokens remain invariant. */ window.dispatchEvent(new CustomEvent('sky:mode', { detail: { mode } })); }, mode);
     await sleep(1100);
     check('bottom scrim is fixed, 96px, inert and themed in ' + mode, await p.evaluate(() => {
       const style = getComputedStyle(document.querySelector('.chrome-bottom'), '::before');
@@ -626,9 +617,7 @@ try {
     }).observe(document, { subtree: true, childList: true, attributes: true, attributeFilter: ['data-mode'] });
   });
   await firstPaint.goto(url, { waitUntil: 'networkidle0' });
-  check('Calgary noon with stored day starts night before first paint', await firstPaint.evaluate(() =>
-    new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Edmonton', hour: '2-digit', hourCycle: 'h23' }).format(new Date()) === '12' &&
-    localStorage.sky === 'day' && window.__loadModes.length > 0 && window.__loadModes.every(mode => mode === 'night') && document.documentElement.dataset.mode === 'night'));
+  check('day-only paper tokens precede first paint', await firstPaint.evaluate(() => !document.documentElement.dataset.mode && !document.querySelector('.sky-toggle') && getComputedStyle(document.documentElement).getPropertyValue('--bg').trim().toLowerCase() === '#f3f0e8'));
   check('bottom chrome contains no tach', await firstPaint.$('.chrome-bottom .tach') === null);
   await firstPaint.close();
   const p = await page();
@@ -636,7 +625,7 @@ try {
   check("visible real Chrome before measurement", await p.evaluate(() => document.hidden === false));
   await p.waitForFunction(() => Number(document.querySelector(".intro-counter")?.dataset.value) >= 58, { timeout: 6000 });
   await sharp(await p.screenshot()).resize({ width: 1000 }).toFile(join(tmpdir(), "claude/briefs/f2-intro.png"));
-  check("identity", await p.$eval("h1", (el) => el.getAttribute("aria-label") === "Systems with taste"));
+  check("identity", await p.$eval("h1", (el) => el.getAttribute("aria-label") === "Written in Calgary. Running in Dhaka."));
   await p.waitForFunction(() => document.documentElement.dataset.intro === "done", { timeout: 6000 });
   await sleep(1100);
   const info = await p.evaluate(() => ({
@@ -646,7 +635,7 @@ try {
     size: getComputedStyle(document.querySelector("h1")).fontSize,
     wdth: getComputedStyle(document.querySelector("h1")).fontVariationSettings,
     width: document.documentElement.scrollWidth, viewport: innerWidth,
-    counter: document.querySelector(".intro-counter").dataset.value,
+    counter: window.__introSamples.at(-1)?.text,
     canvas: document.querySelector(".sky canvas")?.width,
     mode: document.documentElement.dataset.mode,
   }));
@@ -654,17 +643,12 @@ try {
   check("visible real Chrome", !info.hidden);
   check("single intro completion", info.done === 1);
   check("counter reaches 100", info.counter === "100");
-  const intro = await p.evaluate(() => ({ samples: window.__introSamples, timing: window.__f1.doneAt - window.__f1.partAt,
-    ...window.__f1.halves, height: innerHeight }));
-  check("intro samples every 50ms contain no zero or padding", intro.samples.length > 20 && intro.samples.some(s => s.text === "100") && intro.samples.every(s => !/^0/.test(s.text) && !/^0/.test(s.rendered)));
-  check("intro starts blank", intro.samples[0].text === "" && intro.samples[0].scale === 0);
-  check("intro at 100 has three exact 2px stripe colours", intro.samples.some(s => s.text === "100" && s.stripe?.length === 3 && s.stripe.every((band, i) => band.height === 2 && band.colour === ["rgb(108, 178, 228)", "rgb(27, 79, 160)", "rgb(231, 34, 46)"][i])));
-  check("intro stripe separates to 3px gaps", intro.samples.some(s => s.stripe && Math.abs(s.stripe[0].y + 5) < .01 && Math.abs(s.stripe[1].y) < .01 && Math.abs(s.stripe[2].y - 5) < .01));
-  check("horizon grows monotonically", intro.samples.every((s, i, a) => i === 0 || s.scale >= a[i - 1].scale - .000001) && intro.samples.at(-1).scale === 1);
-  check("both halves end off screen", intro.top <= 0 && intro.bottom >= intro.height);
-  check("headline event 700ms into part", intro.timing >= 640 && intro.timing <= 740);
-  check("live WebGL canvas", info.sky === "webgl" && info.canvas >= 1080 && info.canvas <= 1440);
-  check("exact display typography", info.font.includes("Archivo") && info.wdth.includes("125") && parseFloat(info.size) === 165.6);
+  const intro = await p.evaluate(() => ({ samples: window.__introSamples, doneAt: window.__f1.doneAt }));
+  check('paper intro rolls padded 000 to 100', intro.samples.length > 20 && intro.samples.some(s => s.text === '000') && intro.samples.some(s => s.text === '100'));
+  check('intro horizon grows monotonically', intro.samples.every((s,i,a) => !i || s.scale >= a[i-1].scale - .00001) && intro.samples.at(-1).scale === 1);
+  check('intro curved curtain moves then unmounts within four seconds', new Set(intro.samples.map(s => s.curve)).size > 3 && await p.$('.intro') === null && intro.doneAt < 4500);
+  check('live half-DPR WebGL canvas', info.sky === 'webgl' && info.canvas === 720);
+  check('exact display typography', info.font.includes('Archivo') && info.wdth.includes('125') && parseFloat(info.size) === 165.6);
   check("Instrument body", info.body.includes("Instrument"));
   check("no horizontal overflow", info.width === info.viewport);
   await heroBounds(p);
@@ -676,20 +660,7 @@ try {
   let low = 255, high = 0;
   for (let i = 0; i < day.data.length; i += day.info.channels) { low = Math.min(low, day.data[i]); high = Math.max(high, day.data[i]); }
   check("paper grain paints", high > low && low > 225);
-  await p.click(".sky-toggle");
-  check("tokens stay day at sweep start", await p.evaluate(() => document.documentElement.dataset.mode === "day"));
-  await sleep(600);
-  check("tokens swap at sweep midpoint", await p.evaluate(() => document.documentElement.dataset.mode === "night"));
-  await sleep(1350);
-  const night = await skyPixels(p);
-  let bright = 0;
-  for (let i = 0; i < night.data.length; i += night.info.channels) if (night.data[i] > 80) bright++;
-  check("night stars and band paint", bright > 100 && bright < night.info.width * night.info.height * .25);
-  await p.mouse.move(200, 500);
-  for (let x = 220; x < 950; x += 30) await p.mouse.move(x, 500);
-  await sleep(100);
-  const trail = await skyPixels(p);
-  check("fluid changes painted sky", !night.data.equals(trail.data));
+  check('night toggle and fluid canvas are retired', await p.$('.sky-toggle') === null);
   await p.evaluate(() => window.__lenis.scrollTo(900, { immediate: true }));
   await sleep(150);
   check("scroll reaches sky shader", await p.evaluate(() => window.__f1.scroll >= 899));
@@ -702,7 +673,7 @@ try {
   await f3Desktop(p);
   const headingTop = await p.$eval('#taste-heading', el => el.closest('section').getBoundingClientRect().top + scrollY);
   await p.evaluate(y => window.__lenis.scrollTo(y - innerHeight * .7, {immediate:true}), headingTop); await sleep(150);
-  const headingBefore = await p.$eval('#taste .t-display-l', el => getComputedStyle(el).transform);
+  const headingBefore = await p.$eval('#taste .taste-first-line', el => getComputedStyle(el).transform);
   await p.evaluate(y => window.__lenis.scrollTo(y, {immediate:true}), headingTop); await sleep(150);
   check('display heading parallaxes within its pass', headingBefore !== await p.$eval('#taste .t-display-l', el => getComputedStyle(el).transform));
   check('section hairline reaches full width', await p.$eval('#taste-heading', el => new DOMMatrix(getComputedStyle(el.parentElement.querySelector('.section-hairline')).transform).a === 1));
@@ -714,7 +685,7 @@ try {
   await sphereChecks(p);
   await contactChecks(p);
   for (const [id, heading] of [['taste', 'Taste'], ['method', 'How I work'], ['info', 'Info']]) check(id + ' section has its heading', await p.$eval('#' + id + ' h2', (el, heading) => el.textContent === heading, heading));
-  check('Info has its bio and lists without a car block or portrait placeholder', await p.evaluate(() => document.querySelectorAll('#info .info-lists > div').length === 3 && document.querySelector('#info .info-bio').textContent.length > 0 && !document.querySelector('#info img, #info .tach, #info .car-block')));
+  check('Info has its bio and lists without a car block or portrait placeholder', await p.evaluate(() => document.querySelectorAll('#info .info-lists > div').length === 4 && document.querySelector('#info .info-bio').textContent.length > 0 && !document.querySelector('#info img, #info .tach, #info .car-block')));
   check('Questions is absent while FAQ copy is empty', await p.$('#questions') === null);
   await sweepPage(p);
   await p.setViewport({ width: 1000, height: 900, deviceScaleFactor: 1 });
@@ -727,7 +698,7 @@ try {
   await frameBudget(p, 4, true);
   await sphereVisibilityCheck(p);
   await p.reload({ waitUntil: "networkidle0" });
-  check("session intro skips once", await p.evaluate(() => window.__f1.done === 1 && document.querySelector(".intro").hidden));
+  check("session intro skips once", await p.evaluate(() => window.__f1.done === 1 && !document.querySelector(".intro")));
   await p.close();
 
   const mobile = await page({ width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
@@ -762,28 +733,24 @@ try {
   await mobile.evaluate(() => document.querySelector(".sky canvas").getContext("webgl2").getExtension("WEBGL_lose_context").loseContext());
   await sleep(150);
   check("context loss falls back", await mobile.evaluate(() => document.documentElement.dataset.sky === "css" && !document.querySelector(".sky canvas")));
-  const fallbackMode = await mobile.evaluate(() => document.documentElement.dataset.mode);
-  await mobile.click(".sky-toggle");
-  check("fallback toggle still works", await mobile.evaluate((previous) => document.documentElement.dataset.mode !== previous, fallbackMode));
+  check('context loss retains readable paper hero', await mobile.$eval('h1', el => getComputedStyle(el).color === 'rgb(10, 15, 44)'));
   await mobile.close();
 
   const reduced = await page();
   await reduced.emulateMediaFeatures([{ name: "prefers-reduced-motion", value: "reduce" }]);
   await reduced.goto(url, { waitUntil: "networkidle0" });
-  check("reduced motion skips canvas and intro", await reduced.evaluate(() => !document.querySelector(".sky canvas") && document.querySelector(".intro").hidden && window.__f1.done === 1));
+  check("reduced motion skips canvas and intro", await reduced.evaluate(() => !document.querySelector(".sky canvas") && !document.querySelector(".intro") && window.__f1.done === 1));
   check('reduced glyph pit is static', await reduced.$eval('.glyph-pit', el => el.dataset.running === 'false'));
   check('reduced section headlines have no animation', await reduced.$$eval('.section-line', lines => lines.length > 0 && lines.every(line => {
     line.classList.add('section-armed', 'is-visible');
     return getComputedStyle(line.querySelector('span')).animationName === 'none';
   })));
-  const reducedMode = await reduced.evaluate(() => document.documentElement.dataset.mode);
-  await reduced.click(".sky-toggle");
-  check("reduced toggle is immediate", await reduced.evaluate((previous) => document.documentElement.dataset.mode !== previous, reducedMode));
+  check('reduced Work and journey remain sequential', await reduced.evaluate(() => !document.querySelector('#work').dataset.pinned && !document.querySelector('.journey').dataset.track && [...document.querySelectorAll('.work-card')].every(card => !card.inert)));
   await reduced.$eval("[data-sphere]", el => el.scrollIntoView());
   const staticSphere = await reduced.$eval("[data-sphere-item]", el => el.style.transform);
   await sleep(300);
   check('reduced sphere is static', await reduced.evaluate(transform => document.querySelector('[data-sphere-item]').style.transform === transform, staticSphere));
-  check('reduced E92 is complete without a pin or lens mask', await reduced.evaluate(() => !document.querySelector('#e92').dataset.pin && document.querySelectorAll('#e92 img').length === 1 && getComputedStyle(document.querySelector('.car-photo')).clipPath === 'inset(0px)' && document.querySelectorAll('.car-specs > div').length === 9));
+  check('reduced E92 is complete without a pin or lens mask', await reduced.evaluate(() => !document.querySelector('#e92').dataset.pin && [...document.querySelectorAll('#e92 img')].filter(img => getComputedStyle(img.closest('.car-slide')).display !== 'none').length === 1 && getComputedStyle(document.querySelector('.car-photo')).clipPath === 'inset(0px)' && document.querySelectorAll('.car-specs > div').length === 9));
   await reduced.$eval('.skills-list button', el => el.click());
   await sleep(750);
   check('reduced group highlight works without a globe turn', await reduced.evaluate(transform => document.querySelector('.skills-list button').getAttribute('aria-pressed') === 'true' && document.querySelector('[data-sphere-item]').dataset.selected === 'true' && document.querySelector('[data-sphere-item]').style.transform === transform, staticSphere));

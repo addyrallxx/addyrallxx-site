@@ -1,0 +1,10 @@
+@layer theme, base, components, utilities;
+@layer components {
+  .taste .section-line { overflow: visible; }
+  .taste .section-line:first-child { overflow: hidden; }
+  .taste-word { display: inline-block; white-space: nowrap; }
+  .taste-letter { display: inline-block; position: relative; }
+  .taste-measure { position: absolute; right: -1px; bottom: -.22em; width: 2px; height: .35em; color: var(--accent); border-inline: 1px solid currentColor; opacity: 0; pointer-events: none; }
+  .taste-measure::before { content: ""; position: absolute; top: 50%; left: -5px; width: 12px; height: 1px; background: currentColor; }
+  .taste-measure > span { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); font-family: var(--font-mono, ui-monospace, monospace); font-size: 12px; white-space: nowrap; }
+}

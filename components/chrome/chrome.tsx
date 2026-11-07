@@ -6,7 +6,6 @@ import { TransitionLink as Link } from "@/components/page-transition";
 import { CHROME, NAV, SITE } from "@/lib/content";
 import "@/lib/scroll";
 import { Clocks } from "./clocks";
-import { SkyToggle } from "./sky-toggle";
 import "./current-route.css";
 
 export function Chrome() {
@@ -46,12 +45,13 @@ export function Chrome() {
     let heroHeight = hero?.clientHeight ?? window.innerHeight;
     let pastHero: boolean | undefined;
     let previousScroll = 0;
+    let phone = window.innerWidth < 720;
     const onScroll = () => {
       const lenis = window.__lenis;
       const position = lenis?.animatedScroll ?? window.scrollY;
       const past = position >= heroHeight;
       if (Math.abs(position - previousScroll) > 1) {
-        if (bottom.current && innerWidth < 720) bottom.current.dataset.scrollUp = String(position < previousScroll);
+        if (bottom.current && phone) bottom.current.dataset.scrollUp = String(position < previousScroll);
         previousScroll = position;
       }
       // Cached Lenis position avoids flushing styles after animated DOM writes.
@@ -61,7 +61,7 @@ export function Chrome() {
     if (hero) observer.observe(hero);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    const resize = () => { onScroll(); if (window.innerWidth >= 720) close(); };
+    const resize = () => { phone = window.innerWidth < 720; onScroll(); if (!phone) close(); };
     window.addEventListener("resize", resize);
     return () => {
       window.removeEventListener("scroll", onScroll);
@@ -91,7 +91,6 @@ export function Chrome() {
         <nav className="chrome-nav" aria-label={CHROME.menu}>
           {NAV.map((link) => <Link href={link.href} key={link.href} aria-current={current(link.href)}>{link.label}</Link>)}
           <button ref={menu} className="menu-button" type="button" onClick={open} aria-haspopup="dialog" aria-controls="phone-menu">{CHROME.menu}</button>
-          <SkyToggle />
         </nav>
       </header>
       <div className="chrome-bottom" ref={bottom}>

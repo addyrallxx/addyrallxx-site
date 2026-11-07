@@ -14,16 +14,10 @@
   --m-light: #6CB2E4;
   --m-dark: #1B4FA0;
   --m-red: #E7222E;
-}
-:root[data-mode="day"] {
+
   --bg: #F3F0E8; --ink: #0A0F2C; --ink-2: #181E36; --ink-3: #181E36;
   --line: rgba(10,15,44,.12); --accent: #2340FF; --panel: #0A0F2C;
   color-scheme: light;
-}
-:root[data-mode="night"] {
-  --bg: #030817; --ink: #EEF1FA; --ink-2: #D2D8E8; --ink-3: #D2D8E8;
-  --line: rgba(238,241,250,.12); --accent: #8EA2FF; --panel: #F3F0E8;
-  color-scheme: dark;
 }
 @theme inline {
   --color-bg: var(--bg);
@@ -38,7 +32,7 @@
 }
 @layer base {
   html { background: var(--bg); scrollbar-color: var(--ink-3) var(--bg); }
-  body { background: var(--bg); color: var(--ink); font-family: var(--font-body), sans-serif; text-shadow: 0 0 1px var(--bg), 0 0 3px var(--bg); transition: color 300ms, background-color 300ms; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--font-body), sans-serif; transition: color 300ms, background-color 300ms; }
   button, a { -webkit-tap-highlight-color: transparent; }
   button { cursor: pointer; }
   a { text-underline-offset: .2em; }
@@ -46,7 +40,7 @@
   ::selection { background: var(--accent); color: var(--bg); }
 }
 @layer components {
-  .t-display-xl, .t-display-l { font-family: var(--font-display), sans-serif; font-weight: 800; font-variation-settings: "wdth" 125; text-transform: uppercase; letter-spacing: -.01em; line-height: .86; text-shadow: 0 0 2px var(--bg), 0 0 4px var(--bg); }
+  .t-display-xl, .t-display-l { font-family: var(--font-display), sans-serif; font-weight: 800; font-variation-settings: "wdth" 125; text-transform: uppercase; letter-spacing: -.01em; line-height: .86; }
   .t-display-xl { font-size: clamp(56px, 11.5vw, 188px); }
   .t-display-l { font-size: clamp(40px, 7vw, 120px); }
   .t-title { font-family: var(--font-body), sans-serif; font-size: clamp(20px, 1.6vw, 26px); font-weight: 500; letter-spacing: -.01em; }
@@ -57,8 +51,6 @@
   .skip-link:focus { transform: none; }
   .sky { position: fixed; inset: 0; z-index: 0; pointer-events: none; background: var(--bg); }
   .sky canvas { width: 100%; height: 100%; display: block; }
-  /* TODO: replace this permitted static night fallback with public/sky/night.webp. */
-  :root[data-mode="night"] .sky { background: radial-gradient(ellipse at 50% 100%, color-mix(in srgb, var(--accent) 14%, var(--bg)), var(--bg) 70%); }
   :root[data-intro="running"] .sky canvas { opacity: 0; }
   :root[data-intro="exiting"] .sky canvas { animation: sky-enter 1200ms linear both; }
   .chrome { position: fixed; inset: 0; pointer-events: none; z-index: 20; }
@@ -87,11 +79,6 @@
   .live-dot[data-day="true"] { background: var(--accent); }
   .availability { display: flex; align-items: center; gap: 8px; }
   .menu-button { display: none !important; }
-  .sky-toggle-icon { width: 36px; height: 36px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: var(--r-pill); }
-  .sky-toggle svg { transition: transform 200ms; }
-  .sky-toggle:hover svg, .sky-toggle:focus-visible svg { transform: rotate(20deg) scale(1.1); }
-  .sky-mask { transform: translate(18px, -18px); transition: transform 400ms var(--ease-inout); }
-  .sky-toggle[aria-pressed="true"] .sky-mask { transform: translate(6px, -4px); }
   .menu-sheet { position: fixed; inset: 0; width: 100%; max-width: none; height: 100svh; max-height: none; margin: 0; padding: var(--gutter); color: var(--ink); background: var(--bg); border: 0; }
   .menu-sheet::backdrop { background: var(--bg); }
   .menu-sheet a, .menu-sheet button { min-height: 44px; min-width: 44px; }
@@ -183,8 +170,6 @@
   .image-treatment::after { background: var(--ink); mix-blend-mode: screen; opacity: 0; }
   .work-preview[data-colour="true"] img, .other-band:hover .image-treatment img, .other-band:focus-visible .image-treatment img { filter: none; transition-delay: 400ms; }
   .work-preview[data-colour="true"] img { transition-delay: 0ms; }
-  :root[data-mode="night"] .image-treatment img { filter: none; }
-  :root[data-mode="night"] .image-treatment::before { opacity: 0; }
   .other-band { display: flex; align-items: center; justify-content: center; gap: 64px; padding: 64px 48px; border-radius: var(--r-md); border: 1px solid var(--line); }
   .card-fan { position: relative; width: 260px; height: 210px; flex-shrink: 0; }
   .fan-card { position: absolute; border-radius: 10px; overflow: hidden; box-shadow: 0 18px 40px -18px rgba(10,15,44,.35); transition: transform .4s cubic-bezier(.4,0,.2,1); }

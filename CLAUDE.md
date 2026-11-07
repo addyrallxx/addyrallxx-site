@@ -323,3 +323,8 @@ system, built fresh.
   `vercel.com/sso-api`), so a curl or harness against a preview URL measures
   a login redirect unless a share token is used. The identity abort rule
   applies: assert the page is the site before measuring anything.
+
+<!-- claude-reflect: learned rules (saved from the band; edit freely) -->
+## Learned rules
+- When delegating research, ground it in our references, knowledge base, and playbook, and use our tools and assets.
+<!-- end claude-reflect -->

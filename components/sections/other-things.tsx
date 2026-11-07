@@ -2,6 +2,7 @@ import { TransitionLink as Link } from "@/components/page-transition";
 import { OTHER } from "@/lib/content";
 import { SectionReveal } from "@/components/ui/section-reveal";
 
+// Reference B clip 8: a compact spread of objects between display words.
 export function OtherThings() {
   return <section className="home-section" aria-label={OTHER.label}>
     <SectionReveal><Link href="/work" prefetch={false} className="other-band" aria-label={`${OTHER.left} ${OTHER.right}`}>

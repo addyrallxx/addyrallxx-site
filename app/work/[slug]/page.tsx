@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { TransitionLink as Link } from "@/components/page-transition";
 import { notFound } from "next/navigation";
 import { FOOTER, WORK, WORK_META } from "@/lib/content";
 import { SectionReveal } from "@/components/ui/section-reveal";
+import { ProjectMedia } from "../project-media";
 
 export const dynamicParams = false;
 export function generateStaticParams() { return WORK.map(({ slug }) => ({ slug })); }
@@ -26,9 +26,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
       <ul className="project-meta t-small"><li><span className="t-label">{WORK_META.kind}</span><br />{project.kind}</li><li><span className="t-label">{WORK_META.year}</span><br />{project.year}</li><li><span className="t-label">{WORK_META.stack}</span><br />{project.stack.join(", ")}</li><li><span className="t-label">{WORK_META.status}</span><br />{liveLink ? <a href={liveLink.href} target="_blank" rel="noopener noreferrer">{liveLink.label}</a> : project.status}</li></ul>
       <p className="t-body section-body">{project.lead}</p>
     </SectionReveal></section>
-    {project.images[0] && <div className="project-cover"><Image src={project.images[0].src} alt={project.images[0].alt} fill sizes="100vw" priority /></div>}
+    <ProjectMedia project={project} />
     <section className="home-section"><SectionReveal><h2 className="t-title">{WORK_META.does}</h2><ul className="project-does">{project.does.map(line => <li className="t-body section-body" key={line}>{line}</li>)}</ul></SectionReveal></section>
-    {project.images.length > 1 && <div className="home-section project-images">{project.images.slice(1).map(image => <div className="project-image" key={image.src}><Image src={image.src} alt={image.alt} fill sizes="(max-width: 719px) 100vw, 50vw" /></div>)}</div>}
-    <section className="home-section"><Link className="next-project" href={`/work/${next.slug}`}><span className="t-label">{FOOTER.next}</span><span className="t-display-l">{next.name}</span></Link></section>
+    <ProjectMedia project={project} gallery />
+    <section className="home-section"><Link className="next-project" data-cursor="View" href={`/work/${next.slug}`}><span className="t-label">{FOOTER.next}</span><span className="t-display-l">{next.name}</span></Link></section>
   </main>;
 }

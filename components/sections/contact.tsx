@@ -6,6 +6,7 @@ import { SectionReveal } from "@/components/ui/section-reveal";
 import { GlyphPit } from "./glyph-pit";
 import { GradientMesh } from "@/components/ui/gradient-mesh";
 
+// Reference B clips 12 and 13: a calm contact field followed by falling cutouts.
 export function Contact() {
   const [copied, setCopied] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);

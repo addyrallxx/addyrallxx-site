@@ -26,5 +26,11 @@ export const skillColors: Record<string, string> = {
   "zapier": "FF4F00",
   "pytorch": "EE4C2C",
   "nvidia": "76B900",
-  "latex": "008080"
+  "latex": "008080",
+  "elevenlabs": "000000",
+  "blender": "E87D0D",
+  "ffmpeg": "007808",
+  "expo": "1C2024",
+  "cloudflare": "F38020",
+  "supabase": "3FCF8E"
 };

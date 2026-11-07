@@ -1,0 +1,18 @@
+@layer theme, base, components, utilities;
+@layer components {
+  .intro.journey-intro { z-index: 60; color: var(--ink); animation: intro-fail-open 1ms step-end 4s forwards; }
+  .journey-intro .intro-paper { position: absolute; inset: 0; background: var(--bg); }
+  .intro-journey { position: absolute; top: 50%; left: 14vw; width: 72vw; }
+  .journey-intro .intro-number-mask { position: absolute; bottom: 20px; overflow: hidden; }
+  .journey-intro .intro-counter { position: static; opacity: 1; font-size: clamp(72px, 12vw, 192px); text-shadow: none; }
+  .journey-intro .intro-digit { height: 1.06em; }
+  .journey-intro .intro-digit > span:empty { transform: translateY(100%); }
+  .intro-label-mask { overflow: hidden; padding-top: 20px; }
+  .journey-intro .clocks { display: flex; justify-content: space-between; width: 100%; }
+  .journey-intro .clock { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .journey-intro .clock[data-zone="Asia/Dhaka"] { order: -1; }
+  .journey-intro .clock[data-zone="America/Edmonton"] { align-items: flex-end; }
+  .journey-intro .clock-figure { display: none; }
+  .intro-curtain { position: absolute; inset: 0; width: 100%; height: 118%; fill: var(--ink); transform: scaleY(0); transform-origin: 50% 42.37%; }
+  @media (prefers-reduced-motion: reduce) { .intro.journey-intro { display: none; } }
+}

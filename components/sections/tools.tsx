@@ -12,8 +12,8 @@ function logoColor(slug: string) {
   const hex = skillColors[slug];
   const channels = [0, 2, 4].map(offset => parseInt(hex.slice(offset, offset + 2), 16) / 255).map(channel => channel <= .04045 ? channel / 12.92 : ((channel + .055) / 1.055) ** 2.4);
   const luminance = channels[0] * .2126 + channels[1] * .7152 + channels[2] * .0722;
-  // Night background #030817 has relative luminance .00251.
-  return (luminance + .05) / (.00251 + .05) < 3 ? "var(--ink)" : `#${hex}`;
+  // Paper #F3F0E8 has relative luminance .872.
+  return (.872 + .05) / (luminance + .05) < 3 ? "var(--ink)" : `#${hex}`;
 }
 const positions = new Float64Array(items.length * 3);
 const centroids = new Float64Array(SKILLS.groups.length * 3);

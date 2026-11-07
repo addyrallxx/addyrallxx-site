@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo, Instrument_Sans } from "next/font/google";
 import SmoothScroll from "@/components/smooth-scroll";
+import { PuckCursor } from "@/components/ui/puck-cursor";
 import { Sky } from "@/components/sky/sky";
 import { Intro } from "@/components/intro/intro";
 import { Chrome } from "@/components/chrome/chrome";
@@ -18,17 +19,16 @@ export const metadata: Metadata = {
   openGraph: { title: SITE.name, description: SITE.description, type: "website", locale: "en_CA" },
 };
 
-const modeScript = `document.documentElement.dataset.mode="night"`;
 export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" data-mode="night" suppressHydrationWarning>
-      <head><script dangerouslySetInnerHTML={{ __html: modeScript }} /></head>
+    <html lang="en" suppressHydrationWarning>
       <body className={`${archivo.variable} ${instrument.variable} antialiased`}>
         <a href="#main" className="skip-link">{CHROME.skip}</a>
         <SmoothScroll />
         <Sky />
+        <PuckCursor />
         <Intro />
         <PageTransition><Chrome />{children}</PageTransition>
       </body>

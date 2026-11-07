@@ -20,7 +20,7 @@ export const SITE = {
     { label: "WhatsApp", href: "https://wa.me/15878941429" },
   ] satisfies Link[],
   description:
-    "Adnan Shakib builds the software behind a Calgary dealership operation and a Dhaka garment factory. Computer science at the University of Calgary.",
+    "Adnan Shakib, UCalgary computer science student. Builds software for a Calgary dealership business and a Dhaka garment factory. Open to summer 2027 internships.",
 };
 
 export const NAV = [
@@ -44,14 +44,14 @@ export const CHROME = {
 };
 
 export const HERO = {
-  lines: ["Systems", "with taste"],
-  lead: "I'm Adnan Shakib. I build the software that runs a car dealership operation in Calgary and a garment factory in Dhaka. If it's slow, ugly or vague, it isn't done.",
+  lines: ["Written in Calgary.", "Running in Dhaka."],
+  lead: "I'm Adnan Shakib. I build the software two businesses run on: listings for car dealerships in Alberta and BC, and orders and billing for a garment factory in Dhaka. Slow, ugly or vague means it isn't done.",
   // The resume line. A recruiter gets who, where, when and what next
   // before scrolling, so the display line never has to carry it.
   facts: [
     { label: "Studying", value: "Computer Science, University of Calgary, April 2028" },
     { label: "Running", value: "Co-founder, Puzzled" },
-    { label: "Taking over", value: "Managing director, TotalTex" },
+    { label: "Taking over", value: "Named successor, TotalTex, Dhaka" },
     { label: "Looking for", value: "Summer 2027 internships" },
   ],
 };
@@ -67,18 +67,25 @@ export const SKILLS = {
       { name: "Python", slug: "python" }, { name: "TypeScript", slug: "typescript" }, { name: "JavaScript", slug: "javascript" },
       { name: "Java", slug: "openjdk" }, { name: "Kotlin", slug: "kotlin" }, { name: "SQL", slug: null },
     ] },
-    { title: "Web and motion", items: [
+    { title: "Web, mobile and motion", items: [
       { name: "Next.js", slug: "nextdotjs" }, { name: "React", slug: "react" }, { name: "Tailwind CSS", slug: "tailwindcss" },
       { name: "Node.js", slug: "nodedotjs" }, { name: "GSAP", slug: "greensock" }, { name: "Three.js", slug: "threedotjs" },
+      { name: "Expo", slug: "expo" }, { name: "React Native", slug: null },
     ] },
     { title: "Data and infrastructure", items: [
       { name: "PostgreSQL", slug: "postgresql" }, { name: "Drizzle", slug: "drizzle" }, { name: "Docker", slug: "docker" },
       { name: "Vercel", slug: "vercel" }, { name: "Git", slug: "git" },
+      { name: "Cloudflare", slug: "cloudflare" }, { name: "Supabase", slug: "supabase" }, { name: "Playwright", slug: null },
     ] },
     { title: "AI and automation", items: [
       { name: "Claude Code", slug: "claude" }, { name: "Codex", slug: "openai" }, { name: "Gemini", slug: "googlegemini" },
       { name: "MCP", slug: "modelcontextprotocol" }, { name: "LangChain", slug: "langchain" }, { name: "Hugging Face", slug: "huggingface" },
       { name: "n8n", slug: "n8n" }, { name: "Zapier", slug: "zapier" },
+      { name: "JEV", slug: null }, { name: "Fish Audio", slug: null },
+    ] },
+    { title: "Media and 3D", items: [
+      { name: "ElevenLabs", slug: "elevenlabs" }, { name: "Higgsfield", slug: null }, { name: "Remotion", slug: null },
+      { name: "HyperFrames", slug: null }, { name: "Blender", slug: "blender" }, { name: "FFmpeg", slug: "ffmpeg" }, { name: "Kokoro", slug: null },
     ] },
     { title: "ML and research", items: [
       { name: "PyTorch", slug: "pytorch" }, { name: "CUDA", slug: "nvidia" }, { name: "LaTeX", slug: "latex" },
@@ -90,10 +97,10 @@ export const SERVICES = {
   label: "Services",
   lines: ["What I'll", "build you"],
   items: [
-    { name: "Websites", line: "Sites that look expensive and load fast. Design, build, motion, launch." },
-    { name: "Internal tools", line: "The order system, the dashboard, the spreadsheet you've outgrown, rebuilt as software your team will actually use." },
+    { name: "Websites", line: "Fast sites that look designed. I do the design, the build, the motion and the launch." },
+    { name: "Internal tools", line: "The spreadsheet you've outgrown, rebuilt as software your team will actually use. Order systems and dashboards included." },
     { name: "Automation", line: "Scrapers, pipelines and AI agents that take the repetitive part of a job off someone's desk." },
-    { name: "Dealership operations", line: "Through Puzzled: inventory, listings, leads and paid social, run for you end to end." },
+    { name: "Dealership operations", line: "Through Puzzled: I run the online side of your dealership, from inventory to the leads it brings in." },
   ],
   cta: "Tell me what you need",
 };
@@ -102,9 +109,9 @@ export const SERVICES = {
 export const SIDE = {
   label: "Alongside school",
   items: [
-    { name: "Puzzled", line: "The dealership operation I co-run with my roommate. More than seven Calgary dealerships so far." },
-    { name: "TotalTex", line: "My father's trims factory in Dhaka. I built its software and I'm next in line to run it." },
-    { name: "Handled AI", line: "My CPSC 598 capstone venture: a home services platform, built with a team of three." },
+    { name: "Puzzled", line: "The dealership business I co-run with my roommate. Seven Alberta and BC dealerships at the peak, four active now." },
+    { name: "TotalTex", line: "My father's garment trims factory in Dhaka, about 250 people. I built its order system and I'm the named successor." },
+    { name: "Handled AI", line: "Our CPSC 598 capstone: a home services app for Calgary homeowners. I lead product and engineering on a team of three." },
     { name: "The studio", line: "My own setup where Claude, Codex and Gemini build in parallel and review each other's work." },
   ],
 };
@@ -127,6 +134,7 @@ export type Project = {
   status: string;
   link?: Link;
   images: { src: string; alt: string }[];
+  video?: { mp4: string; webm?: string; poster: string };
 };
 
 export const WORK_LABEL = "Selected work";
@@ -148,18 +156,19 @@ export const WORK: Project[] = [
     slug: "puzzled",
     name: "Puzzled",
     kind: "Dealership listings pipeline",
-    year: "Since 2023",
+    year: "Since 2024",
     line: "Reads dealer inventory three times a day and writes a compliant listing for every car.",
-    lead: "Puzzled runs the online side of car dealerships in Calgary: inventory, listings, ads and the leads they bring in. More than seven dealerships and dealer families so far. I built the software underneath.",
+    lead: "Puzzled runs the online side of car dealerships in Alberta and BC: inventory, listings, ads and the leads they bring in. Seven dealerships at the peak, four active now. I built the software underneath.",
     does: [
       "Pulls each client's live inventory from three dealer platforms, three times a day.",
-      "Writes listing copy from the record only, with the disclaimer each province requires.",
+      "Writes listing copy from the record only, inside the provincial advertising rules.",
       "Catches sold cars and price changes so nothing stale stays up.",
       "Stops at the platform. A person posts every listing, on purpose.",
     ],
     stack: ["Python", "curl_cffi", "Scheduled jobs"],
     status: "Private, client data",
-    images: [],
+    images: [{ src: "/puzzled/poster.webp", alt: "A Puzzled listing generated from a dealer inventory record" }],
+    video: { mp4: "/puzzled/showcase.mp4", webm: "/puzzled/showcase.webm", poster: "/puzzled/poster.webp" },
   },
   {
     slug: "totaltex-ops",
@@ -175,7 +184,7 @@ export const WORK: Project[] = [
     ],
     stack: ["Next.js", "TypeScript", "PostgreSQL", "Drizzle"],
     status: "In use at the factory",
-    images: [],
+    images: [{ src: "/totaltex-ops/dashboard.webp", alt: "TotalTex Ops dashboard with fictional demo orders" }],
   },
   {
     slug: "totaltex-web",
@@ -188,14 +197,14 @@ export const WORK: Project[] = [
       "Moved to its own domain with no downtime and no break in mail.",
       "A page for each of eleven product lines, with an inquiry form that knows which line you came from.",
       "Structured data that search engines can actually read.",
+      "Mobile Lighthouse scores of 90 to 94.",
     ],
     stack: ["Next.js", "React Three Fiber", "GSAP"],
     status: "Live",
     link: { label: "totaltex-bd.com", href: "https://totaltex-bd.com" },
     images: [
-      { src: "/totaltex/conning-floor-wide.jpg", alt: "The TotalTex production floor in Dhaka" },
-      { src: "/totaltex/trims-range-flatlay.jpg", alt: "A flat lay of TotalTex garment trims" },
-      { src: "/totaltex/loom-spools-detail.jpg", alt: "Thread spools on a loom at TotalTex" },
+      { src: "/totaltex/homepage-hero.webp", alt: "The TotalTex homepage hero" },
+      { src: "/totaltex/homepage-products.webp", alt: "The TotalTex homepage product lines" },
     ],
   },
   {
@@ -214,10 +223,29 @@ export const WORK: Project[] = [
     status: "Live",
     link: { label: "Open FitTrack", href: "https://addyrallxx.github.io/fittrack/fittrack.html" },
     images: [
+      { src: "/fittrack/fittrack-home-v2.webp", alt: "FitTrack home screen" },
       { src: "/fittrack/fittrack-home-dashboard.png", alt: "FitTrack home dashboard" },
       { src: "/fittrack/fittrack-workout-session.png", alt: "A FitTrack workout session" },
       { src: "/fittrack/fittrack-progress-weight-trend.png", alt: "FitTrack weight trend chart" },
     ],
+  },
+  {
+    slug: "handled",
+    name: "Handled AI",
+    kind: "Home services app",
+    year: "2026",
+    line: "A photo in, a price range out, then a licensed Calgary plumber or heating pro booked.",
+    lead: "Our CPSC 598 capstone venture, built by a team of three. A homeowner sends a photo and a line of text, sees a price range, and picks one of three licensed pros. I lead the product and the engineering.",
+    does: [
+      "Names the likely job and shows a price band. If the photo is not enough, it says so and offers a visit instead of guessing.",
+      "Shows three licensed pros who can come, with the reason each was picked, then books one with a server-issued booking ID.",
+      "Safety checks stop emergencies from being booked like routine jobs. Tested against 120 emergency scenarios.",
+      "Says it is an AI, every time. A pro inbox and a text-only phone assistant demo are working.",
+    ],
+    stack: ["Expo", "React Native", "Cloudflare Workers", "Supabase"],
+    status: "Student prototype",
+    link: { label: "handled-ai.pages.dev", href: "https://handled-ai.pages.dev" },
+    images: [{ src: "/handled/handled-home.webp", alt: "Handled AI home with fictional demo jobs" }, { src: "/handled/handled-feature.webp", alt: "Handled AI booking confirmation with fictional demo data" }],
   },
   {
     slug: "studio",
@@ -234,7 +262,7 @@ export const WORK: Project[] = [
     ],
     stack: ["Claude Code", "Codex CLI", "Gemini", "PowerShell", "Python"],
     status: "Private tooling",
-    images: [],
+    images: [{ src: "/studio/composite.webp", alt: "Layered illustration of the Studio build workflow" }],
   },
 ];
 
@@ -244,7 +272,7 @@ export const CAR = {
   // Display L lines for the section heading.
   lines: ["The", "E92"],
   title: "2008 BMW 335xi",
-  lead: "An all wheel drive, three pedal N54 coupe that BMW left a lot on the table with. I picked it up.",
+  lead: "An all wheel drive, three pedal N54 coupe. BMW left a lot of power on the table, so I've been collecting it.",
   specs: [
     { label: "Engine", value: "Original N54 twin turbo six, RB Twos+ turbos" },
     { label: "Fuel", value: "Walbro 450 lift pump, upgraded high pressure pump, Index 12 injectors" },
@@ -267,15 +295,16 @@ export const OTHER = {
   // (Adnan, 2026-10-10); all three cards are smaller builds.
   items: [
     { name: "This site", line: "Two skies, one page. Next.js, Three.js and GSAP.", image: null },
-    { name: "Motion studio", line: "Product reels made in code with Remotion.", image: null },
+    { name: "Motion studio", line: "Product reels made in code with Remotion and HyperFrames.", image: null },
     { name: "Class steward", line: "A Discord bot for my capstone class. It mirrors instructor posts into one channel and audits the server's permissions.", image: null },
   ],
 };
 
 export const TASTE = {
   label: "Taste",
-  lines: ["I see the", "2px that's", "off."],
-  body: "Most software works and looks like nobody cared. I sweat spacing, type and motion the way I sweat a database schema, because people judge the whole thing at once. I don't ship slop.",
+  measureLabel: "2px",
+  lines: ["I can taste", "a bad margin."],
+  body: "Spacing, type and motion are where software shows whether anyone cared. I check them the way I check a database schema: closely, and before it ships.",
 };
 
 export const METHOD = {
@@ -289,14 +318,41 @@ export const METHOD = {
 
 export const INFO = {
   label: "Info",
-  bio: "Born in Dhaka, studying computer science in Calgary, graduating April 2028. I co-run Puzzled and I'm stepping in as managing director of TotalTex, the trims factory my father founded. Off the clock: an E92 335xi in BMW Individual Bernina Grey, mostly built by me.",
+  bio: "Born in Dhaka. A Bangladeshi citizen studying computer science in Calgary, graduating April 2028. I co-run Puzzled, I'm the named successor at TotalTex, the trims factory my father founded, and I'm looking for a summer 2027 internship.",
   lists: [
     {
       label: "Now",
-      items: ["Co-founder, Puzzled, Calgary, since 2023", "Incoming managing director, TotalTex, Dhaka"],
+      items: [
+        "Co-founder, Puzzled, Calgary, 2024 to present",
+        "Operations technology lead and named successor, TotalTex Industry Limited, Dhaka, 2026 to present",
+        "Product and engineering lead, Handled AI (CPSC 598 capstone), September 2026 to April 2027",
+        "Vice President of Operations, Bangladeshi Students' Society, University of Calgary",
+        "Looking for: summer 2027 internships",
+      ],
     },
-    { label: "Before", items: ["Sales and inventory, Prime Autos Calgary, 2022 to 2023"] },
-    { label: "School", items: ["BSc Computer Science, University of Calgary, April 2028"] },
+    {
+      label: "Before",
+      items: [
+        "Specialty finance marketing and sales, a Calgary dealership, May to August 2024",
+        "Sales representative, Vector Marketing (CUTCO), May to December 2023",
+        "Sales and inventory manager, Prime Autos Calgary, October 2022 to February 2023",
+        "AMVIC-registered salesperson, earned at Prime Autos",
+      ],
+    },
+    {
+      label: "School",
+      items: [
+        "BSc Computer Science, Faculty of Science, University of Calgary, expected April 2028",
+        "Edexcel GCSE and International A Levels, Mastermind English Medium School, Dhaka, 3.94 of 4.0, 2022",
+      ],
+    },
+    {
+      label: "Off the clock",
+      items: [
+        "A 2008 BMW 335xi, six speed manual, BMW Individual Bernina Grey, mostly built by me",
+        "A photography portfolio for my brother Sadman: 117 frames, full keyboard navigation",
+      ],
+    },
   ],
 };
 
@@ -306,7 +362,7 @@ export const INFO = {
 export const SCHOOL = {
   label: "School",
   lines: ["University", "of Calgary"],
-  lead: "The degree runs alongside the work on this site, not instead of it.",
+  lead: "The degree runs alongside the work, not instead of it.",
   facts: [
     { label: "Degree", value: "BSc Computer Science" },
     { label: "Capstone", value: "Handled AI, CPSC 598" },
@@ -328,6 +384,11 @@ export const SCHOOL = {
       label: "Built for the class",
       title: "Class steward",
       body: "A Discord bot that mirrors every instructor post into one channel and checks the server's permissions, after it found three settings locking the professor out.",
+    },
+    {
+      label: "Outside class",
+      title: "Bangladeshi Students' Society",
+      body: "I'm Vice President of Operations for the society at the University of Calgary this term.",
     },
   ],
   // Course names only, from Adnan's transcript (2026-10-10). Never grades,
@@ -378,7 +439,7 @@ export const CONTACT = {
 
 export const FOOTER = {
   copyright: "© 2026 Adnan Shakib",
-  made: "Built by hand in Calgary",
+  made: "Made in Calgary",
   top: "Back to top",
   next: "Next project",
 };

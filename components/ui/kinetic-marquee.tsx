@@ -23,8 +23,12 @@ export function KineticMarquee({ cities = false }: { cities?: boolean }) {
         track.style.transform = `translate3d(${x.toFixed(2)}px,0,0) skewX(${skew.toFixed(2)}deg)`;
         el.dataset.direction = String(direction);
       };
-      gsap.ticker.add(tick);
-      return () => { gsap.ticker.remove(tick); resize.disconnect(); track.style.transform = ""; };
+      const observer = new IntersectionObserver(entries => {
+        if (entries.some(entry => entry.isIntersecting)) gsap.ticker.add(tick);
+        else gsap.ticker.remove(tick);
+      });
+      observer.observe(el);
+      return () => { gsap.ticker.remove(tick); observer.disconnect(); resize.disconnect(); track.style.transform = ""; };
     });
     return () => motion.revert();
   }, []);

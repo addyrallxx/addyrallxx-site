@@ -1,0 +1,26 @@
+@layer theme, base, components, utilities;
+@layer components {
+  .puck-cursor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 30;
+    width: 64px;
+    height: 64px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--bg);
+    font-family: var(--font-body), sans-serif;
+    font-size: 12px;
+    line-height: 1;
+    text-shadow: none;
+    pointer-events: none;
+    user-select: none;
+    visibility: hidden;
+  }
+  @media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
+    .puck-cursor { display: none; }
+  }
+}

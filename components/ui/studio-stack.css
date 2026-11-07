@@ -1,0 +1,10 @@
+@layer theme, base, components, utilities;
+@layer components {
+  .studio-stack { position: relative; width: 100%; height: 100%; overflow: hidden; background: #F3F0E8; }
+  .studio-plane { position: absolute; inset: -20% 0; pointer-events: none; }
+  .studio-plane > div { width: 100%; height: 100%; }
+  .studio-plane img { width: 100%; height: 100%; object-fit: contain; }
+  .studio-title { position: absolute; top: 12%; left: 5%; color: #0A0F2C; font-size: clamp(40px, 6vw, 100px); }
+  .studio-mid { z-index: 2; }
+  .studio-front { z-index: 3; }
+}

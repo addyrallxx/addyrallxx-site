@@ -15,13 +15,16 @@ export function PageTransition({ children }: { children: ReactNode }) {
   const router = useRouter(), pathname = usePathname(), reduced = usePrefersReducedMotion();
   const panel = useRef<HTMLDivElement>(null), content = useRef<HTMLDivElement>(null);
   const [name, setName] = useState("");
+  const [index, setIndex] = useState(1);
+  const lettering = useRef<gsap.core.Tween | null>(null);
   const coveredAt = useRef(0);
   const pending = useRef<{ path: string; hash: string } | null>(null);
   const animation = useRef<gsap.core.Timeline | null>(null);
   const deadline = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const reset = useCallback(() => {
-    clearTimeout(deadline.current); animation.current?.kill(); animation.current = null; pending.current = null;
-    if (panel.current) { panel.current.hidden = true; gsap.set(panel.current, { y: 0, yPercent: 118 }); }
+    clearTimeout(deadline.current); lettering.current?.kill();
+    if (panel.current) { gsap.killTweensOf(panel.current.querySelector(".route-hairline")); gsap.set(panel.current.querySelectorAll(".route-letter > span"), { clearProps: "transform,willChange" }); } animation.current?.kill(); animation.current = null; pending.current = null;
+    if (panel.current) { panel.current.hidden = true; panel.current.style.transform = "translate3d(0, 118vh, 0)"; panel.current.style.willChange = "auto"; }
     if (content.current) { content.current.inert = false; content.current.removeAttribute("aria-busy"); }
     content.current?.querySelector(".route-heading-armed")?.classList.remove("route-heading-armed");
     delete document.documentElement.dataset.transition;
@@ -52,12 +55,11 @@ export function PageTransition({ children }: { children: ReactNode }) {
       gsap.ticker.tick();
       document.documentElement.dataset.transition = "revealing";
       window.dispatchEvent(new Event("route:ready"));
-      const curve = { bulge: 0 };
-      const edge = el.querySelector(".route-curve-bottom path")!;
-      animation.current = gsap.timeline().to(el, { y: 0, yPercent: -118, duration: .75, ease: "route-wipe" }, 0)
-        .to(el.querySelector(".route-name > span"), { yPercent: -110, opacity: 0, duration: .2, ease: "power3.in" }, 0)
-        .to(curve, { bulge: 180, duration: .375, ease: "sine.inOut", onUpdate: () => edge.setAttribute("d", `M0 0 Q500 ${curve.bulge * 2} 1000 0 L1000 -1 L0 -1 Z`) }, 0)
-        .to(curve, { bulge: 0, duration: .375, ease: "sine.inOut", onUpdate: () => edge.setAttribute("d", `M0 0 Q500 ${curve.bulge * 2} 1000 0 L1000 -1 L0 -1 Z`) }, .375);
+      el.style.willChange = "transform";
+      const edge = el.querySelector(".route-curve-bottom")!;
+      animation.current = gsap.timeline().to({ y: 0 }, { y: -Math.ceil(window.innerHeight * 1.18), duration: .75, ease: "route-wipe", onUpdate: function () { el.style.transform = `translate3d(0, ${Math.round(this.targets()[0].y)}px, 0)`; }, onComplete: () => { el.style.willChange = "auto"; } }, 0)
+        .fromTo(edge, { scaleY: 0 }, { scaleY: 1, duration: .375, ease: "sine.inOut" }, 0)
+        .to(edge, { scaleY: 0, duration: .375, ease: "sine.inOut" }, .375);
       await animation.current.then();
       if (cancelled || pending.current !== target) return;
       heading?.classList.remove("route-heading-armed"); heading?.classList.add("route-heading-rise");
@@ -73,25 +75,29 @@ export function PageTransition({ children }: { children: ReactNode }) {
     const target = new URL(href, location.href), el = panel.current;
     gsap.registerPlugin(CustomEase);
     CustomEase.create("route-wipe", ".76,0,.24,1");
+    setIndex(Math.max(0, NAV.findIndex(link => link.href === target.pathname + target.hash || target.pathname.startsWith("/work") && link === NAV[0])) + 1);
     setName(WORK.find(project => target.pathname === `/work/${project.slug}`)?.name ?? (target.pathname === "/school" ? SCHOOL.label : NAV.find(link => link.href === target.pathname + target.hash || (target.pathname === "/work" && link.label === NAV[0].label))?.label ?? SITE.name));
     pending.current = { path: target.pathname, hash: target.hash };
     window.__lenis?.stop();
     if (content.current) { content.current.inert = true; content.current.setAttribute("aria-busy", "true"); }
     document.documentElement.dataset.transition = "covering";
     el.hidden = false;
-    const curve = { bulge: 180 };
-    const edge = el.querySelector(".route-curve-top path")!;
-    gsap.set(el.querySelector(".route-curve-bottom path"), { attr: { d: "M0 0 Q500 0 1000 0 L1000 -1 L0 -1 Z" } });
+    const edge = el.querySelector(".route-curve-top")!;
     // Input can land between ticker frames. Start the authored duration from this clock instant.
     gsap.ticker.tick();
-    animation.current = gsap.timeline().fromTo(el, { y: 0, yPercent: 118 }, { y: 0, yPercent: 0, duration: .65, ease: "route-wipe" }, 0)
-      .fromTo(el.querySelector(".route-name > span"), { yPercent: 110, opacity: 0 }, { yPercent: 0, opacity: 1, duration: .3, ease: "power3.out" }, .1)
-      .to(curve, { bulge: 0, duration: .65, ease: "route-wipe", onUpdate: () => edge.setAttribute("d", `M0 180 Q500 ${180 - curve.bulge * 2} 1000 180 L1000 181 L0 181 Z`) }, 0);
+    el.style.willChange = "transform";
+    const travel = { y: Math.ceil(window.innerHeight * 1.18) };
+    el.style.transform = `translate3d(0, ${travel.y}px, 0)`;
+    gsap.set(el.querySelector(".route-hairline"), { scaleX: 0 });
+    animation.current = gsap.timeline().to(travel, { y: 0, duration: .65, ease: "route-wipe", onUpdate: () => { el.style.transform = `translate3d(0, ${Math.round(travel.y)}px, 0)`; }, onComplete: () => { el.style.willChange = "auto"; } }, 0)
+      .fromTo(edge, { scaleY: 1 }, { scaleY: 0, duration: .65, ease: "route-wipe" }, 0);
     deadline.current = setTimeout(reset, 8000);
     window.dispatchEvent(new Event("route:wipe-start"));
     await animation.current.then();
     if (!pending.current) return;
-    gsap.set(el, { y: 0, yPercent: 0 }); animation.current = null;
+    el.style.transform = "none"; animation.current = null;
+    lettering.current = gsap.fromTo(el.querySelectorAll(".route-letter > span"), { yPercent: 110 }, { yPercent: 0, stagger: .028, duration: .6, ease: "power3.out", onComplete: () => { gsap.set(el.querySelectorAll(".route-letter > span"), { clearProps: "transform,willChange" }); } });
+    gsap.to(el.querySelector(".route-hairline"), { scaleX: 1, duration: .18, ease: "none" });
     coveredAt.current = performance.now();
     document.documentElement.dataset.transition = "covered";
     window.dispatchEvent(new Event("route:covered"));
@@ -99,8 +105,10 @@ export function PageTransition({ children }: { children: ReactNode }) {
   };
   return <Navigation.Provider value={navigate}><div ref={content} className="route-content relative z-[1]">{children}</div>{!reduced && <div className="route-panel" ref={panel} hidden aria-hidden="true">
     <svg className="route-curve route-curve-top" viewBox="0 0 1000 180" preserveAspectRatio="none"><path d="M0 180 Q500 -180 1000 180 L1000 181 L0 181 Z" /></svg>
-    <div className="route-name t-display-l"><span>{name}</span></div>
-    <svg className="route-curve route-curve-bottom" viewBox="0 0 1000 180" preserveAspectRatio="none"><path d="M0 0 Q500 0 1000 0 L1000 -1 L0 -1 Z" /></svg>
+    <div className="route-title"><div className="route-index t-label">{String(index).padStart(2, "0")} / {String(NAV.length).padStart(2, "0")}</div>
+    <div className="route-name t-display-l"><span aria-label={name}>{Array.from(name).map((letter, i) => <span className="route-letter" key={i} aria-hidden="true"><span>{letter === " " ? "\u00a0" : letter}</span></span>)}</span></div>
+    <div className="route-hairline" /></div>
+    <svg className="route-curve route-curve-bottom" viewBox="0 0 1000 180" preserveAspectRatio="none"><path d="M0 0 Q500 360 1000 0 L1000 -1 L0 -1 Z" /></svg>
   </div>}</Navigation.Provider>;
 }
 

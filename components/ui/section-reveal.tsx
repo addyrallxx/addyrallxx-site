@@ -14,15 +14,18 @@ export function SectionReveal({ children }: { children: ReactNode }) {
     const media = gsap.matchMedia();
     media.add("(prefers-reduced-motion: no-preference)", () => {
       gsap.fromTo(el.querySelector(".section-hairline"), { scaleX: 0 }, { scaleX: 1, ease: "none", scrollTrigger: { trigger: el, start: "top bottom", end: "top 65%", scrub: true } });
+      el.querySelectorAll<HTMLElement>(".section-line:not([data-custom-reveal] .section-line)").forEach(line => {
+        gsap.fromTo(line.firstElementChild, { yPercent: 110 }, { yPercent: 0, duration: .8, ease: "expo.out", scrollTrigger: { trigger: line, start: "top 80%", once: true } });
+      });
     });
     media.add("(min-width: 720px) and (prefers-reduced-motion: no-preference)", () => {
       el.querySelectorAll<HTMLElement>(".t-display-l").forEach(heading => {
-        gsap.fromTo(heading, { y: 48 }, { y: -48, ease: "none", scrollTrigger: { trigger: el, start: "top bottom", end: "bottom top", scrub: true } });
+        gsap.fromTo(heading, { y: 48 }, { y: -48, ease: "none", scrollTrigger: { trigger: el, start: "top bottom", end: "bottom top", scrub: .6 } });
       });
     });
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
     if (motion.matches) return () => { media.revert(); magnets.forEach(cleanup => cleanup()); };
-    const targets = el.querySelectorAll(".section-line, .section-body, .index-row, .e92-stripe");
+    const targets = el.querySelectorAll(".section-body:not([data-custom-reveal]), .index-row, .e92-stripe");
     const observer = new IntersectionObserver(entries => {
       entries.forEach(entry => {
         if (entry.isIntersecting) { entry.target.classList.add("is-visible"); observer.unobserve(entry.target); }
