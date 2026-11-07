@@ -57,12 +57,19 @@
   .chrome a, .chrome button { pointer-events: auto; min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
   .chrome a:hover, .chrome button:hover, .chrome a:focus-visible, .chrome button:focus-visible { color: var(--accent); }
   .chrome-top, .chrome-bottom { position: absolute; left: var(--gutter); right: var(--gutter); display: flex; align-items: center; justify-content: space-between; }
-  .chrome-top { top: calc(var(--gutter) - 8px); isolation: isolate; }
+  /* Floating navbar reference: Aceternity, adapted to the existing editorial rail. */
+  .chrome-top { top: var(--gutter); min-height: 64px; padding: 6px 8px 6px 24px; gap: 24px; background: var(--bg); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 8px 28px -16px rgb(10 15 44 / .25); isolation: isolate; }
   .chrome-top::before { content: ""; position: fixed; left: 0; right: 0; top: 0; height: 96px; z-index: -1; pointer-events: none; background: linear-gradient(to bottom, color-mix(in srgb, var(--bg) 95%, transparent) 0 56px, transparent 96px); }
-  .chrome-top a, .chrome-top button { text-shadow: 0 0 1px var(--bg), 0 0 3px var(--bg); }
+  .chrome-top a, .chrome-top button { text-shadow: none; font-size: 15px; min-height: 48px; }
+  .chrome-name a { font-weight: 700; letter-spacing: -.035em; font-size: 18px; }
+  .chrome-nav > a, .chrome-nav > button { padding: 0 18px; border-radius: 12px; position: relative; isolation: isolate; }
+  .chrome-nav > a::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: var(--ink); opacity: 0; transform: scale(.92); transition: transform 220ms var(--ease-out), opacity 180ms; }
+  .chrome-nav > a[aria-current]::before { opacity: 1; transform: none; }
+  .chrome-nav > a[aria-current], .chrome-nav > a[aria-current]:hover { color: var(--bg); }
   .chrome-bottom { bottom: var(--gutter); gap: var(--u); isolation: isolate; --ink-3: color-mix(in srgb, var(--ink) 85%, var(--bg)); }
   .chrome-bottom::before { content: ""; position: fixed; left: 0; right: 0; bottom: 0; height: 96px; z-index: -1; pointer-events: none; background: linear-gradient(to top, color-mix(in srgb, var(--bg) 85%, transparent) 0 56px, transparent 96px); }
   .chrome-nav, .clocks { display: flex; align-items: center; gap: 24px; }
+  .chrome-nav { gap: 4px; }
   .clock { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; font-variant-numeric: tabular-nums; }
   .clock-time { display: inline-flex; align-items: baseline; gap: 3px; }
   .clock-digits { min-width: 4.5ch; }

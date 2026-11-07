@@ -51,3 +51,11 @@
   }
 }
 @keyframes phone-menu-rise { from { transform: translateY(24px); opacity: .9; } to { transform: none; opacity: 1; } }
+@layer components {
+  @media (max-width: 719px) {
+    html .chrome-top { min-height: 56px; padding: 4px 6px 4px 16px; gap: 8px; border-radius: 16px; }
+    html .chrome-top a, html .chrome-top button { min-height: 44px; }
+    html .chrome-name a { font-size: 16px; }
+    html .chrome-nav > button { padding-inline: 16px; background: var(--ink); color: var(--bg); }
+  }
+}
