@@ -6,6 +6,7 @@ import { gsap } from "gsap";
 import { SKILLS } from "@/lib/content";
 import { skillColors } from "@/lib/skill-colors";
 import { SectionReveal } from "@/components/ui/section-reveal";
+import { SphereField } from "@/components/ui/sphere-field";
 
 const items = SKILLS.groups.flatMap((group, groupIndex) => group.items.filter(item => item.slug && skillColors[item.slug]).map(item => ({ ...item, group: groupIndex })));
 function logoColor(slug: string) {
@@ -134,7 +135,7 @@ export function Tools() {
       window.removeEventListener("keydown", escape); document.removeEventListener("visibilitychange", sync); motion.removeEventListener("change", sync); phone.removeEventListener("change", paint);
     };
   }, []);
-  return <section className="home-section tools" aria-labelledby="tools-heading"><SectionReveal>
+  return <section className="home-section tools" aria-labelledby="tools-heading"><SphereField /><SectionReveal>
     <h2 className="t-label section-label" id="tools-heading"><SplitFlap text={SKILLS.label} /></h2>
     <div className="tools-grid">
       <div className="sphere-column"><div className="skill-sphere" ref={sphere} data-sphere>
