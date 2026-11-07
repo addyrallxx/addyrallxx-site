@@ -15,7 +15,7 @@
   --m-dark: #1B4FA0;
   --m-red: #E7222E;
 
-  --bg: #F3F0E8; --ink: #0A0F2C; --ink-2: #181E36; --ink-3: #181E36;
+  --bg: #F3F0E8; --surface: #E7E5DE; --ink: #0A0F2C; --ink-2: #2D3350; --ink-3: #525876;
   --line: rgba(10,15,44,.12); --accent: #2340FF; --panel: #0A0F2C;
   color-scheme: light;
 }
