@@ -1,4 +1,5 @@
 // Ported from totaltex-web, with the site's easing and an 8px pull cap.
+import { gsap } from "gsap";
 
 const TRANSITION = "transform 220ms var(--ease-out)";
 const PRESS_SCALE = 0.97;
@@ -33,6 +34,7 @@ export function attachMagnetic(
   if (!window.matchMedia("(pointer: fine)").matches) return () => {};
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return () => {};
 
+  const original = { transition: el.style.transition, transform: el.style.transform, willChange: el.style.willChange };
   el.style.transition = TRANSITION;
   let previous = "";
   const motion = matchMedia("(prefers-reduced-motion: reduce)");
@@ -58,7 +60,7 @@ export function attachMagnetic(
   });
   observer.observe(el);
 
-  const onMove = (e: PointerEvent) => {
+  const move = (e: PointerEvent) => {
     if (motion.matches || document.hidden) return;
     // Hidden Work beats must not force layout on every global pointer sample.
     if (!visible || el.closest("[inert]")) { if (inside) reset(); return; }
@@ -83,6 +85,13 @@ export function attachMagnetic(
       reset();
     }
   };
+  let latest: PointerEvent | undefined;
+  let scheduled = false;
+  const flush = () => { scheduled = false; if (latest) move(latest); };
+  const onMove = (event: PointerEvent) => {
+    latest = event;
+    if (!scheduled) { scheduled = true; gsap.ticker.add(flush, true); }
+  };
 
   const onPointerDown = () => {
     if (!inside) return;
@@ -105,7 +114,8 @@ export function attachMagnetic(
   el.addEventListener("pointerleave", release);
   return () => {
     observer.disconnect();
-    el.style.willChange = "";
+    gsap.ticker.remove(flush);
+    Object.assign(el.style, original);
     motion.removeEventListener("change", finish);
     window.removeEventListener("pointermove", onMove);
     el.removeEventListener("pointerdown", onPointerDown);

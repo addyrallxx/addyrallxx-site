@@ -19,6 +19,28 @@ export function HomeMotion() {
       }));
       return () => { covered.clear(); announce(); };
     });
+    media.add("(prefers-reduced-motion: no-preference) and (pointer: fine)", () => {
+      // Reference B clips 6, 8 and 19: bounded perspective on three different objects.
+      const cleanups = [".hero-portal img", ".card-fan", ".taste-word"].flatMap(selector => {
+        const target = document.querySelector<HTMLElement>(selector), section = target?.closest("section");
+        if (!target || !section) return [];
+        let bounds = section.getBoundingClientRect();
+        gsap.set(target, { transformPerspective: 1000 });
+        const x = gsap.quickTo(target, "rotationY", { duration: .7, ease: "power3.out" });
+        const y = gsap.quickTo(target, "rotationX", { duration: .7, ease: "power3.out" });
+        const measure = () => { bounds = section.getBoundingClientRect(); target.style.willChange = "transform"; };
+        const move = (event: Event) => {
+          if (document.hidden) return;
+          const pointer = event as PointerEvent;
+          x(Math.max(-1, Math.min(1, (pointer.clientX - bounds.left) / bounds.width * 2 - 1)) * 3);
+          y(Math.max(-1, Math.min(1, (pointer.clientY - bounds.top) / bounds.height * 2 - 1)) * -2);
+        };
+        const leave = () => { x(0); y(0); target.style.willChange = ""; };
+        section.addEventListener("pointerenter", measure); section.addEventListener("pointermove", move); section.addEventListener("pointerleave", leave);
+        return [() => { section.removeEventListener("pointerenter", measure); section.removeEventListener("pointermove", move); section.removeEventListener("pointerleave", leave); target.style.willChange = ""; }];
+      });
+      return () => cleanups.forEach(cleanup => cleanup());
+    });
     return () => media.revert();
   }, []);
   return null;

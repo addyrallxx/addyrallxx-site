@@ -41,6 +41,7 @@ export function Work({ showLabel = true }: { showLabel?: boolean }) {
           gsap.fromTo(inner, { scale: .94 }, { scale: 1, ease: "none", scrollTrigger: { trigger: card, start: "top bottom", end: "top 35%", scrub: .6 } });
         }
       });
+      return () => { cards.forEach(card => { const inner = card.querySelector<HTMLElement>(".work-media-link"); if (inner) inner.style.willChange = ""; }); };
     });
     media.add("(min-width: 900px) and (prefers-reduced-motion: no-preference)", () => {
       const cards = Array.from(el.querySelectorAll<HTMLElement>(".work-card"));

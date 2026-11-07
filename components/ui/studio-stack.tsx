@@ -12,16 +12,17 @@ export function StudioStack() {
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
     const el = root.current!, media = gsap.matchMedia();
-    media.add("(prefers-reduced-motion: no-preference)", () => {
+    media.add({ motion: "(prefers-reduced-motion: no-preference)", desktop: "(min-width: 900px)" }, context => {
+      if (!context.conditions?.motion) return;
       const layers = Array.from(el.querySelectorAll<HTMLElement>(".studio-plane"));
       const speeds = [.05, .12, .22];
       const moves = layers.map(layer => ({ x: gsap.quickTo(layer.firstElementChild, "x", { duration: .6, ease: "power3.out" }), y: gsap.quickTo(layer.firstElementChild, "y", { duration: .6, ease: "power3.out" }) }));
       let bounds = el.getBoundingClientRect();
       const measure = () => { bounds = el.getBoundingClientRect(); };
       const resize = new ResizeObserver(measure); resize.observe(el);
-      const desktop = !!el.closest(".work-stack") && matchMedia("(min-width: 900px)").matches;
+      const desktop = !!el.closest(".work-stack") && context.conditions.desktop;
       const index = WORK.findIndex(item => item.slug === "studio");
-      const distance = () => desktop ? innerHeight : innerHeight + el.offsetHeight;
+      const distance = () => desktop ? innerHeight : innerHeight + bounds.height;
       layers.forEach((layer, i) => gsap.fromTo(layer, { y: () => -distance() * speeds[i] / 2 }, { y: () => distance() * speeds[i] / 2, ease: "none", scrollTrigger: {
         trigger: desktop ? el.closest(".work-stack") : el, start: desktop ? () => `top+=${innerHeight * index} top` : "top bottom", end: desktop ? () => `+=${innerHeight}` : "bottom top", scrub: .6, invalidateOnRefresh: true,
         onToggle: self => { layer.style.willChange = self.isActive ? "transform" : ""; },
@@ -34,7 +35,7 @@ export function StudioStack() {
       };
       const reset = () => moves.forEach(move => { move.x(0); move.y(0); });
       el.addEventListener("pointerenter", measure); el.addEventListener("pointermove", pointer); el.addEventListener("pointerleave", reset);
-      return () => { resize.disconnect(); el.removeEventListener("pointerenter", measure); el.removeEventListener("pointermove", pointer); el.removeEventListener("pointerleave", reset); };
+      return () => { resize.disconnect(); layers.forEach(layer => { layer.style.willChange = ""; }); el.removeEventListener("pointerenter", measure); el.removeEventListener("pointermove", pointer); el.removeEventListener("pointerleave", reset); };
     });
     return () => media.revert();
   }, []);

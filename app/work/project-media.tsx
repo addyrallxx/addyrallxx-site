@@ -24,6 +24,7 @@ export function ProjectMedia({ project, gallery = false }: { project: Project; g
           onToggle: self => { frame.style.willChange = self.isActive ? "transform" : ""; },
         } });
       });
+      return () => { root.current?.querySelectorAll<HTMLElement>(".project-cover, .project-image").forEach(frame => { frame.style.willChange = ""; }); };
     }, root);
     return () => media.revert();
   }, [project.slug, gallery]);

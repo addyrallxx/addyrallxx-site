@@ -168,8 +168,6 @@ export function E92() {
                     <source srcSet={`${slide.base}-small.webp ${Math.round(slide.width / 2)}w, ${slide.base}.webp ${slide.width}w`} sizes="100vw" type="image/webp" />
                     <img
                       src={`${slide.base}.jpg`}
-                      srcSet={`${slide.base}.jpg`}
-                      sizes="100vw"
                       width={slide.width}
                       height={slide.height}
                       alt={i === 0 ? CAR.title : ""}
