@@ -323,9 +323,9 @@ export const TASTE = {
 export const METHOD = {
   label: "How I work",
   items: [
-    { title: "Do the job by hand first", body: "I sold cars and wrote listings by hand before I automated any of it." },
-    { title: "Measure before deciding", body: "I audited 1,069 live listings against the regulator's rules instead of assuming they were fine." },
-    { title: "Own the whole problem", body: "Scraper, listing, ad spend, lead, invoice. I'd rather own it end to end than a clean slice." },
+    { title: "Business first", body: "I've sold the cars and run the office. I know what the software needs to fix." },
+    { title: "Built to be used", body: "The factory team runs on my software every day. Seven dealerships have run on my inventory pipeline at once." },
+    { title: "Accountable end to end", body: "I own the product and the operation behind it, from the first decision to the fix after launch." },
   ],
 };
 
