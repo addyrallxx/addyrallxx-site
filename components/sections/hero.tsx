@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Image from "next/image";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { HERO } from "@/lib/content";
@@ -69,7 +70,7 @@ export function Hero() {
   </span>;
 
   return <section className="hero" ref={hero}>
-    <div className="hero-portal" aria-hidden="true"><img src="/studio/composite.webp" alt="" fetchPriority="high" /></div>
+    <div className="hero-portal" aria-hidden="true"><Image src="/studio/composite.webp" width={1585} height={992} quality={90} sizes="100vw" alt="" priority /></div>
     <dl className="hero-facts">{HERO.facts.map(fact => <div key={fact.label}><dt className="t-label">{fact.label}</dt><dd className="t-small"><SplitFlap text={fact.value} intro /></dd></div>)}</dl>
     <p className="hero-lead t-body">{HERO.lead}</p>
     <h1 className="t-display-xl" aria-label={HERO.lines.join(" ")}>{HERO.lines.map((line, i) => renderLine(line, i, "desktop"))}{phoneLines.map((line, i) => renderLine(line, i, "phone"))}</h1>

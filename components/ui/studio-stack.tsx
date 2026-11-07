@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Image from "next/image";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { WORK } from "@/lib/content";
@@ -18,10 +19,11 @@ export function StudioStack() {
       let bounds = el.getBoundingClientRect();
       const measure = () => { bounds = el.getBoundingClientRect(); };
       const resize = new ResizeObserver(measure); resize.observe(el);
-      const desktop = matchMedia("(min-width: 900px)").matches;
+      const desktop = !!el.closest(".work-stack") && matchMedia("(min-width: 900px)").matches;
+      const index = WORK.findIndex(item => item.slug === "studio");
       const distance = () => desktop ? innerHeight : innerHeight + el.offsetHeight;
       layers.forEach((layer, i) => gsap.fromTo(layer, { y: () => -distance() * speeds[i] / 2 }, { y: () => distance() * speeds[i] / 2, ease: "none", scrollTrigger: {
-        trigger: desktop ? el.closest(".work-stack") : el, start: desktop ? () => `top+=${innerHeight * 5} top` : "top bottom", end: desktop ? () => `+=${innerHeight}` : "bottom top", scrub: .6, invalidateOnRefresh: true,
+        trigger: desktop ? el.closest(".work-stack") : el, start: desktop ? () => `top+=${innerHeight * index} top` : "top bottom", end: desktop ? () => `+=${innerHeight}` : "bottom top", scrub: .6, invalidateOnRefresh: true,
         onToggle: self => { layer.style.willChange = self.isActive ? "transform" : ""; },
       } }));
       const pointer = (event: PointerEvent) => {
@@ -38,8 +40,8 @@ export function StudioStack() {
   }, []);
   // Reference B clips 6 and 14: real alpha cutouts in front of oversized display type.
   return <div className="studio-stack" ref={root} aria-hidden="true">
-    <div className="studio-plane studio-back"><div><img src="/studio/background.webp" alt="" loading="lazy" /></div></div>
+    <div className="studio-plane studio-back"><div><Image src="/studio/background.webp" width={1585} height={992} quality={90} sizes="58vw" alt="" /></div></div>
     <span className="studio-title t-display-l">{WORK.find(item => item.slug === "studio")!.name}</span>
-    {(["mid", "front"] as const).map(layer => <div className={`studio-plane studio-${layer}`} key={layer}><div><img src={`/studio/${layer}.webp`} alt="" loading="lazy" /></div></div>)}
+    {(["mid", "front"] as const).map(layer => <div className={`studio-plane studio-${layer}`} key={layer}><div><Image src={`/studio/${layer}.webp`} width={1585} height={992} quality={90} sizes="58vw" alt="" /></div></div>)}
   </div>;
 }

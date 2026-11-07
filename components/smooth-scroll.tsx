@@ -1,7 +1,6 @@
 "use client";
 
-// Ported from totaltex-web/components/smooth-scroll.tsx (unchanged: already
-// generic).
+// Shares the site's GSAP clock and follows live motion preferences.
 
 import { useEffect } from "react";
 
@@ -17,17 +16,13 @@ type LenisInstance = InstanceType<LenisModule["default"]>;
  * GSAP/Lenis/ScrollTrigger are loaded via `import()` inside this effect
  * instead of top-level `import`, so they land in a chunk fetched after
  * mount rather than in the shared bundle every route pays for before first
- * paint. Purely a load-timing change: the motion itself, its options, and
- * its cleanup are unchanged.
+ * paint.
  */
 export default function SmoothScroll() {
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
     let cancelled = false;
     let gsap: GsapModule["default"] | undefined;
-    let lenis: LenisInstance | undefined;
-    let raf: ((time: number) => void) | undefined;
+    let media: ReturnType<GsapModule["default"]["matchMedia"]> | undefined;
     const visibility = () => { if (document.hidden) gsap?.ticker.sleep(); else gsap?.ticker.wake(); };
     document.addEventListener("visibilitychange", visibility);
 
@@ -42,30 +37,32 @@ export default function SmoothScroll() {
       gsap = gsapMod;
       gsap.registerPlugin(ScrollTrigger);
 
-      lenis = new Lenis({
-        lerp: 0.1,
-        wheelMultiplier: 0.9,
-        touchMultiplier: 1.4,
+      media = gsap.matchMedia();
+      media.add("(prefers-reduced-motion: no-preference)", () => {
+        const lenis: LenisInstance = new Lenis({
+          lerp: 0.1,
+          wheelMultiplier: 0.9,
+          touchMultiplier: 1.4,
+        });
+        lenis.on("scroll", ScrollTrigger.update);
+        const raf = (time: number) => { if (!document.hidden) lenis.raf(time * 1000); };
+        gsapMod.ticker.add(raf);
+        gsapMod.ticker.lagSmoothing(0);
+        gsapMod.ticker.fps(60);
+        visibility();
+        window.__lenis = lenis;
+        return () => {
+          gsapMod.ticker.remove(raf);
+          delete window.__lenis;
+          lenis.destroy();
+        };
       });
-
-      lenis.on("scroll", ScrollTrigger.update);
-
-      raf = (time: number) => { if (!document.hidden) lenis!.raf(time * 1000); };
-      gsap.ticker.add(raf);
-      gsap.ticker.lagSmoothing(0);
-      gsap.ticker.fps(60);
-      visibility();
-
-      // Anchor scrolling + menu scroll-lock reach the instance through here
-      window.__lenis = lenis;
     })();
 
     return () => {
       cancelled = true;
       document.removeEventListener("visibilitychange", visibility);
-      if (gsap && raf) gsap.ticker.remove(raf);
-      delete window.__lenis;
-      lenis?.destroy();
+      media?.revert();
     };
   }, []);
 

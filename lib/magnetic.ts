@@ -6,8 +6,8 @@ const PRESS_SCALE = 0.97;
 /**
  * Magnetic pull for primary CTAs only, nowhere else. Desktop / `pointer:
  * fine` only, off entirely under `prefers-reduced-motion`. Tracks
- * `pointermove` at the window level (cheap: a `getBoundingClientRect` and a
- * range check per call) so the pull can engage a few px before the cursor
+ * `pointermove` at the window level for visible, interactive elements only,
+ * so the pull can engage a few px before the cursor
  * is literally over the element. Springs back to (0, 0) the moment the
  * padded box is left.
  *
@@ -34,14 +34,13 @@ export function attachMagnetic(
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return () => {};
 
   el.style.transition = TRANSITION;
-  el.style.willChange = "transform";
-
   let previous = "";
   const motion = matchMedia("(prefers-reduced-motion: reduce)");
   let inside = false;
   let pressed = false;
   let lastX = 0;
   let lastY = 0;
+  let visible = false;
 
   const apply = (x: number, y: number, scale: number) => {
     const value = `translate(${x}px, ${y}px) scale(${scale})`;
@@ -49,9 +48,20 @@ export function attachMagnetic(
   };
 
   const currentScale = () => (pressed ? PRESS_SCALE : 1);
+  const reset = () => {
+    inside = false; pressed = false; lastX = 0; lastY = 0;
+    apply(0, 0, 1); el.style.willChange = "";
+  };
+  const observer = new IntersectionObserver(entries => {
+    visible = entries.some(entry => entry.isIntersecting);
+    if (!visible) reset();
+  });
+  observer.observe(el);
 
   const onMove = (e: PointerEvent) => {
     if (motion.matches || document.hidden) return;
+    // Hidden Work beats must not force layout on every global pointer sample.
+    if (!visible || el.closest("[inert]")) { if (inside) reset(); return; }
     const r = el.getBoundingClientRect();
     const within =
       e.clientX >= r.left - pad &&
@@ -61,6 +71,7 @@ export function attachMagnetic(
 
     if (within) {
       inside = true;
+      el.style.willChange = "transform";
       const cx = r.left + r.width / 2;
       const cy = r.top + r.height / 2;
       lastX = Math.max(-8, Math.min(8, (e.clientX - cx) * pull));
@@ -69,11 +80,7 @@ export function attachMagnetic(
       if (length > 8) { lastX *= 8 / length; lastY *= 8 / length; }
       apply(lastX, lastY, currentScale());
     } else if (inside) {
-      inside = false;
-      pressed = false;
-      lastX = 0;
-      lastY = 0;
-      apply(0, 0, 1);
+      reset();
     }
   };
 
@@ -88,7 +95,7 @@ export function attachMagnetic(
     pressed = false;
     apply(inside ? lastX : 0, inside ? lastY : 0, 1);
   };
-  const finish = () => { if (motion.matches) { pressed = false; inside = false; apply(0, 0, 1); } };
+  const finish = () => { if (motion.matches) reset(); };
   motion.addEventListener("change", finish);
 
   window.addEventListener("pointermove", onMove, { passive: true });
@@ -97,6 +104,8 @@ export function attachMagnetic(
   el.addEventListener("pointercancel", release);
   el.addEventListener("pointerleave", release);
   return () => {
+    observer.disconnect();
+    el.style.willChange = "";
     motion.removeEventListener("change", finish);
     window.removeEventListener("pointermove", onMove);
     el.removeEventListener("pointerdown", onPointerDown);

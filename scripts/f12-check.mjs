@@ -6,7 +6,7 @@ const require = createRequire('C:/Users/adnan/projects/totaltex-web/package.json
 const puppeteer = require('puppeteer-core');
 const url = process.argv[2] ?? 'http://localhost:3100';
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
-const browser = await puppeteer.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: false, args: ['--window-position=0,0', '--window-size=1500,1000', '--disable-features=CalculateNativeWinOcclusion', '--force-device-scale-factor=1', '--hide-scrollbars'] });
+const browser = await puppeteer.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: false, args: ['--window-position=-2000,0', '--window-size=1500,1000', '--disable-features=CalculateNativeWinOcclusion', '--force-device-scale-factor=1', '--hide-scrollbars'] });
 const errors = [];
 const missingImages = new Set();
 let checks = 0;
@@ -50,6 +50,10 @@ try {
     check('marquee reverses with upward scroll ' + width, await p.$eval('.kinetic-marquee', el => el.dataset.direction === '1'));
     if (width === 1000) await p.screenshot({ path: join(tmpdir(), 'claude/briefs/f12-marquee.png') });
     await scroll(p, '.svc-section', 100);
+    check('services uses cobalt and uncropped media ' + width, await p.evaluate(() => {
+      const heading = document.querySelector('.svc-heading > span:last-child');
+      return getComputedStyle(heading).color === 'rgb(35, 64, 255)' && [...document.querySelectorAll('.svc-art img')].every(img => getComputedStyle(img).objectFit === 'contain');
+    }));
     for (let i = 0; i < 4; i++) {
       await scroll(p, '#svc-panel-' + (i+1), 100); await sleep(450);
       check('service media loads ' + width + '/' + i, await p.$eval('#svc-panel-' + (i+1), panel => !!panel.querySelector('.svc-outline') || panel.querySelector('img').naturalWidth > 0));

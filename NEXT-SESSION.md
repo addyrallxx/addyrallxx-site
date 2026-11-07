@@ -1,5 +1,17 @@
 # Portfolio rebuild handoff
 
+## 2026-11-07 wave 2 (uncommitted)
+
+This is the current working-tree handoff. Older sections below describe historical builds. HEAD remains fb90d30; this integration run did not stage, commit or push.
+
+- Integrated the existing day-only wave 2 build: clip 1 hero portal, clip 7 pinned Work swaps, clip 14 city track, layered Studio depth, service masks and E92 sequence. Seven projects now include Sadman's live portfolio. Its capture contains only the procedural skyline, with no street portraits.
+- Fresh complete Ops dashboard and TotalTex homepage captures are 2880x2200 at DPR 2, q90. Ops used only the existing fictional scratch DB on port 54329. Handled and FitTrack primary screens retain native 1290x2796 DPR 3 detail, contain fitting and zero inset padding. Phone frames clear the fixed chrome; older 780px FitTrack gallery sources cap at 260 CSS px for DPR 3 density. Studio assets use native 1585x992 sources instead of upscaling.
+- Services now has cobalt type, CTA, progress and media fields. Work paints only the current and preceding beats, selected from the scrubbed playhead. Magnetic links skip offscreen/inert layout reads. Lenis follows live reduced-motion changes; ambient mesh motion uses transforms.
+- Final gates: TypeScript, targeted ESLint, copy-gate and build pass. Real Chrome: 241 Level 4, 52 F12 and 46 Wave 2 checks pass, with zero console/runtime/HTTP errors. All ten unchanged frame budgets pass with uninterrupted visibility and zero long tasks. Desktop scroll p95 4.4ms normal / 20.9ms at 4x CPU; phone scroll 4.4ms / 12.6ms. Wipe 4.5ms. Photographed chrome contrast minimum 8.05:1.
+- Evidence: C:/Users/adnan/AppData/Local/Temp/claude/briefs/w2/integrate-report.md. Final logs and 1000x900 DPR 1 hero/work/services/e92 captures are in that folder's final/ directory. Exact Studio rates .05/.12/.22, six-pixel pointer axes, fast-scroll continuity, exposed-only magnetic measurements, reduced-motion recovery and all phone images at DPR 3 were checked.
+- No task web servers, scratch Postgres or automation Chrome sessions remain. The old chain3 deployment watcher was stopped so writing the report cannot trigger a commit/push. Do not restart it without a new deployment instruction.
+- Retained: zero-byte public/icons/remotion.svg and playwright.svg, unreferenced showcase-safe videos and original PNGs. No files deleted. No new dependencies. Gemini adversarial review is the final queue handoff, targeting final/gemini-review.md; its findings are pending. Physical phone, Safari, hosted portfolio acceptance and Claude's editorial copy pass remain open.
+
 ## Current state (2026-10-11): Level 4 "Two skies" live in production
 
 - Live at https://addyrallxx-site.vercel.app. Implementation through `8577f6d`; preceding docs checkpoint `06abb7b` is on origin `level4` and `main`. Older handoffs below are historical.

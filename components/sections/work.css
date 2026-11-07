@@ -4,13 +4,19 @@
   .work[data-pinned] .work-card { position: absolute; inset: 0; top: 0; width: 100%; margin: 0; height: 100svh; min-height: 0; border-radius: 0; background: var(--bg); }
   .work[data-pinned] .work-card.work-stage { background: var(--panel); }
   .work[data-pinned] .work-card-content { height: 100%; }
+  .work[data-pinned] .work-card[data-visible="false"] { visibility: hidden; }
   .work[data-pinned] .work-stage .work-card-content { padding: 100px 4vw 60px; gap: 24px; }
   .work[data-pinned] .work-stage .work-media { width: min(850px, 75vw); }
   .work[data-pinned] .work-stage .work-copy { width: min(850px, 75vw); }
   .work[data-pinned] .work-stage .work-line, .work[data-pinned] .work-stage .work-tags, .work[data-pinned] .work-stage h3 { display: none; }
   .work[data-pinned] .work-stage-name { font-size: 14vw; top: 0; }
   .work[data-pinned] .work-media-frame { clip-path: none; }
-  .work .work-media-inner { height: 124%; top: -12%; }
+  .work .work-media-inner { height: 100%; top: 0; }
+  .work .work-media-inner img { width: 100%; height: 100%; object-fit: contain; }
+  .work h3 .work-word-mask:not(:last-child) { margin-right: .18em; }
+  @media (min-width: 720px) {
+    .work-phone .work-media { height: min(80svh, calc(100svh - 180px)); align-self: center; }
+  }
   .work .work-stage {
     position: relative;
     top: auto;
@@ -56,8 +62,8 @@
   .work-type-panel .work-outline { color: transparent; -webkit-text-stroke-color: var(--bg); text-shadow: none; padding: 0; }
   .work-panel-tags { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; font-family: var(--font-mono), monospace; }
   .work-panel-tags li { padding: 6px 10px; border: 1px solid currentColor; border-radius: var(--r-pill); }
-  .work-phone .work-media-frame { aspect-ratio: 430 / 932; width: auto; max-width: 100%; margin-inline: auto; background: var(--panel); }
-  .work .work-phone .work-media-inner { height: 78%; top: 11%; }
+  .work-phone .work-media-frame { aspect-ratio: 430 / 932; height: 100%; width: auto; max-width: 100%; margin-inline: auto; background: transparent; clip-path: none; }
+  .work .work-phone .work-media-inner { height: 100%; top: 0; }
   .work-phone .work-media-inner img { object-fit: contain; }
   @media (max-width: 719px) {
     .work-phone .work-media { height: 70svh; min-height: 400px; }

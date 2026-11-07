@@ -8,7 +8,7 @@ import { SERVICES, WORK } from "@/lib/content";
 import { SplitFlap } from "@/components/ui/split-flap";
 import "./services.css";
 
-const slugs = ["totaltex-web", "totaltex-ops", "puzzled", "puzzled"];
+const slugs = ["totaltex-web", "totaltex-ops", "studio", "puzzled"];
 
 // Reference B clip 16: rounded media windows with a counter-moving interior.
 export function Services() {
@@ -41,7 +41,7 @@ export function Services() {
           defaults: { ease: "none" },
         })
           .fromTo(frame, { clipPath: "inset(14% 10% round 28px)" }, { clipPath: "inset(0% 0% round 14px)" })
-          .fromTo(art, { scale: 1.15 }, { scale: 1 }, 0);
+          .fromTo(art, { scale: .94 }, { scale: 1 }, 0);
         gsap.fromTo(art, { yPercent: 6 }, {
           yPercent: -6,
           ease: "none",
@@ -84,7 +84,7 @@ export function Services() {
       return <div className="service-entry svc-panel" id={`svc-panel-${index + 1}`} key={item.name}>
         <div className="svc-phone-heading"><span className="t-label svc-number">{number}</span><div><h3 className="t-title">{item.name}</h3><p className="t-body">{item.line}</p></div></div>
         <div className="svc-frame" data-cursor="View" role="group" aria-label={item.name}>
-          <div className="svc-art">{src ? <Image src={src} alt="" fill sizes="(min-width: 900px) 48vw, 100vw" /> : <span className="svc-outline" aria-hidden="true">{number}</span>}</div>
+          <div className="svc-art">{src ? <Image src={src} alt="" width={project?.images[0]?.width ?? 1920} height={project?.images[0]?.height ?? 1080} quality={90} sizes="(min-width: 900px) 48vw, 100vw" /> : <span className="svc-outline" aria-hidden="true">{number}</span>}</div>
         </div>
       </div>;
     })}</div>

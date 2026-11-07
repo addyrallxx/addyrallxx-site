@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Image from "next/image";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { CHROME } from "@/lib/content";
@@ -23,7 +24,7 @@ export function Journey() {
   }, []);
   return <section className="journey" ref={root} aria-label={CHROME.clocks.slice().reverse().map(clock => clock.city).join(" / ")}>
     <div className="journey-track">{CHROME.clocks.slice().reverse().map((clock, i) => <div className="journey-place" key={clock.city}>
-      <img src={i === 0 ? "/totaltex/homepage-hero.webp" : "/e92/v2/profile.webp"} alt="" loading="lazy" />
+      <Image src={i === 0 ? "/totaltex/homepage-hero.webp" : "/e92/v2/profile.webp"} width={i === 0 ? 2880 : 2350} height={i === 0 ? 2200 : 1322} quality={90} sizes="100vw" alt="" />
       <h2 className="journey-title t-display-xl">{clock.city}</h2>
     </div>)}</div>
   </section>;

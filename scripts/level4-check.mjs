@@ -6,13 +6,14 @@ import sharp from "sharp";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { readFileSync } from "node:fs";
+import { WORK } from "../lib/content.ts";
 
 const require = createRequire("C:/Users/adnan/projects/totaltex-web/package.json");
 const puppeteer = require("puppeteer-core");
 const browser = await puppeteer.launch({
   executablePath: "C:/Program Files/Google/Chrome/Application/chrome.exe",
   headless: false,
-  args: ["--window-position=0,0", "--window-size=1500,1000", "--disable-features=CalculateNativeWinOcclusion", "--force-device-scale-factor=1", "--hide-scrollbars"],
+  args: ["--window-position=-2000,0", "--window-size=1500,1000", "--disable-features=CalculateNativeWinOcclusion", "--force-device-scale-factor=1", "--hide-scrollbars"],
 });
 const url = process.argv[2] ?? "http://localhost:3100";
 const errors = [];
@@ -20,8 +21,16 @@ const budgets = [];
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 let checks = 0;
 function check(name, value) { assert.ok(value, name); checks++; console.log("ok", name); }
+async function foreground(p) {
+  const cdp = await p.createCDPSession();
+  const { windowId, bounds } = await cdp.send('Browser.getWindowForTarget');
+  if (bounds.windowState === 'minimized') await cdp.send('Browser.setWindowBounds', { windowId, bounds: { windowState:'normal' } });
+  await p.bringToFront();
+  await cdp.detach();
+}
 async function page(options = {}) {
   const p = await browser.newPage();
+  await foreground(p);
   await p.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1, ...options });
   p.on("pageerror", (error) => errors.push(String(error)));
   p.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
@@ -77,6 +86,7 @@ async function heroBounds(p) {
   check("lead above headline and authored line count", b.leadBottom < b.top && b.lines === (b.width < 720 ? 3 : 2) && b.size >= 56);
 }
 async function frameBudget(p, rate, spin = false) {
+  await foreground(p);
   const cdp = await p.createCDPSession();
   await cdp.send("Emulation.setCPUThrottlingRate", { rate });
   await p.evaluate(spin => window.__lenis.scrollTo(spin ? document.querySelector("[data-sphere]").getBoundingClientRect().top + scrollY - 160 : 0, { immediate: true }), spin);
@@ -85,6 +95,9 @@ async function frameBudget(p, rate, spin = false) {
   check("visible before frame probe", await p.evaluate(() => !document.hidden));
   const result = await p.evaluate(spin => new Promise(resolve => {
     const frames = [], tasks = [];
+    let visible = !document.hidden;
+    const visibility = () => { visible &&= !document.hidden; };
+    document.addEventListener('visibilitychange', visibility);
     const observer = new PerformanceObserver(list => tasks.push(...list.getEntries().map(e => e.duration)));
     observer.observe({ type: "longtask" });
     const width = innerWidth, height = innerHeight;
@@ -104,14 +117,15 @@ async function frameBudget(p, rate, spin = false) {
       else {
         tasks.push(...observer.takeRecords().map(e => e.duration));
         observer.disconnect();
+        document.removeEventListener('visibilitychange', visibility);
         frames.sort((a, b) => a - b);
-        resolve({ p95: frames[Math.ceil(frames.length * .95) - 1], frames: frames.length, maxTask: Math.max(0, ...tasks), renders: window.__f1.renders - renders, peakScroll, max, width, height });
+        resolve({ p95: frames[Math.ceil(frames.length * .95) - 1], frames: frames.length, maxTask: Math.max(0, ...tasks), renders: window.__f1.renders - renders, peakScroll, max, width, height, visible:visible && !document.hidden });
       }
     };
     requestAnimationFrame(probe);
   }), spin);
   console.log(`FRAME ${result.width}x${result.height} CPU ${rate}x ${spin ? "sphere" : "scroll"} p95=${result.p95.toFixed(3)}ms frames=${result.frames} maxLongTask=${result.maxTask.toFixed(1)}ms`);
-  check(spin ? "frame probe exercises canvas while sphere is visible" : "frame probe exercises canvas and Lenis", result.renders > 60 && (spin || result.peakScroll > result.max * .8));
+  check(spin ? "frame probe exercises canvas while sphere is visible" : "frame probe exercises canvas and Lenis", result.visible && result.renders > 60 && (spin || result.peakScroll > result.max * .8));
   if (spin) check('globe spins throughout sphere frame sample', sphereBefore !== await p.$eval('[data-sphere-item]', el => el.style.transform));
   // Marquee visibility and hidden-document gating are exercised in f12-check.mjs.
   budgets.push({ ...result, rate, spin });
@@ -149,7 +163,7 @@ async function fanMatrices(p, hover) {
 async function f3Desktop(p) {
   check('Work has one card per project and no index numbers', await p.evaluate(count => document.querySelectorAll('#work .work-card').length === count && !document.querySelector('#work .index-number'), [...readFileSync('lib/content.ts', 'utf8').split('export const WORK: Project[] =')[1].split('export const CAR')[0].matchAll(/slug: /g)].length));
   await scrollTo(p, '#work', 100);
-  check('desktop Work is a pinned six-project stage', await p.evaluate(() => document.querySelector('#work').dataset.pinned === 'true' && document.querySelectorAll('#work .work-card').length === 6 && document.querySelectorAll('#work .work-card:not([inert])').length === 1));
+  check('desktop Work pins all projects with one accessible beat', await p.evaluate(count => document.querySelector('#work').dataset.pinned === 'true' && document.querySelectorAll('#work .work-card').length === count && document.querySelectorAll('#work .work-card:not([inert])').length === 1, WORK.length));
   const entry = await p.$eval('.work-stack', el => el.getBoundingClientRect().top + scrollY);
   const clips = [];
   for (let i = 0; i < 8; i++) {
@@ -158,7 +172,7 @@ async function f3Desktop(p) {
     clips.push(await p.$eval('.work-card:nth-child(2)', el => getComputedStyle(el).clipPath));
   }
   check('pinned stage reveal has intermediate mask states', new Set(clips).size >= 6);
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < WORK.length; i++) {
     await p.evaluate(({entry,i}) => window.__lenis.scrollTo(entry + innerHeight * (i + .8), {immediate:true}), {entry,i}); await sleep(1000);
     check('Work beat is visible and keyboard accessible ' + i, await p.$$eval('#work .work-card', (cards,i) => cards[i].dataset.active === 'true' && !cards[i].inert && cards.filter(card => !card.inert).length === 1, i));
   }
@@ -176,12 +190,16 @@ async function f3Desktop(p) {
 
 }
 async function pinnedBudget(p, rate) {
+  await foreground(p);
   const cdp = await p.createCDPSession();
   await cdp.send('Emulation.setCPUThrottlingRate', {rate});
   const entry = await p.$eval('#e92', el => el.getBoundingClientRect().top + scrollY);
   await p.evaluate(y => window.__lenis.scrollTo(y, {immediate:true}), entry); await sleep(1000);
   const result = await p.evaluate(entry => new Promise(resolve => {
     const frames=[], tasks=[];
+    let visible = !document.hidden;
+    const visibility = () => { visible &&= !document.hidden; };
+    document.addEventListener('visibilitychange', visibility);
     const observer=new PerformanceObserver(list=>tasks.push(...list.getEntries().map(e=>e.duration)));
     observer.observe({type:'longtask'});
     let last;
@@ -192,7 +210,8 @@ async function pinnedBudget(p, rate) {
       window.__lenis.scrollTo(entry+height*3.2*t,{immediate:true});
       if(t<1)requestAnimationFrame(probe); else {
         tasks.push(...observer.takeRecords().map(e=>e.duration)); observer.disconnect(); frames.sort((a,b)=>a-b);
-        resolve({p95:frames[Math.ceil(frames.length*.95)-1],maxTask:Math.max(0,...tasks),frames:frames.length});
+        document.removeEventListener('visibilitychange', visibility);
+        resolve({p95:frames[Math.ceil(frames.length*.95)-1],maxTask:Math.max(0,...tasks),frames:frames.length,visible:visible && !document.hidden});
       }
     }; requestAnimationFrame(probe);
   }),entry);
@@ -677,10 +696,12 @@ try {
   await p.evaluate(y => window.__lenis.scrollTo(y, {immediate:true}), headingTop); await sleep(150);
   check('display heading parallaxes within its pass', headingBefore !== await p.$eval('#taste .t-display-l', el => getComputedStyle(el).transform));
   check('section hairline reaches full width', await p.$eval('#taste-heading', el => new DOMMatrix(getComputedStyle(el.parentElement.querySelector('.section-hairline')).transform).a === 1));
-  await scrollTo(p, '.work-card:first-child', 100);
-  const pill = await p.$eval('.work-pill', el => { const r = el.getBoundingClientRect(); return {x:r.right-1,y:r.bottom-1}; });
+  await scrollTo(p, '#work', -200);
+  const activePill = '.work-card:not([inert]) .work-pill';
+  check('magnetic probe targets a visible interactive Work link', await p.$eval(activePill, el => { const r = el.getBoundingClientRect(); return getComputedStyle(el).visibility === 'visible' && r.top >= 0 && r.bottom <= innerHeight; }));
+  const pill = await p.$eval(activePill, el => { const r = el.getBoundingClientRect(); return {x:r.right-1,y:r.bottom-1}; });
   await p.mouse.move(pill.x,pill.y); await sleep(400);
-  check('magnetic pull is bounded to 8px', await p.$eval('.work-pill', el => {const m=new DOMMatrix(getComputedStyle(el).transform); return Math.hypot(m.e,m.f)<=8.01 && Math.hypot(m.e,m.f)>0;}));
+  check('magnetic pull is bounded to 8px', await p.$eval(activePill, el => {const m=new DOMMatrix(getComputedStyle(el).transform); return Math.hypot(m.e,m.f)<=8.01 && Math.hypot(m.e,m.f)>0;}));
   await e92Checks(p);
   await sphereChecks(p);
   await contactChecks(p);
@@ -770,7 +791,7 @@ try {
   await clockChecks();
   await scrimChecks();
   check("no console, runtime or HTTP errors", errors.length === 0);
-  for (const b of budgets) check(`frame budget ${b.width}x${b.height} CPU ${b.rate}x ${b.spin ? "sphere" : "scroll"}`, b.p95 <= (b.rate === 4 ? 33 : 16.7) && b.maxTask <= 50);
+  for (const b of budgets) check(`frame budget ${b.width}x${b.height} CPU ${b.rate}x ${b.spin ? "sphere" : "scroll"}`, b.visible && b.p95 <= (b.rate === 4 ? 33 : 16.7) && b.maxTask <= 50);
   console.log(`${checks} Level 4 checks passed.`);
 } finally {
   await browser.close();

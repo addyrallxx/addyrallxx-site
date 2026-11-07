@@ -133,7 +133,7 @@ export type Project = {
   stack: string[];
   status: string;
   link?: Link;
-  images: { src: string; alt: string }[];
+  images: { src: string; alt: string; width: number; height: number }[];
   video?: { mp4: string; webm?: string; poster: string };
 };
 
@@ -167,7 +167,7 @@ export const WORK: Project[] = [
     ],
     stack: ["Python", "curl_cffi", "Scheduled jobs"],
     status: "Private, client data",
-    images: [{ src: "/puzzled/poster.webp", alt: "A Puzzled listing generated from a dealer inventory record" }],
+    images: [{ src: "/puzzled/poster.webp", alt: "A Puzzled listing generated from a dealer inventory record", width: 1024, height: 576 }],
     video: { mp4: "/puzzled/showcase.mp4", webm: "/puzzled/showcase.webm", poster: "/puzzled/poster.webp" },
   },
   {
@@ -184,7 +184,7 @@ export const WORK: Project[] = [
     ],
     stack: ["Next.js", "TypeScript", "PostgreSQL", "Drizzle"],
     status: "In use at the factory",
-    images: [{ src: "/totaltex-ops/dashboard.webp", alt: "TotalTex Ops dashboard with fictional demo orders" }],
+    images: [{ src: "/totaltex-ops/dashboard.webp", alt: "TotalTex Ops dashboard with fictional demo orders", width: 2880, height: 2200 }],
   },
   {
     slug: "totaltex-web",
@@ -203,8 +203,8 @@ export const WORK: Project[] = [
     status: "Live",
     link: { label: "totaltex-bd.com", href: "https://totaltex-bd.com" },
     images: [
-      { src: "/totaltex/homepage-hero.webp", alt: "The TotalTex homepage hero" },
-      { src: "/totaltex/homepage-products.webp", alt: "The TotalTex homepage product lines" },
+      { src: "/totaltex/homepage-hero.webp", alt: "The TotalTex homepage hero", width: 2880, height: 2200 },
+      { src: "/totaltex/homepage-products.webp", alt: "The TotalTex homepage product lines", width: 2880, height: 1800 },
     ],
   },
   {
@@ -223,10 +223,10 @@ export const WORK: Project[] = [
     status: "Live",
     link: { label: "Open FitTrack", href: "https://addyrallxx.github.io/fittrack/fittrack.html" },
     images: [
-      { src: "/fittrack/fittrack-home-v2.webp", alt: "FitTrack home screen" },
-      { src: "/fittrack/fittrack-home-dashboard.png", alt: "FitTrack home dashboard" },
-      { src: "/fittrack/fittrack-workout-session.png", alt: "A FitTrack workout session" },
-      { src: "/fittrack/fittrack-progress-weight-trend.png", alt: "FitTrack weight trend chart" },
+      { src: "/fittrack/fittrack-home-v2.webp", alt: "FitTrack home screen", width: 1290, height: 2796 },
+      { src: "/fittrack/fittrack-home-dashboard.png", alt: "FitTrack home dashboard", width: 780, height: 1688 },
+      { src: "/fittrack/fittrack-workout-session.png", alt: "A FitTrack workout session", width: 780, height: 1688 },
+      { src: "/fittrack/fittrack-progress-weight-trend.png", alt: "FitTrack weight trend chart", width: 780, height: 1688 },
     ],
   },
   {
@@ -245,7 +245,20 @@ export const WORK: Project[] = [
     stack: ["Expo", "React Native", "Cloudflare Workers", "Supabase"],
     status: "Student prototype",
     link: { label: "handled-ai.pages.dev", href: "https://handled-ai.pages.dev" },
-    images: [{ src: "/handled/handled-home.webp", alt: "Handled AI home with fictional demo jobs" }, { src: "/handled/handled-feature.webp", alt: "Handled AI booking confirmation with fictional demo data" }],
+    images: [{ src: "/handled/handled-home.webp", alt: "Handled AI home with fictional demo jobs", width: 1290, height: 2796 }, { src: "/handled/handled-feature.webp", alt: "Handled AI booking confirmation with fictional demo data", width: 1290, height: 2796 }],
+  },
+  {
+    slug: "sadman",
+    name: "Sadman Shakib",
+    kind: "Photography and film portfolio",
+    year: "2026",
+    line: "A portfolio for my brother, a photographer and filmmaker in Kuala Lumpur.",
+    lead: "My brother's photography and film portfolio, with a procedural Kuala Lumpur skyline and a motion-led gallery.",
+    does: ["A Kuala Lumpur skyline opens the homepage.", "Photography series and individual frames have their own views.", "Keyboard navigation reaches the gallery and frame viewer."],
+    stack: ["Next.js", "TypeScript", "Three.js", "GSAP"],
+    status: "Live",
+    link: { label: "sadman-shakib.vercel.app", href: "https://sadman-shakib.vercel.app" },
+    images: [{ src: "/sadman/homepage.webp", alt: "Sadman Shakib portfolio with its illustrated Kuala Lumpur skyline", width: 2850, height: 2200 }],
   },
   {
     slug: "studio",
@@ -262,7 +275,7 @@ export const WORK: Project[] = [
     ],
     stack: ["Claude Code", "Codex CLI", "Gemini", "PowerShell", "Python"],
     status: "Private tooling",
-    images: [{ src: "/studio/composite.webp", alt: "Layered illustration of the Studio build workflow" }],
+    images: [{ src: "/studio/composite.webp", alt: "Layered illustration of the Studio build workflow", width: 1585, height: 992 }],
   },
 ];
 

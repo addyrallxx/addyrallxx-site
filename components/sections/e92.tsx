@@ -8,10 +8,10 @@ import "./e92.css";
 
 // Reference B clips 3, 11 and 17. Motion credits: Reference A (@webloved) vertical slice smear, circular iris clip-path, and parallax panel push.
 const SLIDES = [
-  { key: "profile", className: "car-slide car-slide-profile", base: "/e92/v2/profile" },
-  { key: "front", className: "car-slide car-slide-front", base: "/e92/v2/front" },
-  { key: "bay-wide", className: "car-slide car-slide-bay", base: "/e92/v2/bay-wide" },
-  { key: "night", className: "car-slide car-slide-night", base: "/e92/v2/night" },
+  { key: "profile", className: "car-slide car-slide-profile", base: "/e92/v2/profile", width: 2350, height: 1322 },
+  { key: "front", className: "car-slide car-slide-front", base: "/e92/v2/front", width: 1500, height: 1875 },
+  { key: "bay-wide", className: "car-slide car-slide-bay", base: "/e92/v2/bay-wide", width: 2400, height: 1350 },
+  { key: "night", className: "car-slide car-slide-night", base: "/e92/v2/night", width: 1440, height: 651 },
 ] as const;
 
 const SLICES = [0, 1, 2, 3, 4, 5, 6, 7] as const;
@@ -165,11 +165,13 @@ export function E92() {
               <div key={slide.key} className={slide.className} aria-hidden={i > 0 ? "true" : undefined}>
                 <div className="car-slide-inner">
                   <picture className="car-picture">
-                    <source srcSet={`${slide.base}.webp`} type="image/webp" />
+                    <source srcSet={`${slide.base}-small.webp ${Math.round(slide.width / 2)}w, ${slide.base}.webp ${slide.width}w`} sizes="100vw" type="image/webp" />
                     <img
                       src={`${slide.base}.jpg`}
                       srcSet={`${slide.base}.jpg`}
                       sizes="100vw"
+                      width={slide.width}
+                      height={slide.height}
                       alt={i === 0 ? CAR.title : ""}
                       decoding="async"
                       loading={i === 0 ? "eager" : "lazy"}

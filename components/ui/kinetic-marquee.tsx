@@ -24,11 +24,13 @@ export function KineticMarquee({ cities = false }: { cities?: boolean }) {
         el.dataset.direction = String(direction);
       };
       const observer = new IntersectionObserver(entries => {
-        if (entries.some(entry => entry.isIntersecting)) gsap.ticker.add(tick);
+        const visible = entries.some(entry => entry.isIntersecting);
+        track.style.willChange = visible ? "transform" : "";
+        if (visible) gsap.ticker.add(tick);
         else gsap.ticker.remove(tick);
       });
       observer.observe(el);
-      return () => { gsap.ticker.remove(tick); observer.disconnect(); resize.disconnect(); track.style.transform = ""; };
+      return () => { gsap.ticker.remove(tick); observer.disconnect(); resize.disconnect(); track.style.transform = ""; track.style.willChange = ""; };
     });
     return () => motion.revert();
   }, []);
