@@ -1,3 +1,4 @@
+@layer theme, base, components, utilities;
 @layer components {
   .tools { position: relative; isolation: isolate; }
   .sphere-field { position: absolute; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; background: radial-gradient(ellipse at 28% 52%, #B6CDD4, transparent 64%); }

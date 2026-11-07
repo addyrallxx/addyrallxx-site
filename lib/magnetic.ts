@@ -89,8 +89,9 @@ export function attachMagnetic(
   let scheduled = false;
   const flush = () => { scheduled = false; if (latest) move(latest); };
   const onMove = (event: PointerEvent) => {
+    if ((!visible && !inside) || document.hidden || motion.matches || el.closest("[inert]")) return;
     latest = event;
-    if (!scheduled) { scheduled = true; gsap.ticker.add(flush, true); }
+    if (!scheduled) { scheduled = true; gsap.ticker.add(flush, true, true); }
   };
 
   const onPointerDown = () => {

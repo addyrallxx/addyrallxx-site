@@ -36,7 +36,7 @@ export function HomeMotion() {
           y(Math.max(-1, Math.min(1, (pointer.clientY - bounds.top) / bounds.height * 2 - 1)) * -2);
         };
         const leave = () => { x(0); y(0); target.style.willChange = ""; };
-        section.addEventListener("pointerenter", measure); section.addEventListener("pointermove", move); section.addEventListener("pointerleave", leave);
+        section.addEventListener("pointerenter", measure); section.addEventListener("pointermove", move, { passive: true }); section.addEventListener("pointerleave", leave);
         return [() => { section.removeEventListener("pointerenter", measure); section.removeEventListener("pointermove", move); section.removeEventListener("pointerleave", leave); target.style.willChange = ""; }];
       });
       return () => cleanups.forEach(cleanup => cleanup());

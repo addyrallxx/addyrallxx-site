@@ -40,8 +40,10 @@ void main() {
   color=mix(color,pearl,smoothstep(.58,.86,h));
   color*=.86+light*.2; color+=spec*.055;
   float edge=smoothstep(0.,.19,uv.y)*smoothstep(0.,.19,1.-uv.y);
-  float field=exp(-dot((uv-vec2(.28,.52))*vec2(1.35,1.),(uv-vec2(.28,.52))*vec2(1.35,1.))*6.);
-  color=mix(paper,color,edge*field*.72);
+  vec2 center=vec2(.22+.16*uScroll+.025*sin(uTime*.12),.5+.035*cos(uTime*.1));
+  vec2 distance=(uv-center)*vec2(1.35,1.);
+  float field=exp(-dot(distance,distance)*6.);
+  color=mix(paper,color,edge*field*.52);
   color+=(hash(gl_FragCoord.xy)-.5)/255.;
   gl_FragColor=vec4(color,1.);
 }`;
@@ -69,12 +71,14 @@ export function SphereField() {
       const target = new THREE.Vector2(.3, .5);
       const render = () => { gpu.render(scene, camera); el.dataset.paints = String(++paints); };
       let paints = 0;
+      gpu.setPixelRatio(.5);
       const resize = () => {
         bounds = section.getBoundingClientRect();
         measuredScroll = window.scrollY;
-        gpu.setPixelRatio(.5); gpu.setSize(bounds.width, bounds.height);
-        uniforms.uSize.value.set(bounds.width, bounds.height);
-        if (!document.hidden) render();
+        const width = Math.max(1, bounds.width), height = Math.max(1, bounds.height);
+        gpu.setSize(width, height);
+        uniforms.uSize.value.set(width, height);
+        if (visible && !document.hidden) render();
       };
       const tick = (time: number) => {
         const dt = Math.min(time - last, .05); last = time;
@@ -105,7 +109,7 @@ export function SphereField() {
         section.removeEventListener("pointerenter", measure); section.removeEventListener("pointermove", pointer); section.removeEventListener("pointerleave", leave);
         document.removeEventListener("visibilitychange", sync); motion.removeEventListener("change", sync);
         gpu.domElement.removeEventListener("webglcontextlost", lost);
-        geometry?.dispose(); material?.dispose(); gpu.dispose(); gpu.forceContextLoss(); gpu.domElement.remove();
+        geometry?.dispose(); material?.dispose(); gpu.dispose(); if (!gpu.getContext().isContextLost()) gpu.forceContextLoss(); gpu.domElement.remove();
         el.dataset.running = "false"; delete el.dataset.ready;
       };
       const lost = (event: Event) => { event.preventDefault(); stop?.(); };

@@ -59,7 +59,7 @@
   .chrome-top, .chrome-bottom { position: absolute; left: var(--gutter); right: var(--gutter); display: flex; align-items: center; justify-content: space-between; }
   /* Floating navbar reference: Aceternity, adapted to the existing editorial rail. */
   .chrome-top { top: var(--gutter); min-height: 64px; padding: 6px 8px 6px 24px; gap: 24px; background: var(--bg); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 8px 28px -16px rgb(10 15 44 / .25); isolation: isolate; }
-  .chrome-top::before { content: ""; position: fixed; left: 0; right: 0; top: 0; height: 96px; z-index: -1; pointer-events: none; background: linear-gradient(to bottom, color-mix(in srgb, var(--bg) 95%, transparent) 0 56px, transparent 96px); }
+  .chrome-top::before { content: none; }
   .chrome-top a, .chrome-top button { text-shadow: none; font-size: 15px; min-height: 48px; }
   .chrome-name a { font-weight: 700; letter-spacing: -.035em; font-size: 18px; }
   .chrome-nav > a, .chrome-nav > button { padding: 0 18px; border-radius: 12px; position: relative; isolation: isolate; }
@@ -267,7 +267,7 @@
   .index-row.section-armed::before { transform: scaleX(0); transition: transform 900ms var(--ease-out); transition-delay: calc(var(--row-index) * 60ms); }
   .index-row.section-armed.is-visible::before { transform: scaleX(1); }
   @media (min-width: 1440px) {
-    .card-fan { transform: scale(1.4); margin: 42px 52px; }
+    .card-fan { scale: 1.4; margin: 42px 52px; }
     .other-band { padding-inline: 0; gap: calc(var(--u) * .5); }
   }
   @media (max-width: 1100px) { .other-band { gap: var(--u); padding: 64px var(--gutter); } .sphere-column { grid-column: 1 / 7; } .skills-list { grid-column: 7 / 13; } }

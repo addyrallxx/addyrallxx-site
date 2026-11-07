@@ -1,6 +1,6 @@
 @layer theme, base, components, utilities;
 @layer components {
-  .route-backplate { position: fixed; inset: 0; z-index: 49; background: var(--accent); transform: translateY(100%); pointer-events: none; }
+  .route-backplate { position: fixed; inset: 0; z-index: 49; background: var(--accent); pointer-events: none; }
   .route-backplate[hidden] { display: none; }
   .route-panel.route-panel { background: var(--ink); will-change: auto; }
   .route-curve { position: absolute; left: 0; width: 100%; height: 18vh; fill: var(--ink); }

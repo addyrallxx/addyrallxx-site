@@ -69,7 +69,7 @@ export function PageTransition({ children }: { children: ReactNode }) {
       heading?.setAttribute("tabindex", "-1"); heading?.focus({ preventScroll: true });
       window.dispatchEvent(new Event("route:revealed"));
     });
-    return () => { cancelled = true; };
+    return () => { cancelled = true; if (pending.current === target) reset(); };
   }, [pathname, reset]);
   const navigate = async (href: string) => {
     if (pending.current) return;
