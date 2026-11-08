@@ -64,7 +64,8 @@ try {
     };
     try {
       for (let i = 0; i < 100; i++) window.dispatchEvent(new PointerEvent('pointermove', { clientX:500, clientY:450, pointerType:'mouse' }));
-      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      // Two display frames can be only 8ms on this 240Hz panel; GSAP ticks at 60Hz.
+      await new Promise(resolve => setTimeout(resolve, 40));
     }
     finally { Element.prototype.getBoundingClientRect = native; }
     return { reads, inertReads };

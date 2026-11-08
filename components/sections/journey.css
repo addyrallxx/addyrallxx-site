@@ -14,4 +14,5 @@
   .journey[data-track] { height: 100svh; }
   .journey[data-track] .journey-track { flex-direction: row; width: 200vw; }
   .journey[data-track] .journey-place { flex: 0 0 100vw; height: 100svh; }
+  @media (max-width: 719px) { .journey .journey-title { font-size: 14vw; } }
 }

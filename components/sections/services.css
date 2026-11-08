@@ -57,7 +57,7 @@
     .svc-panel:last-child { margin-bottom: 0; }
     .svc-phone-heading { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 12px; margin-bottom: 20px; }
     .svc-phone-heading p { margin-top: 8px; }
-    .svc-frame { height: 64svh; min-height: 280px; }
+    .svc-frame { height: auto; aspect-ratio: 4 / 3; min-height: 0; }
     .svc-outline { font-size: clamp(160px, 48vw, 360px); }
   }
 

@@ -17,7 +17,7 @@ export function Journey() {
       // Reference B clip 14: place names travel at 1.4x the horizontal image track.
       gsap.timeline({ defaults: { ease: "none" }, scrollTrigger: { id: "journey", trigger: el, start: "top top", end: () => `+=${innerWidth * 1.4}`, pin: true, scrub: .7, invalidateOnRefresh: true } })
         .to(el.querySelector(".journey-track"), { x: () => -innerWidth, duration: 1 }, 0)
-        .fromTo(el.querySelectorAll(".journey-title"), { x: () => innerWidth * .2 }, { x: () => -innerWidth * .2, duration: 1 }, 0);
+        .fromTo(el.querySelectorAll(".journey-title"), { x: () => innerWidth * (innerWidth < 720 ? .03 : .2) }, { x: () => -innerWidth * (innerWidth < 720 ? .03 : .2), duration: 1 }, 0);
       return () => { delete el.dataset.track; };
     });
     return () => media.revert();

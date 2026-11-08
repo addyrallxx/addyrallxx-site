@@ -1,5 +1,6 @@
 @layer components {
   .other-gallery > h2 { margin-bottom: clamp(32px, 5vw, 72px); }
+  @media (min-width: 720px) { .other-gallery > h2 { margin-bottom: clamp(64px, 6vw, 88px); } }
   .other-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(16px, 2vw, 32px); perspective: 1200px; }
   .other-card { display: flex; flex-direction: column; min-width: 0; background: var(--surface); color: var(--ink); border-radius: 18px; overflow: hidden; transition: transform .5s var(--ease-out); }
   .other-image { aspect-ratio: 16/10; display: grid; place-items: center; background: var(--bg); }

@@ -23,7 +23,8 @@ try {
     check('identity '+width, await p.$eval('h1', e=>e.getAttribute('aria-label') === 'Written in Calgary. Running in Dhaka.'));
     await p.waitForFunction(()=>document.documentElement.dataset.intro==='done'); await sleep(2000);
     await capture('hero-'+width);
-    for (const [name,selector] of [['work','.work-stack'],['other','.other-gallery'],['journey','.journey'],['alongside','.alongside'],['taste','#taste'],['tools','.tools'],['method','#method'],['info','#info'],['e92','#e92'],['contact','#contact']]) {
+    check('clock digits stay on one baseline '+width,await p.$$eval('.clock-digits',es=>es.every(e=>getComputedStyle(e).display==='inline-flex'&&getComputedStyle(e).whiteSpace==='nowrap')));
+    for (const [name,selector] of [['work','.work-stack'],['other','.other-gallery'],['journey','.journey'],['alongside','#side-heading'],['taste','#taste'],['tools','.tools'],['method','#method'],['info','#info'],['e92','#e92'],['contact','#contact']]) {
       if (!await p.$(selector)) continue;
       await go(await top(selector)-110);
       if(name==='journey') { await go(await top('.journey')+450); await p.waitForFunction(()=>document.querySelector('.thread-ribbon').dataset.ready==='true'); }
@@ -33,6 +34,10 @@ try {
       if(name==='tools') {
         check('all six tool groups preserved '+width, await p.$$eval('.skill-group', e=>e.length===6));
         check('all labels paint shared gradient '+width, await p.$$eval('.skill-ink', es=>es.length===42 && es.every(e=>getComputedStyle(e).backgroundClip==='text' && getComputedStyle(e).backgroundImage.includes('linear-gradient'))));
+        const label=await p.$eval('.skill-ink',e=>{const r=e.getBoundingClientRect();return {left:Math.floor(r.left),top:Math.floor(r.top),width:Math.ceil(r.width),height:Math.ceil(r.height)};});
+        const pixels=await sharp(await p.screenshot()).extract(label).removeAlpha().raw().toBuffer();
+        let pale=0;for(let i=0;i<pixels.length;i+=3)if(pixels[i]>180&&pixels[i+1]>180&&pixels[i+2]>180)pale++;
+        check('gradient glyphs visibly paint '+width,pale>20);
       }
       if(name==='journey') {
         check('ribbon animates with aligned strip columns '+width, await p.$eval('.thread-ribbon', e=>e.dataset.running==='true' && +e.dataset.indices%48===0));
@@ -55,7 +60,15 @@ try {
           check('ribbon frame budget and 60Hz cadence '+width+' '+rate,frame.visible&&frame.p95<=(rate===1?16.7:33)&&frame.maxTask<=50&&frame.paints>=320);
         }
         await cdp.send('Emulation.setCPUThrottlingRate',{rate:1});await cdp.detach();
+        const hidden=await browser.newPage();await hidden.bringToFront();await sleep(300);
+        const stopped=await p.$eval('.thread-ribbon',e=>+e.dataset.paints);await sleep(300);
+        check('hidden tab stops ribbon '+width,await p.$eval('.thread-ribbon',(e,n)=>document.hidden&&e.dataset.running==='false'&&+e.dataset.paints===n,stopped));
+        await hidden.close();await p.bringToFront();
+        const pin=await p.$eval('.journey',e=>{const parent=e.parentElement;return {start:parent.getBoundingClientRect().top+scrollY,distance:parent.offsetHeight-e.offsetHeight};});
+        if(pin.distance>0){await go(pin.start+pin.distance*.99);await capture('journey-arrival-'+width);}
       }
+      if(name==='e92'&&width===1440){const pin=await p.$eval('#e92',e=>{const parent=e.parentElement;return {start:parent.getBoundingClientRect().top+scrollY,distance:parent.offsetHeight-e.offsetHeight};});if(pin.distance>0){await go(pin.start+pin.distance*.5);await capture('e92-middle-'+width);await go(pin.start+pin.distance*.85);await capture('e92-details-'+width);}}
+      if(name==='contact'){await go(await top('.glyph-pit')-180);await capture('contact-settled-'+width);}
     }
     for (let i=0;i<4;i++) { await go(await top('#svc-panel-'+(i+1))-150); await capture('services-'+i+'-'+width); check('full service copy '+i+' '+width,await p.$$eval('.svc-description',es=>es.every(e=>getComputedStyle(e).textOverflow!=='ellipsis'&&getComputedStyle(e).whiteSpace!=='nowrap'))); }
     await go(0); const n=await p.$eval('.thread-ribbon',e=>+e.dataset.paints); await sleep(300);
