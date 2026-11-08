@@ -1,7 +1,7 @@
 @layer theme, base, components, utilities;
 @layer components {
-  .tools { position: relative; isolation: isolate; }
-  .sphere-field { position: absolute; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; background: radial-gradient(ellipse at 28% 52%, #B6CDD4, transparent 64%); }
+  .tools { position: relative; isolation: isolate; overflow: clip; }
+  .sphere-field { position: absolute; inset: -22%; z-index: -1; pointer-events: none; overflow: hidden; background: radial-gradient(ellipse at center, #B6CDD4, transparent 64%); }
   .sphere-field canvas { display: block; width: 100%; height: 100%; }
-  .sphere-column { position: relative; }
+  .sphere-column { position: relative; align-self: start; isolation: isolate; }
 }

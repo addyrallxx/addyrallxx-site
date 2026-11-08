@@ -135,10 +135,10 @@ export function Tools() {
       window.removeEventListener("keydown", escape); document.removeEventListener("visibilitychange", sync); motion.removeEventListener("change", sync); phone.removeEventListener("change", paint);
     };
   }, []);
-  return <section className="home-section tools" aria-labelledby="tools-heading"><SphereField /><SectionReveal>
+  return <section className="home-section tools" aria-labelledby="tools-heading"><SectionReveal>
     <h2 className="t-label section-label" id="tools-heading"><SplitFlap text={SKILLS.label} /></h2>
     <div className="tools-grid">
-      <div className="sphere-column"><div className="skill-sphere" ref={sphere} data-sphere>
+      <div className="sphere-column"><SphereField /><div className="skill-sphere" ref={sphere} data-sphere>
         <svg className="globe-grid" viewBox="0 0 440 440" fill="none" stroke="var(--line)" aria-hidden="true"><circle cx="220" cy="220" r="180" vectorEffect="non-scaling-stroke" /><ellipse cx="220" cy="220" rx="180" ry="50.4" vectorEffect="non-scaling-stroke" /><ellipse cx="220" cy="220" rx="50.4" ry="180" vectorEffect="non-scaling-stroke" /></svg>
         {items.map((item, i) => { const p = projection(i, tilt, 25 * Math.PI / 180), depth = (p.z + 1) / 2; return <div key={item.name} data-sphere-item data-group={item.group} data-slug={item.slug} className="sphere-item" role="img" aria-label={item.name} title={item.name} style={{ transform: `translate3d(calc(${p.x} * var(--globe-radius)),calc(${p.y} * var(--globe-radius)),0) translate(-50%,-50%) scale(${.62 + .38 * depth})`, opacity: .45 + .55 * depth }}>
           <span className="skill-icon" style={{ maskImage: `url(/icons/${item.slug}.svg)`, backgroundColor: logoColor(item.slug!) }} />
