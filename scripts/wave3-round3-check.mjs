@@ -18,6 +18,11 @@ try {
   const top = selector => p.$eval(selector, e => e.getBoundingClientRect().top + scrollY);
   const go = async y => { await p.evaluate(y => window.__lenis ? window.__lenis.scrollTo(y, { immediate: true }) : window.scrollTo(0,y), y); await sleep(1400); };
   const capture = async name => sharp(await p.screenshot()).resize({width:1000,height:1000,fit:'inside',withoutEnlargement:true}).toFile(output+'/'+name+'.png');
+  await p.setViewport({width:390,height:844,deviceScaleFactor:1});
+  await p.goto(process.argv[2] || 'http://localhost:3100',{waitUntil:'networkidle0'});
+  check('phone preflight identity',await p.$eval('h1',e=>e.getAttribute('aria-label')==='Written in Calgary. Running in Dhaka.'));
+  await p.waitForFunction(()=>document.documentElement.dataset.intro==='done');await sleep(2000);
+  check('phone hero clears backed footer',await p.evaluate(()=>document.querySelector('h1').getBoundingClientRect().bottom<document.querySelector('.chrome-bottom .clocks').getBoundingClientRect().top));
   for (const width of [1440,390]) {
     await p.setViewport({width,height:1000,deviceScaleFactor:1});
     await p.goto(process.argv[2] || 'http://localhost:3100',{waitUntil:'networkidle0'});
@@ -25,6 +30,7 @@ try {
     await p.waitForFunction(()=>document.documentElement.dataset.intro==='done'); await sleep(2000);
     await capture('hero-'+width);
     check('clock digits stay on one baseline '+width,await p.$$eval('.clock-digits',es=>es.every(e=>getComputedStyle(e).display.endsWith('flex')&&getComputedStyle(e).whiteSpace==='nowrap'&&e.getBoundingClientRect().height<=Math.max(...Array.from(e.children,c=>c.getBoundingClientRect().height))+2)));
+    check('clock colon aligns with both digit groups '+width,await p.$$eval('.clock-digits',es=>es.every(e=>{const centers=Array.from(e.children,c=>{const r=c.getBoundingClientRect();return r.top+r.height/2;});return Math.max(...centers)-Math.min(...centers)<1;})));
     for (const [name,selector] of [['work','.work-stack'],['other','.other-gallery'],['journey','.journey'],['alongside','#side-heading'],['taste','#taste'],['tools','.tools'],['method','#method'],['info','#info'],['e92','#e92'],['contact','#contact']]) {
       if (!await p.$(selector)) continue;
       await go(await top(selector)-110);
@@ -66,7 +72,14 @@ try {
         check('hidden tab stops ribbon '+width,await p.$eval('.thread-ribbon',(e,n)=>document.hidden&&e.dataset.running==='false'&&+e.dataset.paints===n,stopped));
         await hidden.close();await p.bringToFront();
         const pin=await p.$eval('.journey',e=>{const parent=e.parentElement;return {start:parent.getBoundingClientRect().top+scrollY,distance:parent.offsetHeight-e.offsetHeight};});
-        if(pin.distance>0){await go(pin.start+pin.distance*.99);await capture('journey-arrival-'+width);}
+        if(pin.distance>0){
+          await go(pin.start+1);
+          check('first city starts centered '+width,await p.$eval('.journey-title',e=>{const r=e.getBoundingClientRect();return Math.abs(r.left+r.width/2-innerWidth/2)<4;}));
+          await capture('journey-departure-'+width);
+          await go(pin.start+pin.distance-1);
+          check('arrival city is centered and fully framed '+width,await p.$$eval('.journey-title',es=>{const r=es[1].getBoundingClientRect();return Math.abs(r.left+r.width/2-innerWidth/2)<4&&r.left>=0&&r.right<=innerWidth;}));
+          await capture('journey-arrival-'+width);
+        }
       }
       if(name==='e92'&&width===1440){const start=await top('#e92');await go(start+1000*3.2*.5);check('E92 mid-sequence capture contains the car',await p.$eval('.car-photo',e=>{const r=e.getBoundingClientRect();return r.bottom>0&&r.top<innerHeight;}));await capture('e92-middle-'+width);await go(start+1000*3.2*.85);await capture('e92-details-'+width);}
       if(name==='contact'){await go(await top('.glyph-pit')-180);await capture('contact-settled-'+width);}

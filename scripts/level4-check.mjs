@@ -689,6 +689,7 @@ try {
   await contactChecks(p);
   for (const [id, heading] of [['taste', 'Taste'], ['method', 'How I work'], ['info', 'Info']]) check(id + ' section has its heading', await p.$eval('#' + id + ' h2', (el, heading) => el.textContent === heading, heading));
   check('Info has its bio and lists without a car block or portrait placeholder', await p.evaluate(() => document.querySelectorAll('#info .info-lists > div').length === 4 && document.querySelector('#info .info-bio').textContent.length > 0 && !document.querySelector('#info img, #info .tach, #info .car-block')));
+  check('Info obeys the no-grades privacy rule', await p.$eval('#info', el => !/GPA|\b\d\.\d{1,2}\s+(?:of|\/)\s+4(?:\.0)?\b/i.test(el.innerText)));
   check('Questions is absent while FAQ copy is empty', await p.$('#questions') === null);
   await sweepPage(p);
   await p.setViewport({ width: 1000, height: 900, deviceScaleFactor: 1 });

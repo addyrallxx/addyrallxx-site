@@ -70,6 +70,7 @@ try {
       const frame = await p.evaluate(() => new Promise(resolve => {
         const frames = [], tasks = [], el = document.querySelector('.sphere-field'), video = document.querySelector('[data-wave3-video]');
         const initial = +el.dataset.paints, videoStart = video.currentTime;
+        const quality = video.getVideoPlaybackQuality();
         let visible = !document.hidden, last, start, count = 0;
         const visibility = () => { visible &&= !document.hidden; };
         document.addEventListener('visibilitychange', visibility);
@@ -84,12 +85,14 @@ try {
           else {
             tasks.push(...observer.takeRecords().map(entry => entry.duration)); observer.disconnect(); document.removeEventListener('visibilitychange', visibility);
             frames.sort((a, b) => a - b);
-            resolve({ p95: frames[Math.ceil(frames.length * .95) - 1], maxTask: Math.max(0, ...tasks), paints: +el.dataset.paints - initial, videoAdvance: video.currentTime - videoStart, paused: video.paused, visible });
+            const finalQuality = video.getVideoPlaybackQuality();
+            resolve({ p95: frames[Math.ceil(frames.length * .95) - 1], maxTask: Math.max(0, ...tasks), paints: +el.dataset.paints - initial, videoAdvance: video.currentTime - videoStart, videoFrames: finalQuality.totalVideoFrames - quality.totalVideoFrames, droppedFrames: finalQuality.droppedVideoFrames - quality.droppedVideoFrames, paused: video.paused, visible });
           }
         }; requestAnimationFrame(sample);
       }));
       console.log('CONCURRENT_FRAME', JSON.stringify(frame));
       check('sphere plus native video p95 <=16.7ms', frame.visible && frame.p95 <= 16.7 && frame.maxTask <= 50 && frame.paints > 100 && frame.videoAdvance > 1 && !frame.paused);
+      check('native video retains 30fps delivery during field sample', frame.videoFrames >= 150 && frame.droppedFrames <= 1 && frame.videoAdvance >= 5);
       await p.$eval('[data-wave3-video]', video => { video.pause(); video.removeAttribute('src'); video.load(); video.remove(); });
       await p.setViewport({ width, height: 1000, deviceScaleFactor: 1 });
     }

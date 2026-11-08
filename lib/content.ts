@@ -358,7 +358,7 @@ export const INFO = {
       label: "School",
       items: [
         "BSc Computer Science, Faculty of Science, University of Calgary, expected April 2028",
-        "Edexcel GCSE and International A Levels, Mastermind English Medium School, Dhaka, 3.94 of 4.0, 2022",
+        "Edexcel GCSE and International A Levels, Mastermind English Medium School, Dhaka, 2022",
       ],
     },
     {
