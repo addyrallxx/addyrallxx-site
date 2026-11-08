@@ -169,14 +169,15 @@ async function f3Desktop(p) {
   await scrollTo(p, '.work-card:nth-child(2)', 240);
   await p.screenshot({path:join(tmpdir(),'claude/briefs/f11-work.png')});
   await p.setViewport({width:1440,height:900,deviceScaleFactor:1}); await scrollTo(p, ".other-gallery", 180);
-  check('Other things has one accessible heading and three distinct links', await p.$eval('.other-gallery', el => el.querySelectorAll('h2').length === 1 && el.querySelectorAll('a.other-card').length === 3 && !el.querySelector('[aria-hidden="true"] h3')));
-  check('Other cards show sharp images and complete readable copy', await p.$$eval('.other-card', cards => cards.length === 3 && cards.every(card => card.querySelector('img').naturalWidth > 0 && card.querySelector('h3').textContent.length > 0 && card.querySelector('p').textContent.length > 0 && card.scrollHeight <= card.clientHeight)));
-  await p.hover('.other-card'); await sleep(600);
-  check('hover lifts the first card without covering adjacent copy', await p.$$eval('.other-card', cards => new DOMMatrix(getComputedStyle(cards[0]).transform).m42 < -10 && cards[0].getBoundingClientRect().right < cards[1].getBoundingClientRect().left));
+  check('Other things restores one band and three accessible destinations', await p.$eval('.other-gallery', el => el.querySelectorAll('h2').length === 1 && el.querySelector('.other-band').getAttribute('href') === '/work' && el.querySelectorAll('.fan-links a').length === 3));
+  check('fan has three loaded photographic faces', await p.$$eval('.fan-card img', images => images.length === 3 && images.every(image => image.naturalWidth > 0 && getComputedStyle(image).objectFit === 'cover')));
+  const rest = await p.$eval('.fan-card', el => getComputedStyle(el).transform);
+  await p.hover('.other-band'); await sleep(600);
+  check('whole band spreads and lifts the fan with a visible caption', await p.$eval('.other-band', (el, rest) => getComputedStyle(el.querySelector('.fan-card')).transform !== rest && new DOMMatrix(getComputedStyle(el.querySelector('.fan-face')).transform).m42 === -4 && getComputedStyle(el.querySelector('.fan-captions span:last-child')).opacity === '1', rest));
   await sharp(await p.screenshot()).resize({ width: 1000 }).toFile(join(tmpdir(), "claude/briefs/f3-fan.png"));
 
 }
-async function pinnedBudget(p, rate) {
+async function photoBudget(p, rate) {
   await foreground(p);
   const cdp = await p.createCDPSession();
   await cdp.send('Emulation.setCPUThrottlingRate', {rate});
@@ -194,7 +195,7 @@ async function pinnedBudget(p, rate) {
     const probe=now=>{
       if(last!==undefined)frames.push(now-last); last=now;
       const t=Math.min(1,(now-start)/5000);
-      window.__lenis.scrollTo(entry+height*3.2*t,{immediate:true});
+      window.__lenis.scrollTo(entry-height*.8+height*1.6*t,{immediate:true});
       if(t<1)requestAnimationFrame(probe); else {
         tasks.push(...observer.takeRecords().map(e=>e.duration)); observer.disconnect(); frames.sort((a,b)=>a-b);
         document.removeEventListener('visibilitychange', visibility);
@@ -202,34 +203,29 @@ async function pinnedBudget(p, rate) {
       }
     }; requestAnimationFrame(probe);
   }),entry);
-  console.log('E92 PIN',rate,result);
-  budgets.push({...result,width:1440,height:900,rate,spin:false,kind:'E92 pin'});
+  console.log('E92 PHOTO',rate,result);
+  budgets.push({...result,width:1440,height:900,rate,spin:false,kind:'E92 photo'});
   await cdp.send('Emulation.setCPUThrottlingRate',{rate:1}); await cdp.detach();
 }
 async function e92Checks(p) {
   check('tach is retired everywhere in the DOM',await p.$('.tach')===null);
-  await pinnedBudget(p,1); await pinnedBudget(p,4);
+  await photoBudget(p,1); await photoBudget(p,4);
   await p.setViewport({width:1000,height:900,deviceScaleFactor:1}); await sleep(500);
-  const entry=await p.$eval('#e92',el=>el.getBoundingClientRect().top+scrollY);
-  const clips=[];
-  for(let i=0;i<8;i++) {
-    await p.evaluate(({entry,i})=>window.__lenis.scrollTo(entry+innerHeight*3.2*(.02+.20*i/7),{immediate:true}),{entry,i}); await sleep(950);
-    clips.push(await p.$eval('.car-photo',el=>getComputedStyle(el).clipPath));
+  const entry = await p.$eval('.car-photo', el => el.getBoundingClientRect().top + scrollY);
+  const transforms = [];
+  for (let i = 0; i < 8; i++) {
+    await p.evaluate(({ entry, i }) => window.__lenis.scrollTo(entry - innerHeight * .8 + innerHeight * 1.5 * i / 7, { immediate: true }), { entry, i }); await sleep(950);
+    transforms.push(await p.$eval('.car-slide-inner', el => getComputedStyle(el).transform));
   }
-  console.log('E92 clips',clips);
-  check('E92 lens opens across its own entry window',new Set(clips).size>=6);
-  await p.evaluate(entry=>window.__lenis.scrollTo(entry+innerHeight*3.2*.5,{immediate:true}),entry); await sleep(1000);
-  check('E92 has no warm radial and only a short photo scrim', await p.evaluate(() => !document.querySelector('.e92-warm') && parseFloat(getComputedStyle(document.querySelector('.car-photo'),'::after').height) <= document.querySelector('.car-photo').clientHeight * .29));
-  await p.evaluate(entry=>window.__lenis.scrollTo(entry+innerHeight*3.2*.6,{immediate:true}),entry); await sleep(1000);
-  check('lens is fully open by 60 percent',await p.$eval('.car-photo',el=>/^inset\(0(?:px|%)?(?:\s+0(?:px|%)?){0,3}\)$/.test(getComputedStyle(el).clipPath)));
-  await p.$$eval('#e92 img', images => Promise.all(images.map(image => { image.loading = 'eager'; return image.decode(); })));
-  console.log('E92 sources', await p.$$eval('#e92 img', images => images.map(image => ({src:image.currentSrc,width:image.naturalWidth}))));
-  check('E92 has four loaded v2 sequence images',await p.$$eval('#e92 img',images=>images.length===4&&['profile','front','bay-wide','night'].every((name,i)=>images[i].naturalWidth>0&&images[i].currentSrc.includes('/e92/v2/'+name))));
-  await p.evaluate(entry=>window.__lenis.scrollTo(entry+innerHeight*3.2*.95,{immediate:true}),entry); await sleep(1000);
-  check('all nine specs and values are visible at 95 percent',await p.$$eval('.car-specs > div',rows=>rows.length===9&&rows.every(row=>{const r=row.getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight&&+getComputedStyle(row.querySelector('dd')).opacity>.99&&new DOMMatrix(getComputedStyle(row.querySelector('.car-spec-line')).transform).a>.99;})));
-  const signOff=readFileSync('lib/content.ts','utf8').match(/signOff: "([^"]+)"/)[1];
-  check('E92 sign off equals supplied content',await p.$eval('.car-signoff',(el,text)=>el.textContent===text,signOff));
-  check('stripe runs along the photo top edge',await p.$eval('.e92-stripe',el=>new DOMMatrix(getComputedStyle(el).transform).a===1&&Math.abs(el.getBoundingClientRect().top-el.closest('.car-photo').getBoundingClientRect().top)<1));
+  check('E92 photograph has intermediate scroll push states without a pin', new Set(transforms).size >= 6 && await p.$eval('#e92', el => !el.dataset.pin));
+  check('E92 is full viewport with cover fitting and a short photo scrim', await p.$eval('.car-photo', el => Math.abs(el.clientHeight - innerHeight) < 1 && Math.abs(el.clientWidth - innerWidth) < 1 && getComputedStyle(el.querySelector('img')).objectFit === 'cover' && parseFloat(getComputedStyle(el, '::after').height) <= el.clientHeight * .29));
+  await p.$$eval('#e92 img', images => Promise.all(images.map(image => image.decode())));
+  check('E92 has one loaded 3024 by 1701 profile with a 1600w responsive source', await p.$$eval('#e92 img', images => images.length === 1 && images[0].naturalWidth > 0 && images[0].getAttribute('width') === '3024' && images[0].getAttribute('height') === '1701' && images[0].currentSrc.includes('/e92/v2/profile') && images[0].previousElementSibling.srcset.includes('1600w')));
+  await scrollTo(p, '.car-specs', 180);
+  check('all nine specs and values remain visible', await p.$$eval('.car-specs > div', rows => rows.length === 9 && rows.every(row => { const r = row.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight && +getComputedStyle(row.querySelector('dd')).opacity > .99; })));
+  const signOff = readFileSync('lib/content.ts', 'utf8').match(/signOff: "([^"]+)"/)[1];
+  check('E92 sign off equals supplied content', await p.$eval('.car-signoff', (el, text) => el.textContent === text, signOff));
+  check('stripe runs along the photo top edge', await p.$eval('.e92-stripe', el => new DOMMatrix(getComputedStyle(el).transform).a === 1 && Math.abs(el.getBoundingClientRect().top - el.closest('.car-photo').getBoundingClientRect().top) < 1));
   await p.screenshot({path:join(tmpdir(),'claude/briefs/f11-e92.png')});
   await p.setViewport({width:1440,height:900,deviceScaleFactor:1});
 }
@@ -463,8 +459,8 @@ async function transitionChecks() {
       const phase = document.documentElement.dataset.transition;
       if (phase) {
         if (last) w.frames.push(now - last); last = now; w.phases.push(phase);
-        w.paths.push(getComputedStyle(document.querySelector('.route-curve-top')).transform);
-        if (phase === 'covered' && now - w.covered >= 70 && now - w.covered <= 150) {
+        w.paths.push(document.querySelector('.route-curve-top path').getAttribute('d'));
+        if (phase === 'covering' && now - w.started >= 450 && now - w.started <= 680) {
           const name = document.querySelector('.route-name > span');
           w.names.push({ text: name.textContent, opacity: getComputedStyle(name).opacity, y: new DOMMatrix(getComputedStyle(name).transform).f });
         }
@@ -472,14 +468,15 @@ async function transitionChecks() {
       if (!w.revealed) requestAnimationFrame(sample);
     }; requestAnimationFrame(sample);
   });
-  await scrollTo(p, '.work-card:first-child', 120); await p.evaluate(() => { window.__wipe.initialScroll = scrollY; window.__wipe.shifts = 0; }); await p.click('.work-pill');
+  await scrollTo(p, '.work-stack', 0); await p.evaluate(() => { window.__wipe.initialScroll = scrollY; window.__wipe.shifts = 0; }); await p.click('.work-pill');
   await p.waitForFunction(() => window.__wipe.revealed > 0);
   const wipe = await p.evaluate(() => window.__wipe);
   console.log('WIPE state', { changed: wipe.changed, violations: wipe.violations, phases: [...new Set(wipe.phases)], started: wipe.started, covered: wipe.covered, ready: wipe.ready, revealed: wipe.revealed, names: wipe.names });
   check('new project stays covered until its route commits', wipe.changed && wipe.violations.length === 0 && wipe.phases.includes('covering') && wipe.phases.includes('revealing'));
-  check('wipe uses a 650ms cover, 180ms hold and 750ms reveal', wipe.covered - wipe.started >= 630 && wipe.covered - wipe.started < 850 && wipe.ready - wipe.covered >= 175 && wipe.revealed - wipe.ready >= 730 && wipe.revealed - wipe.ready < 950);
+  check('curtain navigates at 700ms and finishes under 1200ms', wipe.covered - wipe.started >= 680 && wipe.covered - wipe.started < 800 && wipe.ready >= wipe.covered && wipe.revealed - wipe.started >= 1120 && wipe.revealed - wipe.started < 1200);
   check('curved leading edge changes during cover', new Set(wipe.paths.filter(Boolean)).size > 3);
   check('destination name mask is present during hold', wipe.names.length > 0 && wipe.names.every(name => name.text === 'Puzzled' && +name.opacity > .99));
+  console.log('WIPE scroll and CLS', {initial: wipe.initialScroll, covered: wipe.coverScroll, shifts: wipe.shifts});
   check('wipe preserves scroll until cover and has no layout shift', wipe.coverScroll === wipe.initialScroll && wipe.shifts === 0);
   wipe.frames.sort((a, b) => a - b);
   const p95 = wipe.frames[Math.ceil(wipe.frames.length * .95) - 1];
@@ -489,9 +486,14 @@ async function transitionChecks() {
   check('Back skips the panel', await p.evaluate(() => location.pathname === '/work' && document.querySelector('.route-panel').hidden && !document.documentElement.dataset.transition));
   await p.goForward({ waitUntil: 'networkidle0' });
   check('Forward skips the panel', await p.evaluate(() => location.pathname === '/work/puzzled' && document.querySelector('.route-panel').hidden && !document.documentElement.dataset.transition));
+  await p.goBack({ waitUntil: 'networkidle0' });
+  await scrollTo(p, '.work-stack', 0);
+  await p.click('.work-card:not([inert]) .work-pill');
+  check('repeated destination rearms the letter mask before 300ms', await p.$$eval('.route-letter > span', letters => letters.length > 0 && letters.every(letter => new DOMMatrix(getComputedStyle(letter).transform).f > 20)));
+  await p.waitForFunction(() => location.pathname === '/work/puzzled' && !document.documentElement.dataset.transition);
   await p.setViewport({ width: 1000, height: 900, deviceScaleFactor: 1 });
   await p.click('.chrome-nav a[href="/school"]');
-  await p.waitForFunction(() => document.documentElement.dataset.transition === 'covered'); await sleep(70);
+  await p.waitForFunction(() => document.documentElement.dataset.transition === 'revealing');
   await p.screenshot({ path: join(tmpdir(), 'claude/briefs/f11-transition.png') });
   await p.waitForFunction(() => location.pathname === '/school' && !document.documentElement.dataset.transition);
   check('School uses the shared wipe', await p.$eval('h1', el => el.classList.contains('route-heading-rise')));
@@ -568,7 +570,7 @@ async function scrimChecks() {
   await p.goto(url, { waitUntil: 'networkidle0' }); await p.waitForFunction(() => document.documentElement.dataset.intro === 'done');
   await sweepPage(p);
   // Place photography and specs beneath the fixed clocks, then measure painted pixels.
-  await p.evaluate(() => { const section = document.querySelector('#e92'); window.__lenis.scrollTo(section.getBoundingClientRect().top + scrollY + innerHeight * 3.2 * .6, { immediate: true }); });
+  await p.evaluate(() => { const section = document.querySelector('#e92'); window.__lenis.scrollTo(section.getBoundingClientRect().top + scrollY, { immediate: true }); });
   for (const mode of ['paper']) {
     await p.evaluate(mode => { /* Day-only tokens remain invariant. */ window.dispatchEvent(new CustomEvent('sky:mode', { detail: { mode } })); }, mode);
     await sleep(1100);

@@ -46,21 +46,22 @@ export function Tools() {
     gsap.registerPlugin(ScrollTrigger);
     const panel = list.current!, media = gsap.matchMedia();
     media.add("(prefers-reduced-motion: no-preference)", () => {
-      const labels = Array.from(panel.querySelectorAll<HTMLElement>(".skill-ink"));
-      const widths = labels.map(label => gsap.quickTo(label, "--row-wdth", { duration: .4, ease: "power2.out" }));
       let lastWidth = 100;
+      const widthTo = gsap.quickTo(panel, "--row-wdth", { duration: .4, ease: "power2.out", onComplete: () => { if (lastWidth === 100) delete panel.dataset.breathing; } });
+      const settle = gsap.delayedCall(.12, () => { lastWidth = 100; widthTo(100); }).pause();
       ScrollTrigger.create({ trigger: panel, start: "top bottom", end: "bottom top", onUpdate: self => {
         const width = 100 + Math.min(Math.abs(self.getVelocity()) * .02, 18);
+        settle.restart(true);
         if (Math.abs(width - lastWidth) < .2) return;
-        lastWidth = width; widths.forEach(update => update(width));
-      }, onLeave: () => widths.forEach(update => update(100)), onLeaveBack: () => widths.forEach(update => update(100)) });
+        panel.dataset.breathing = "true"; lastWidth = width; widthTo(width);
+      }, onLeave: () => { lastWidth = 100; widthTo(100); }, onLeaveBack: () => { lastWidth = 100; widthTo(100); } });
       panel.querySelectorAll<HTMLElement>(".skill-group").forEach(group => {
         gsap.fromTo(group.querySelectorAll(".skill-ink"), { y: 14 }, { y: 0, duration: .7, stagger: .04, ease: "expo.out", scrollTrigger: { trigger: group, start: "top 90%", once: true } });
       });
       const observer = new IntersectionObserver(([entry]) => { panel.dataset.visible = String(entry.isIntersecting); });
       const sync = () => { panel.dataset.paused = String(document.hidden); };
       observer.observe(panel); sync(); document.addEventListener("visibilitychange", sync);
-      return () => { observer.disconnect(); document.removeEventListener("visibilitychange", sync); delete panel.dataset.visible; delete panel.dataset.paused; };
+      return () => { settle.kill(); observer.disconnect(); document.removeEventListener("visibilitychange", sync); delete panel.dataset.visible; delete panel.dataset.paused; delete panel.dataset.breathing; };
 
     }, panel);
     return () => media.revert();

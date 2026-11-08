@@ -107,7 +107,7 @@ export function Services() {
       return <div className="service-entry svc-panel" id={`svc-panel-${index + 1}`} key={item.name}>
         <div className="svc-phone-heading"><span className="t-label svc-number">{number}</span><div><h3 className="t-title">{item.name}</h3><p className="t-body">{item.line}</p></div></div>
         <div className="svc-frame" data-cursor="View" role="group" aria-label={item.name}>
-          <div className="svc-art">{src ? <Image src={src} alt="" width={index >= 2 ? 1672 : project?.images[0]?.width ?? 1920} height={index >= 2 ? 941 : project?.images[0]?.height ?? 1080} quality={90} sizes="(min-width: 900px) 48vw, 100vw" /> : <span className="svc-outline" aria-hidden="true">{number}</span>}</div>
+          <div className="svc-art">{src ? <Image src={src} alt="" width={index === 2 ? 1536 : index === 3 ? 1672 : project?.images[0]?.width ?? 1920} height={index === 2 ? 864 : index === 3 ? 941 : project?.images[0]?.height ?? 1080} quality={90} sizes="(min-width: 900px) 48vw, 100vw" /> : <span className="svc-outline" aria-hidden="true">{number}</span>}</div>
         </div>
         <div className="svc-mark" data-mark={index} aria-hidden="true">{Array.from({ length: 8 }, (_, i) => <i key={i} />)}</div>
       </div>;

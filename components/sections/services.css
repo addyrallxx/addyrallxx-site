@@ -70,6 +70,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
+    .svc-section[data-active-service="2"] { --ink: #F3F0E8; --ink-2: #F3F0E8; --ink-3: #F3F0E8; --accent: #F3F0E8; color: #F3F0E8; }
     .svc-row { transition: none; transform: none; }
     .svc-colour-track { display: none; }
     .svc-panel { padding: 20px; border-radius: 18px; }

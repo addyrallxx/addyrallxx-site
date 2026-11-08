@@ -9,7 +9,7 @@ import { NAV, SCHOOL, SITE, WORK } from "@/lib/content";
 import "./page-transition.css";
 
 const Navigation = createContext<((href: string) => void) | null>(null);
-const shape = (top = 0, bottom = 0) => "M0 0 Q500 " + (-top * 2) + " 1000 0 L1000 1000 Q500 " + (1000 + bottom * 2) + " 0 1000 Z";
+const shape = (top = 0, bottom = 0) => "M0 0 Q500 " + (-top) + " 1000 0 L1000 1000 Q500 " + (1000 + bottom) + " 0 1000 Z";
 
 export function PageTransition({ children }: { children: ReactNode }) {
   const router = useRouter(), pathname = usePathname(), reduced = usePrefersReducedMotion();
@@ -22,7 +22,8 @@ export function PageTransition({ children }: { children: ReactNode }) {
   const deadline = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const reset = useCallback(() => {
     clearTimeout(deadline.current); animation.current?.kill(); animation.current = null; pending.current = null;
-    [panel.current, backplate.current].forEach(layer => { if (!layer) return; layer.hidden = true; gsap.set(layer, { yPercent: 118, clearProps: "willChange" }); });
+    if (panel.current) gsap.killTweensOf(panel.current.querySelectorAll(".route-letter > span"));
+    [panel.current, backplate.current].forEach(layer => { if (!layer) return; layer.hidden = true; gsap.set(layer, { y: 0, yPercent: 118, clearProps: "willChange" }); });
     if (content.current) { content.current.inert = false; content.current.removeAttribute("aria-busy"); }
     delete document.documentElement.dataset.transition;
     window.__lenis?.start();
@@ -39,7 +40,19 @@ export function PageTransition({ children }: { children: ReactNode }) {
     window.addEventListener("keydown", preventKeys); window.addEventListener("popstate", pop);
     return () => { reset(); headingTween.current?.kill(); crossfade.current?.kill(); window.removeEventListener("wheel", preventScroll); window.removeEventListener("touchmove", preventScroll); window.removeEventListener("keydown", preventKeys); window.removeEventListener("popstate", pop); };
   }, [reset, fade]);
-  useEffect(() => { if (reduced) reset(); }, [reduced, reset]);
+  useEffect(() => { if (reduced) { reset(); headingTween.current?.kill(); if (content.current) gsap.set(content.current.querySelectorAll(".route-heading-rise .section-line > span, .route-heading-rise .hero-line > span"), { clearProps: "transform" }); } }, [reduced, reset]);
+  useLayoutEffect(() => {
+    if (!pending.current || !panel.current) return;
+    const word = panel.current.querySelector<HTMLElement>(".route-name")!;
+    const letters = Array.from(word.querySelectorAll<HTMLElement>(".route-letter"));
+    // Reserve the final glyph widths so the axis sweep never shifts adjacent letters.
+    letters.forEach(letter => { letter.style.width = ""; });
+    word.style.setProperty("--route-width", "118");
+    const widths = letters.map(letter => letter.getBoundingClientRect().width);
+    letters.forEach((letter, i) => { letter.style.width = `${widths[i]}px`; });
+    word.style.setProperty("--route-width", "100");
+    gsap.set(word.querySelectorAll(".route-letter > span"), { yPercent: 110 });
+  }, [name]);
   useLayoutEffect(() => {
     const target = pending.current, timeline = animation.current;
     if (!target || target.path !== pathname || !timeline) return;
@@ -52,34 +65,40 @@ export function PageTransition({ children }: { children: ReactNode }) {
     const targets = lines?.length ? lines : heading;
     if (targets) gsap.set(targets, { yPercent: 100 });
     const start = Math.max(.7, timeline.time());
+    const finish = Math.max(1.15, start + .24);
+    const duration = finish - start - .06;
     document.documentElement.dataset.transition = "revealing";
     window.dispatchEvent(new Event("route:ready"));
     [panel.current, backplate.current].forEach((layer, index) => {
       const edge = { bend: 0 };
-      timeline.to(layer, { yPercent: -118, duration: .39, ease: "expo.inOut" }, start + index * .06)
-        .to(edge, { bend: 180, duration: .195, ease: "sine.inOut", onUpdate: () => layer?.querySelector("path")?.setAttribute("d", shape(0, edge.bend)) }, start + index * .06);
+      timeline.to(layer, { yPercent: -118, duration, ease: "expo.inOut" }, start + index * .06)
+        .to(edge, { bend: 180, duration: duration / 2, ease: "sine.inOut", onUpdate: () => layer?.querySelector("path")?.setAttribute("d", shape(0, edge.bend)) }, start + index * .06);
     });
     timeline.call(() => {
       if (targets) headingTween.current = gsap.to(targets, { yPercent: 0, duration: .6, ease: "expo.out", onComplete: () => { gsap.set(targets, { clearProps: "transform" }); } });
-    }, [], start + .12);
+    }, [], Math.max(.82, start));
     timeline.call(() => {
       reset(); heading?.setAttribute("tabindex", "-1"); heading?.focus({ preventScroll: true });
       window.dispatchEvent(new Event("route:revealed"));
-    }, [], start + .45);
+    }, [], finish);
   }, [pathname, reset]);
   const navigate = (href: string) => {
     if (pending.current) return;
     if (reduced || !panel.current || !backplate.current) { router.push(href); fade(); return; }
     const target = new URL(href, location.href);
+    router.prefetch(href);
     setName(WORK.find(project => target.pathname === "/work/" + project.slug)?.name ?? (target.pathname === "/school" ? SCHOOL.label : NAV.find(link => link.href === target.pathname + target.hash || (target.pathname === "/work" && link === NAV[0]))?.label ?? SITE.name));
     pending.current = { path: target.pathname, hash: target.hash };
     headingTween.current?.kill(); window.__lenis?.stop();
     if (content.current) { content.current.inert = true; content.current.setAttribute("aria-busy", "true"); }
     document.documentElement.dataset.transition = "covering";
+    panel.current.querySelector<HTMLElement>(".route-name")!.style.setProperty("--route-width", "100");
+    gsap.set(panel.current.querySelectorAll(".route-letter > span"), { yPercent: 110 });
+    gsap.ticker.tick();
     const timeline = gsap.timeline(); animation.current = timeline;
     [backplate.current, panel.current].forEach((layer, index) => {
       layer.hidden = false;
-      gsap.set(layer, { yPercent: 118, willChange: "transform" });
+      gsap.set(layer, { y: 0, yPercent: 118, willChange: "transform" });
       const edge = { bend: 180 }, path = layer.querySelector("path")!;
       path.setAttribute("d", shape(180));
       timeline.to(layer, { yPercent: 0, duration: .52, ease: "power3.inOut" }, index * .08)

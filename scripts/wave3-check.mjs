@@ -113,9 +113,9 @@ try {
     await go('#method'); await capture('method-' + width);
     if (width === 1440) {
       await p.setViewport({ width: 1300, height: 1000, deviceScaleFactor: 1 }); await sleep(200);
-      check('image cards retain complete copy below 1440', await p.$$eval('.other-card', cards => cards.every(el => el.scrollHeight <= el.clientHeight)));
+      check('fan retains three cards below 1440', await p.$$eval('.fan-card', cards => cards.length === 3));
       await p.setViewport({ width: 1440, height: 1000, deviceScaleFactor: 1 }); await sleep(200);
-      check('image card set retains three columns at 1440', await p.$eval('.other-grid', el => getComputedStyle(el).gridTemplateColumns.split(' ').length === 3));
+      check('fan keeps its desktop scale', await p.$eval('.card-fan', el => Math.abs(new DOMMatrix(getComputedStyle(el).transform).a - 1.9) < .01));
     }
   }
   const ratios = await p.evaluate(() => {
@@ -126,9 +126,10 @@ try {
   console.log('CONTRAST', JSON.stringify(ratios)); check('all palette text pairs >=4.5', ratios.every(pair => pair.ratio >= 4.5));
   await p.$eval('.sphere-field canvas', canvas => canvas.getContext('webgl2').getExtension('WEBGL_lose_context').loseContext()); await sleep(200);
   check('context loss keeps CSS fallback and releases canvas', await p.$eval('.sphere-field', el => !el.querySelector('canvas') && !el.dataset.ready && getComputedStyle(el).backgroundImage.includes('radial-gradient')));
-  await p.$eval('.other-card', el => el.click());
-  await p.waitForFunction(() => document.documentElement.dataset.transition === 'covered');
-  check('first transition cobalt layer reaches full cover', await p.$eval('.route-backplate', el => !el.hidden && Math.abs(el.getBoundingClientRect().top) < 1));
+  await p.evaluate(() => { window.__coverProbe = null; window.addEventListener('route:covered', () => { const el = document.querySelector('.route-backplate'); window.__coverProbe = !el.hidden && Math.abs(el.getBoundingClientRect().top) < 1; }, { once: true }); });
+  await p.$eval('.other-band', el => el.click());
+  await p.waitForFunction(() => window.__coverProbe !== null);
+  check('first transition cobalt layer reaches full cover', await p.evaluate(() => window.__coverProbe));
   await p.waitForFunction(() => location.pathname === '/work' && !document.documentElement.dataset.transition);
   check('zero runtime console or HTTP errors', errors.length === 0);
   console.log(`${checks} Wave 3 checks passed`);

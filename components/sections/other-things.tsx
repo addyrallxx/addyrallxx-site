@@ -15,6 +15,6 @@ export function OtherThings() {
       </div>
       <span className="t-display-l" aria-hidden="true">{OTHER.right}</span>
     </Link></SectionReveal>
-    <ul className="fan-links">{OTHER.items.map(item => <li key={item.name}><Link href={item.href} prefetch={false} className="sr-only" data-cursor="View">{item.name}</Link></li>)}</ul>
+    <ul className="fan-links">{OTHER.items.map(item => <li key={item.name}><Link href={item.href} prefetch={false} className="fan-destination" data-cursor="View">{item.name}</Link></li>)}</ul>
   </section>;
 }

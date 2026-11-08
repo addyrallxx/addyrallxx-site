@@ -1,7 +1,7 @@
 @layer components {
-  html .skills-list { position: relative; isolation: isolate; overflow: hidden; display: block; background: #0A0F2C; color: #F3F0E8; padding: clamp(24px, 3vw, 48px); border-radius: 20px; }
+  html .skills-list { --row-wdth: 100; position: relative; isolation: isolate; overflow: hidden; display: block; background: #0A0F2C; color: #F3F0E8; padding: clamp(24px, 3vw, 48px); border-radius: 20px; }
   .skills-duotone { position: absolute; inset: 0; overflow: hidden; z-index: -1; pointer-events: none; }
-  .skills-duotone span { position: absolute; inset: -30%; background: radial-gradient(ellipse, rgb(35 64 255 / .7), transparent 60%); transform: translate(-25%,-25%); animation: tool-cobalt 26s ease-in-out infinite alternate paused; }
+  .skills-duotone span { position: absolute; inset: -30%; background: radial-gradient(ellipse, rgb(35 64 255 / .7), transparent 60%); transform: translate(-25%,-25%); animation: tool-cobalt 26s ease-in-out infinite paused; }
   .skills-duotone span:last-child { background: radial-gradient(ellipse, rgb(110 18 48 / .55), transparent 60%); transform: translate(25%,25%); animation-name: tool-bordeaux; }
   .skills-list::after { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: url('/textures/paper-grain-01.webp') repeat; opacity: .05; }
   .skills-list[data-visible="true"][data-paused="false"] .skills-duotone span { animation-play-state: running; }
@@ -14,10 +14,11 @@
   .skills-list button:focus-visible { outline: 2px solid #F3F0E8; outline-offset: 4px; }
   html .skills-list li { overflow: hidden; font-family: var(--font-display), sans-serif; font-size: clamp(16px, 1.5vw, 23px); line-height: 1.25; font-weight: 600; }
   .skills-list li > span { display: inline-block; transition: font-variation-settings 260ms ease-out, letter-spacing 260ms ease-out; }
+  .skills-list[data-breathing="true"] .skill-ink:not(:hover) { transition: none; }
   @media (hover: hover) and (prefers-reduced-motion: no-preference) { .skills-list .skill-ink:hover { font-variation-settings: "wdth" 125; letter-spacing: .02em; } }
   @media (max-width: 719px) { .skills-flow { gap: 28px 18px; } html .skills-list li { font-size: 17px; } }
   @media (prefers-reduced-motion: reduce) { .skills-list li > span { transition: none; font-variation-settings: "wdth" 100; } .skills-duotone span { animation: none; } }
   @media (forced-colors: active) { .skill-ink { background: none; -webkit-text-fill-color: CanvasText; } html .skills-list h3 { -webkit-text-fill-color: CanvasText; } }
-  @keyframes tool-cobalt { to { transform: translate(0,0); } }
-  @keyframes tool-bordeaux { to { transform: translate(10%,5%); } }
+  @keyframes tool-cobalt { 0%, 100% { transform: translate(-25%,-25%); } 50% { transform: translate(0,0); } }
+  @keyframes tool-bordeaux { 0%, 100% { transform: translate(25%,25%); } 50% { transform: translate(10%,5%); } }
 }

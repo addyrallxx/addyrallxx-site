@@ -55,7 +55,7 @@ export function ScrollVideo({ mp4, webm, poster, label, aspect = "16 / 9", class
       <video ref={video} muted playsInline loop preload="none" poster={poster} aria-label={label} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)}>
         {webm && <source src={webm} type="video/webm" />}<source src={mp4} type="video/mp4" />
       </video>
-      <button type="button" className="scroll-video-control sr-only" aria-pressed={playing} onClick={event => { event.stopPropagation(); toggle(); }}>
+      <button type="button" className="scroll-video-control" aria-pressed={playing} onClick={event => { event.stopPropagation(); toggle(); }}>
         {playing ? VIDEO_CONTROL.pause : VIDEO_CONTROL.play}
       </button>
     </div><figcaption className="t-small">{label}</figcaption>

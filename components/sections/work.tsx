@@ -31,8 +31,7 @@ export function Work({ showLabel = true }: { showLabel?: boolean }) {
           gsap.timeline({ scrollTrigger: {
             trigger: card, start: "top bottom", end: "bottom top", scrub: .6,
             onToggle: self => planes.forEach(plane => { plane.style.willChange = self.isActive ? "transform" : ""; }),
-          } }).fromTo(card.querySelector('[data-parallax="0.6"]'), { y: 48 }, { y: -48, ease: "none" }, 0)
-            .fromTo(card.querySelector('[data-parallax="1"]'), { y: 80 }, { y: -80, ease: "none" }, 0);
+          } }).fromTo(card.querySelector('[data-parallax="0.6"]'), { y: 48 }, { y: -48, ease: "none" }, 0);
         } else if (inner) {
           gsap.fromTo(inner, { yPercent: -4 }, { yPercent: 4, ease: "none", scrollTrigger: {
             trigger: card, start: "top bottom", end: "bottom top", scrub: .6,

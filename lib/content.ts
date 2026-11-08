@@ -311,7 +311,7 @@ export const OTHER = {
   items: [
     { name: "This site", line: "Design, code and motion. Every detail is mine.", image: "/other/site.webp", width: 1440, height: 900, href: "/work" },
     { name: "Motion studio", line: "Product films, built frame by frame in code.", image: "/other/studio@2x.webp", width: 1672, height: 941, href: "/work/studio" },
-    { name: "Class steward", line: "One place for the class to catch what matters.", image: "/other/steward@2x.webp", width: 1672, height: 941, href: "/school" },
+    { name: "Class steward", line: "One place for the class to catch what matters.", image: "/other/steward@2x.webp", width: 1536, height: 864, href: "/school" },
   ],
 };
 
