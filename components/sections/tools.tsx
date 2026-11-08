@@ -3,10 +3,12 @@
 import { useEffect, useRef } from "react";
 import { SplitFlap } from "@/components/ui/split-flap";
 import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SKILLS } from "@/lib/content";
 import { skillColors } from "@/lib/skill-colors";
 import { SectionReveal } from "@/components/ui/section-reveal";
 import { SphereField } from "@/components/ui/sphere-field";
+import "./tools.css";
 
 const items = SKILLS.groups.flatMap((group, groupIndex) => group.items.filter(item => item.slug && skillColors[item.slug]).map(item => ({ ...item, group: groupIndex })));
 function logoColor(slug: string) {
@@ -40,6 +42,25 @@ function projection(i: number, rx: number, ry: number) {
 export function Tools() {
   const sphere = useRef<HTMLDivElement>(null);
   const list = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger);
+    const panel = list.current!, media = gsap.matchMedia();
+    media.add("(prefers-reduced-motion: no-preference)", () => {
+      const flow = panel.querySelector(".skills-flow")!;
+      const gradient = gsap.to(flow, { backgroundPosition: "100% 100%", duration: 18, ease: "sine.inOut", repeat: -1, yoyo: true, paused: true });
+      let visible = false;
+      const sync = () => { if (visible && !document.hidden) gradient.resume(); else gradient.pause(); };
+      const observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; sync(); });
+      observer.observe(panel);
+      document.addEventListener("visibilitychange", sync);
+      panel.querySelectorAll<HTMLElement>(".skill-group").forEach((group, index) => {
+        gsap.from(group, { y: 24, duration: .65, delay: index * .05, ease: "power3.out", scrollTrigger: { trigger: panel, start: "top 90%", once: true } });
+        gsap.fromTo(group, { x: index % 2 ? 5 : -5 }, { x: index % 2 ? -5 : 5, ease: "none", scrollTrigger: { trigger: panel, start: "top bottom", end: "bottom top", scrub: .7 } });
+      });
+      return () => { observer.disconnect(); document.removeEventListener("visibilitychange", sync); gradient.kill(); };
+    }, panel);
+    return () => media.revert();
+  }, []);
   useEffect(() => {
     const el = sphere.current!, controls = list.current!;
     const tiles = Array.from(el.querySelectorAll<HTMLElement>("[data-sphere-item]"));
@@ -144,7 +165,7 @@ export function Tools() {
           <span className="skill-icon" style={{ maskImage: `url(/icons/${item.slug}.svg)`, backgroundColor: logoColor(item.slug!) }} />
         </div>; })}
       </div><p className="t-label">{SKILLS.hint}</p></div>
-      <div className="skills-list" ref={list}>{SKILLS.groups.map(group => <div key={group.title} className="section-body"><h3><button type="button" className="t-label" aria-pressed="false">{group.title}</button></h3><ul>{group.items.map(item => <li className="t-small" key={item.name}>{item.name}</li>)}</ul></div>)}</div>
+      <div className="skills-list" ref={list}><div className="skills-flow">{SKILLS.groups.map(group => <div key={group.title} className="skill-group"><h3><button type="button" className="t-label" aria-pressed="false">{group.title}</button></h3><ul>{group.items.map(item => <li className="t-small" key={item.name}><span>{item.name}</span></li>)}</ul></div>)}</div></div>
     </div>
   </SectionReveal></section>;
 }

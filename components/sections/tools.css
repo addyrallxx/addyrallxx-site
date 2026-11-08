@@ -1,0 +1,15 @@
+@layer components {
+  html .skills-list { display: block; background: #2340FF; color: #F3F0E8; padding: clamp(24px, 3vw, 48px); border-radius: 20px; }
+  .skills-flow { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 24px; background: linear-gradient(120deg, #FFF8E4, #DCEBFF, #EFFFCF, #FFF8E4); background-size: 240% 240%; background-position: 0% 0%; background-clip: text; -webkit-text-fill-color: transparent; }
+  .skill-group { min-width: 0; }
+  html .skills-list h3 { color: #F3F0E8; -webkit-text-fill-color: #F3F0E8; }
+  html .skills-list button { color: inherit; font-size: 11px; letter-spacing: .07em; padding: 0; }
+  html .skills-list button[aria-pressed="true"] { color: #F3F0E8; text-decoration: underline; text-underline-offset: 6px; }
+  .skills-list button:focus-visible { outline: 2px solid #F3F0E8; outline-offset: 4px; }
+  html .skills-list li { font-family: var(--font-display), sans-serif; font-size: clamp(16px, 1.5vw, 23px); line-height: 1.25; font-weight: 600; }
+  .skills-list li > span { display: inline-block; transition: transform .3s var(--ease-out); }
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) { .skills-list li:hover > span { transform: translateX(4px); } }
+  @media (max-width: 719px) { .skills-flow { gap: 28px 18px; } html .skills-list li { font-size: 17px; } }
+  @media (prefers-reduced-motion: reduce) { .skills-list li > span { transition: none; } }
+  @media (forced-colors: active) { .skills-flow { background: none; -webkit-text-fill-color: CanvasText; } html .skills-list h3 { -webkit-text-fill-color: CanvasText; } }
+}
