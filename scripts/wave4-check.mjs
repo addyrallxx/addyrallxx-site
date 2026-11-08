@@ -56,8 +56,9 @@ try {
     const zipEnd = await p.$eval('.journey-zipper', el => +el.dataset.frame);
     console.log('ZIPPER', width, JSON.stringify({ zipStart, zipEnd }));
     check('zipper scrubs forward through the pin ' + width, zipStart.running === 'true' && zipStart.frame <= 5 && zipEnd >= 100);
-    await go('.other-band', width < 720 ? 100 : 120);
+    await p.evaluate(() => window.__lenis.scrollTo(0, { immediate: true })); await sleep(900);
     check('offscreen zipper stops ' + width, await p.$eval('.journey-zipper', el => el.dataset.running === 'false'));
+    await go('.other-band', width < 720 ? 100 : 120);
     check('offscreen video pauses ' + width, await p.$eval('video', el => el.paused));
     await p.$$eval('.fan-card img', images => Promise.all(images.map(image => { image.loading = 'eager'; return image.decode(); })));
     const rest = await p.$$eval('.fan-card', cards => cards.map(card => getComputedStyle(card).transform));

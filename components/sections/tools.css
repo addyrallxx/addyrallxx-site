@@ -8,7 +8,7 @@
   .skills-flow { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 24px; }
   .skill-ink { background: linear-gradient(120deg, #F1E3C2, #D7F26B, #F3F0E8); background-clip: text; -webkit-text-fill-color: transparent; font-variation-settings: "wdth" var(--row-wdth, 100); letter-spacing: -.01em; }
   .skill-group { min-width: 0; }
-  html .skills-list h3 { width: fit-content; background: #0A0F2C; color: rgb(243 240 232 / .64); -webkit-text-fill-color: currentColor; }
+  html .skills-list h3 { width: fit-content; color: #F1E3C2; -webkit-text-fill-color: currentColor; }
   html .skills-list button { color: inherit; font-size: 11px; letter-spacing: .07em; padding: 0; }
   html .skills-list button[aria-pressed="true"] { color: #F3F0E8; text-decoration: underline; text-underline-offset: 6px; }
   .skills-list button:focus-visible { outline: 2px solid #F3F0E8; outline-offset: 4px; }
