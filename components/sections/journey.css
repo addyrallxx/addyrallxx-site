@@ -1,15 +1,15 @@
 @layer theme, base, components, utilities;
 @layer components {
   .journey { position: relative; overflow: clip; background: #0A0F2C; color: #F3F0E8; padding: 0; }
-  .thread-ribbon { position: absolute; inset: 0; height: 100svh; pointer-events: none; z-index: 2; }
+  .thread-ribbon { position: absolute; inset: 0; height: 100%; pointer-events: none; z-index: 2; }
   .thread-ribbon canvas, .ribbon-fallback { width: 100%; height: 100%; display: block; }
   .ribbon-fallback { position: absolute; inset: 0; }
   .thread-ribbon[data-ready="true"] .ribbon-fallback { display: none; }
   .journey .journey-title { position: relative; z-index: 3; }
   .journey-track { display: flex; flex-direction: column; }
   .journey-place { position: relative; flex: none; width: 100vw; height: 80svh; overflow: hidden; isolation: isolate; display: grid; place-items: center; }
-  .journey-place img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: var(--panel); z-index: -2; }
-  .journey-place::after { content: ""; position: absolute; inset: 0; background: #0A0F2C; opacity: .55; z-index: -1; }
+  .journey-place { background: #0A0F2C; }
+  .journey-place:nth-child(2) { background: #141D40; }
   .journey .journey-title { font-size: clamp(72px, 17vw, 260px); line-height: .9; color: #F3F0E8; }
   .journey[data-track] { height: 100svh; }
   .journey[data-track] .journey-track { flex-direction: row; width: 200vw; }
