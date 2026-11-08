@@ -21,7 +21,7 @@ export function HomeMotion() {
     });
     media.add("(prefers-reduced-motion: no-preference) and (pointer: fine)", () => {
       // Reference B clips 6, 8 and 19: bounded perspective on three different objects.
-      const cleanups = [".hero-portal img", ".fan-depth", ".taste-word"].flatMap(selector => {
+      const cleanups = [".hero-portal img", ".taste-word"].flatMap(selector => {
         const target = document.querySelector<HTMLElement>(selector), section = target?.closest("section");
         if (!target || !section) return [];
         let bounds = section.getBoundingClientRect();

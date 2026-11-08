@@ -307,9 +307,9 @@ export const OTHER = {
   // Fan order is left, centre, right. The car has its own section now
   // (Adnan, 2026-10-10); all three cards are smaller builds.
   items: [
-    { name: "This site", line: "Two skies, one page. Next.js, Three.js and GSAP.", image: null },
-    { name: "Motion studio", line: "Product reels made in code with Remotion and HyperFrames.", image: null },
-    { name: "Class steward", line: "A Discord bot for my capstone class. It mirrors instructor posts into one channel and audits the server's permissions.", image: null },
+    { name: "This site", line: "Design, code and motion. Every detail is mine.", image: "/other/site.webp", href: "/work" },
+    { name: "Motion studio", line: "Product films, built frame by frame in code.", image: "/studio/composite.webp", href: "/work/studio" },
+    { name: "Class steward", line: "One place for the class to catch what matters.", image: "/other/steward@2x.webp", href: "/school" },
   ],
 };
 

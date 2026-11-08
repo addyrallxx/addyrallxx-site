@@ -1,0 +1,17 @@
+@layer components {
+  .other-gallery > h2 { margin-bottom: clamp(32px, 5vw, 72px); }
+  .other-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(16px, 2vw, 32px); perspective: 1200px; }
+  .other-card { display: flex; flex-direction: column; min-width: 0; background: var(--surface); color: var(--ink); border-radius: 18px; overflow: hidden; transition: transform .5s var(--ease-out); }
+  .other-image { aspect-ratio: 16/10; display: grid; place-items: center; background: var(--bg); }
+  .other-image img { display: block; width: 100%; height: 100%; object-fit: contain; }
+  .other-copy { padding: clamp(20px, 2vw, 32px); }
+  .other-copy p { margin-top: 12px; max-width: 28ch; color: var(--ink-2); }
+  .other-card:focus-visible { outline: 3px solid var(--accent); outline-offset: 6px; }
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .other-card:nth-child(1):hover { transform: translate3d(0,-12px,12px) rotate(-2deg); }
+    .other-card:nth-child(2):hover { transform: translate3d(0,-12px,24px); }
+    .other-card:nth-child(3):hover { transform: translate3d(0,-12px,12px) rotate(2deg); }
+  }
+  @media (max-width: 719px) { .other-grid { grid-template-columns: 1fr; gap: 28px; } .other-copy { padding: 24px; } }
+  @media (prefers-reduced-motion: reduce) { .other-card { transition: none; } }
+}
