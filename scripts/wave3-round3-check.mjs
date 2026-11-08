@@ -31,12 +31,14 @@ try {
     await capture('hero-'+width);
     check('clock digits stay on one baseline '+width,await p.$$eval('.clock-digits',es=>es.every(e=>getComputedStyle(e).display.endsWith('flex')&&getComputedStyle(e).whiteSpace==='nowrap'&&e.getBoundingClientRect().height<=Math.max(...Array.from(e.children,c=>c.getBoundingClientRect().height))+2)));
     check('clock colon aligns with both digit groups '+width,await p.$$eval('.clock-digits',es=>es.every(e=>{const centers=Array.from(e.children,c=>{const r=c.getBoundingClientRect();return r.top+r.height/2;});return Math.max(...centers)-Math.min(...centers)<1;})));
+    if(width===1440)check('clock glyph cards align with colon '+width,await p.$$eval('.clock-digits',es=>es.every(e=>{const digit=e.querySelector('.flap-card').getBoundingClientRect(),colon=e.querySelector('.clock-colon').getBoundingClientRect();return Math.abs(digit.top+digit.height/2-colon.top-colon.height/2)<1;})));
     for (const [name,selector] of [['work','.work-stack'],['other','.other-gallery'],['journey','.journey'],['alongside','#side-heading'],['taste','#taste'],['tools','.tools'],['method','#method'],['info','#info'],['e92','#e92'],['contact','#contact']]) {
       if (!await p.$(selector)) continue;
       await go(await top(selector)-110);
       if(name==='journey') { await go(await top('.journey')+450); await p.waitForFunction(()=>document.querySelector('.thread-ribbon').dataset.ready==='true'); }
       await capture(name+'-'+width);
       check('no horizontal overflow '+name+' '+width, await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+      if(name==='e92')check('E92 photos retain full-frame containment '+width,await p.$$eval('#e92 .car-slide-inner img',es=>es.length===4&&es.every(e=>getComputedStyle(e).objectFit==='contain')));
       if(name==='other') check('all image cards readable '+width, await p.$$eval('.other-card', cards=>cards.length===3 && cards.every(e=>e.querySelector('img').naturalWidth>0 && e.scrollHeight<=e.clientHeight && e.querySelector('p').getBoundingClientRect().width<e.getBoundingClientRect().width)));
       if(name==='tools') {
         check('all six tool groups preserved '+width, await p.$$eval('.skill-group', e=>e.length===6));
@@ -77,11 +79,13 @@ try {
           check('first city starts centered '+width,await p.$eval('.journey-title',e=>{const r=e.getBoundingClientRect();return Math.abs(r.left+r.width/2-innerWidth/2)<4;}));
           await capture('journey-departure-'+width);
           await go(pin.start+pin.distance-1);
-          check('arrival city is centered and fully framed '+width,await p.$$eval('.journey-title',es=>{const r=es[1].getBoundingClientRect();return Math.abs(r.left+r.width/2-innerWidth/2)<4&&r.left>=0&&r.right<=innerWidth;}));
+          const arrival=await p.$$eval('.journey-title',es=>{const r=es[1].getBoundingClientRect();return {center:r.left+r.width/2,left:r.left,right:r.right,width:innerWidth,y:scrollY,hidden:document.hidden,transform:getComputedStyle(es[1]).transform};});
+          console.log('CITY_ARRIVAL',width,JSON.stringify({pin,arrival}));
+          check('arrival city is centered and fully framed '+width,Math.abs(arrival.center-arrival.width/2)<4&&arrival.left>=0&&arrival.right<=arrival.width);
           await capture('journey-arrival-'+width);
         }
       }
-      if(name==='e92'&&width===1440){const start=await top('#e92');await go(start+1000*3.2*.5);check('E92 mid-sequence capture contains the car',await p.$eval('.car-photo',e=>{const r=e.getBoundingClientRect();return r.bottom>0&&r.top<innerHeight;}));await capture('e92-middle-'+width);await go(start+1000*3.2*.85);await capture('e92-details-'+width);}
+      if(name==='e92'&&width===1440){const start=await top('#e92');await go(start+1000*3.2*.5);check('E92 mid-sequence capture contains the car',await p.$eval('.car-photo',e=>{const r=e.getBoundingClientRect();return r.bottom>0&&r.top<innerHeight;}));await capture('e92-middle-'+width);await go(start+1000*3.2*.85);check('E92 final photo fully reaches its frame',await p.$eval('.car-slide-night',e=>Math.abs(new DOMMatrix(getComputedStyle(e).transform).m41)<1));await capture('e92-details-'+width);}
       if(name==='contact'){await go(await top('.glyph-pit')-180);await capture('contact-settled-'+width);}
     }
     for (let i=0;i<4;i++) { await go(await top('#svc-panel-'+(i+1))-150); await capture('services-'+i+'-'+width); check('full service copy '+i+' '+width,await p.$$eval('.svc-description',es=>es.every(e=>getComputedStyle(e).textOverflow!=='ellipsis'&&getComputedStyle(e).whiteSpace!=='nowrap'))); }

@@ -6,7 +6,7 @@
   .e92 .e92-part { position: absolute; top: 14svh; left: 5%; font-size: 28vw; letter-spacing: -.04em; -webkit-text-stroke: 1px rgba(255,255,255,.12); color: transparent; pointer-events: none; z-index: 0; }
   .e92-track { position: relative; padding-top: 6svh; z-index: 1; }
   .car-photo { position: relative; width: 100%; height: min(92svh, 56.25vw); overflow: hidden; clip-path: inset(0); }
-  .car-slide { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+  .car-slide { position: absolute; inset: 0; overflow: hidden; pointer-events: none; background: var(--bg); }
   .car-slide-profile { z-index: 1; }
   .car-smear { position: absolute; inset: 0; z-index: 2; display: grid; grid-template-columns: repeat(8, 1fr); pointer-events: none; }
   .car-smear-slice { height: 100%; transform-origin: top center; transform: scaleY(0); background-image: url('/e92/v2/front.jpg'); background-image: image-set(url('/e92/v2/front.webp') type('image/webp'), url('/e92/v2/front.jpg') type('image/jpeg')); background-repeat: no-repeat; background-size: 800% auto; }
@@ -14,7 +14,7 @@
   .car-slide-bay { z-index: 4; clip-path: circle(0% at 50% 56%); }
   .car-slide-night { z-index: 5; transform: translate3d(100%, 0, 0); }
   .car-slide-inner { position: absolute; inset: 0; width: 100%; height: 100%; transform-origin: 50% 55%; }
-  .car-picture, .car-slide-inner img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 55%; }
+  .car-picture, .car-slide-inner img { display: block; width: 100%; height: 100%; object-fit: contain; object-position: 50% 55%; }
   .e92[data-active] .car-photo,
   .e92[data-active] .car-slide-bay { will-change: clip-path, transform; }
   .e92[data-active] .car-slide-inner,
