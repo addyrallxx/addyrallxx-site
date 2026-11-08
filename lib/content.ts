@@ -112,7 +112,7 @@ export const SIDE = {
     { name: "Puzzled", line: "The dealership business I co-run with my roommate. Seven Alberta and BC dealerships at the peak, four active now." },
     { name: "TotalTex", line: "My father's garment trims factory in Dhaka, about 250 people. I built its order system and I'm the named successor." },
     { name: "Handled AI", line: "Our CPSC 598 capstone: a home services app for Calgary homeowners. I lead product and engineering on a team of three." },
-    { name: "The studio", line: "My own setup where Claude, Codex and Gemini build in parallel and review each other's work." },
+    { name: "The studio", line: "My orchestration centre, where Claude, Codex and Gemini work as one team and learn from every job." },
   ],
 };
 
@@ -265,8 +265,8 @@ export const WORK: Project[] = [
     name: "The Studio",
     kind: "AI build system",
     year: "2026",
-    line: "Claude, Codex and Gemini working as one team, with every result re-checked before it ships.",
-    lead: "How I build now. Claude plans and designs, Codex writes most of the code, Gemini researches and reviews from outside. I set the taste and check the result.",
+    line: "My orchestration centre. Claude, Codex and Gemini work side by side as one team, and the system gets sharper with every job.",
+    lead: "The Studio is my brainchild: an orchestration centre where the frontier models work alongside each other like a team. Claude plans and designs, Codex builds, Gemini researches and reviews from the outside, and every job feeds one shared memory, so the whole system learns as it runs.",
     does: [
       "Wrappers that send each job to the right model at the right cost, and stop cleanly when a quota runs out.",
       "A review loop where the model that didn't build the work inspects it in a fresh session.",
@@ -310,7 +310,7 @@ export const OTHER = {
   // (Adnan, 2026-10-10); all three cards are smaller builds.
   items: [
     { name: "This site", line: "Design, code and motion. Every detail is mine.", image: "/other/site.webp", width: 1440, height: 900, href: "/work" },
-    { name: "Motion studio", line: "Product films, built frame by frame in code.", image: "/studio/composite.webp", width: 1585, height: 992, href: "/work/studio" },
+    { name: "Motion studio", line: "Product films, built frame by frame in code.", image: "/other/studio@2x.webp", width: 1672, height: 941, href: "/work/studio" },
     { name: "Class steward", line: "One place for the class to catch what matters.", image: "/other/steward@2x.webp", width: 1672, height: 941, href: "/school" },
   ],
 };
