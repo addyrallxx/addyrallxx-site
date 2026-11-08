@@ -13,8 +13,8 @@ function logoColor(slug: string) {
   const hex = skillColors[slug];
   const channels = [0, 2, 4].map(offset => parseInt(hex.slice(offset, offset + 2), 16) / 255).map(channel => channel <= .04045 ? channel / 12.92 : ((channel + .055) / 1.055) ** 2.4);
   const luminance = channels[0] * .2126 + channels[1] * .7152 + channels[2] * .0722;
-  // Paper #F3F0E8 has relative luminance .872.
-  return (.872 + .05) / (luminance + .05) < 3 ? "var(--ink)" : `#${hex}`;
+  // Use the field's conservative darkest luminance, not the paper behind it.
+  return (.29 + .05) / (luminance + .05) < 3 ? "var(--ink)" : `#${hex}`;
 }
 const positions = new Float64Array(items.length * 3);
 const centroids = new Float64Array(SKILLS.groups.length * 3);
@@ -45,7 +45,7 @@ export function Tools() {
     const tiles = Array.from(el.querySelectorAll<HTMLElement>("[data-sphere-item]"));
     const buttons = Array.from(controls.querySelectorAll<HTMLButtonElement>("button"));
     const buckets = new Int8Array(items.length).fill(-1);
-    const motion = matchMedia("(prefers-reduced-motion: reduce)"), phone = matchMedia("(max-width: 700px)");
+    const motion = matchMedia("(prefers-reduced-motion: reduce)"), phone = matchMedia("(max-width: 719px)");
     let rx = tilt, ry = 25 * Math.PI / 180, vx = 0, vy = 0, xSpeed = 0, last = 0, frame = 0, visible = false;
     let pinned = -1, preview = -1, selected = -1, hovered = false, spin = 1, turnAt = -1, fromX = rx, fromY = ry, toX = rx, toY = ry;
     let dragId = -1, dragX = 0, dragY = 0;

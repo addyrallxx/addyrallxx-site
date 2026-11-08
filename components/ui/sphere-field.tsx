@@ -67,14 +67,14 @@ export function SphereField() {
       material = new THREE.ShaderMaterial({ uniforms, vertexShader: "varying vec2 vUv; void main(){vUv=position.xy*.5+.5;gl_Position=vec4(position,1.);}", fragmentShader: fragment, depthTest: false, depthWrite: false });
       const scene = new THREE.Scene(), camera = new THREE.Camera();
       scene.add(new THREE.Mesh(geometry, material));
-      let bounds = el.getBoundingClientRect(), measuredScroll = window.scrollY, visible = false, disposed = false, last = 0;
+      let bounds = el.getBoundingClientRect(), measuredScroll = window.__lenis?.animatedScroll ?? window.scrollY, visible = false, disposed = false, last = 0;
       const target = new THREE.Vector2(.3, .5);
       const render = () => { gpu.render(scene, camera); el.dataset.paints = String(++paints); };
       let paints = 0;
       gpu.setPixelRatio(.5);
       const resize = () => {
         bounds = el.getBoundingClientRect();
-        measuredScroll = window.scrollY;
+        measuredScroll = window.__lenis?.animatedScroll ?? window.scrollY;
         const width = Math.max(1, bounds.width), height = Math.max(1, bounds.height);
         gpu.setSize(width, height);
         uniforms.uSize.value.set(width, height);
@@ -101,7 +101,7 @@ export function SphereField() {
         const scroll = window.__lenis?.animatedScroll ?? window.scrollY;
         target.set((event.clientX - bounds.left) / bounds.width, 1 - (event.clientY - bounds.top + scroll - measuredScroll) / bounds.height);
       };
-      const measure = () => { bounds = el.getBoundingClientRect(); measuredScroll = window.scrollY; };
+      const measure = () => { bounds = el.getBoundingClientRect(); measuredScroll = window.__lenis?.animatedScroll ?? window.scrollY; };
       const leave = () => { target.set(.3, .5); };
       stop = () => {
         if (disposed) return;
