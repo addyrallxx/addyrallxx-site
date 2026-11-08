@@ -5,11 +5,25 @@ import { CONTACT, FOOTER, SITE } from "@/lib/content";
 import { SectionReveal } from "@/components/ui/section-reveal";
 import { GlyphPit } from "./glyph-pit";
 import { GradientMesh } from "@/components/ui/gradient-mesh";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import "./contact.css";
 
 // Reference B clips 12 and 13: a calm contact field followed by falling cutouts.
 export function Contact() {
   const [copied, setCopied] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const root = useRef<HTMLElement>(null);
+  useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger);
+    const media = gsap.matchMedia();
+    media.add("(prefers-reduced-motion: no-preference)", () => {
+      gsap.timeline({ scrollTrigger: { trigger: root.current!.querySelector(".contact-width"), start: "top 80%", once: true } })
+        .fromTo(root.current!.querySelector(".contact-width"), { "--contact-wdth": 75 }, { "--contact-wdth": 125, duration: .7, ease: "expo.out" })
+        .to(root.current!.querySelector(".contact-width"), { "--contact-wdth": 100, duration: .5, ease: "expo.out" });
+    }, root);
+    return () => media.revert();
+  }, []);
   useEffect(() => () => clearTimeout(timer.current), []);
   const copy = async () => {
     try {
@@ -19,13 +33,13 @@ export function Contact() {
       timer.current = setTimeout(() => setCopied(false), 2000);
     } catch { setCopied(false); }
   };
-  return <section id="contact" className="home-section contact" aria-labelledby="contact-heading">
+  return <section ref={root} id="contact" className="home-section contact" aria-labelledby="contact-heading">
     <GradientMesh place="contact" />
     <SectionReveal>
-      <h2 id="contact-heading" className="t-display-xl section-heading" aria-label={CONTACT.lines.join(" ")}>{CONTACT.lines.map((line, i) => <span className="section-line" aria-hidden="true" key={line} style={{ "--line-index": i } as React.CSSProperties}><span>{line}</span></span>)}</h2>
+      <h2 id="contact-heading" className="t-display-xl section-heading" aria-label={CONTACT.lines.join(" ")}>{CONTACT.lines.map((line, i) => <span className="section-line" aria-hidden="true" key={line} style={{ "--line-index": i } as React.CSSProperties}><span className={i === CONTACT.lines.length - 1 ? "contact-width" : undefined}>{line}</span></span>)}</h2>
       <p className="t-body section-body">{CONTACT.body}</p>
       <div className="contact-actions">
-        <button className="contact-pill email-copy t-small" type="button" aria-label={copied ? CONTACT.copied : CONTACT.copy} onClick={copy}><span aria-live="polite">{copied ? CONTACT.copied : SITE.email}</span></button>
+        <button className="contact-pill email-copy t-small" data-cursor="Open" type="button" aria-label={copied ? CONTACT.copied : CONTACT.copy} onClick={copy}><span aria-live="polite">{copied ? CONTACT.copied : SITE.email}</span></button>
         <a className="contact-mailto t-small" href={`mailto:${SITE.email}`}>{CONTACT.mail}</a>
       </div>
       <div className="contact-socials t-small">{SITE.links.filter(link => link.href).map(link => <a key={link.label} href={link.href} target="_blank" rel="noopener noreferrer">{link.label}</a>)}</div>

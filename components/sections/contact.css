@@ -1,0 +1,10 @@
+@layer components {
+  .contact.contact { background: #2340FF; color: #F3F0E8; --ink: #F3F0E8; --ink-2: #F3F0E8; --ink-3: #F3F0E8; --accent: #D7F26B; --line: rgb(243 240 232 / .3); }
+  .contact .contact-width { font-variation-settings: "wdth" var(--contact-wdth, 100); }
+  .contact .email-copy.contact-pill { color: #0A0F2C; background: #D7F26B; border: 1px solid #0A0F2C; box-shadow: none; }
+  .contact .email-copy.contact-pill:hover, .contact .email-copy.contact-pill:focus-visible { color: #0A0F2C; background: #F3F0E8; border-color: #0A0F2C; }
+  .contact .contact-mailto, .contact .contact-socials a, .contact .site-footer { color: #F3F0E8; }
+  .contact a:focus-visible, .contact button:focus-visible { outline: 2px solid #F3F0E8; outline-offset: 5px; }
+  .contact .mesh-contact .mesh-field { background: radial-gradient(ellipse at 15% 25%, #2340FF, transparent 65%), radial-gradient(ellipse at 80% 65%, rgb(26 44 184 / .8), transparent 65%), radial-gradient(ellipse at 40% 85%, rgb(185 168 255 / .18), transparent 70%), radial-gradient(ellipse at 90% 85%, rgb(215 242 107 / .35), transparent 22%); }
+  @media (prefers-reduced-motion: reduce) { .contact .contact-width { font-variation-settings: "wdth" 100; } }
+}
