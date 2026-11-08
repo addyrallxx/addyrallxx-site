@@ -47,7 +47,17 @@ export function Tools() {
     const panel = list.current!, media = gsap.matchMedia();
     media.add("(prefers-reduced-motion: no-preference)", () => {
       const flow = panel.querySelector(".skills-flow")!;
-      const gradient = gsap.to(flow, { backgroundPosition: "100% 100%", duration: 18, ease: "sine.inOut", repeat: -1, yoyo: true, paused: true });
+      const gradient = gsap.to(flow, { "--gradient-shift": -600, duration: 18, ease: "sine.inOut", repeat: -1, yoyo: true, paused: true });
+      // Each label samples the same panel-sized gradient without ancestor text clipping.
+      const measure = () => {
+        const bounds = panel.getBoundingClientRect();
+        panel.style.setProperty("--gradient-width", `${bounds.width}px`);
+        panel.style.setProperty("--gradient-height", `${bounds.height * 2.4}px`);
+        panel.querySelectorAll<HTMLElement>(".skill-ink").forEach(label => {
+          const r = label.getBoundingClientRect(); label.style.setProperty("--ink-x", `${bounds.left - r.left}px`); label.style.setProperty("--ink-y", `${bounds.top - r.top}px`);
+        });
+      };
+      const resizer = new ResizeObserver(measure); resizer.observe(panel);
       let visible = false;
       const sync = () => { if (visible && !document.hidden) gradient.resume(); else gradient.pause(); };
       const observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; sync(); });
@@ -57,7 +67,7 @@ export function Tools() {
         gsap.from(group, { y: 24, duration: .65, delay: index * .05, ease: "power3.out", scrollTrigger: { trigger: panel, start: "top 90%", once: true } });
         gsap.fromTo(group, { x: index % 2 ? 5 : -5 }, { x: index % 2 ? -5 : 5, ease: "none", scrollTrigger: { trigger: panel, start: "top bottom", end: "bottom top", scrub: .7 } });
       });
-      return () => { observer.disconnect(); document.removeEventListener("visibilitychange", sync); gradient.kill(); };
+      return () => { observer.disconnect(); resizer.disconnect(); document.removeEventListener("visibilitychange", sync); gradient.kill(); };
     }, panel);
     return () => media.revert();
   }, []);
@@ -85,7 +95,6 @@ export function Tools() {
       }
     };
     const tick = (now: number) => {
-      frame = 0;
       if (last && now - last < 1000 / 60 - .5) return;
       const dt = last ? Math.min((now - last) / 1000, .05) : 1 / 60; last = now;
       spin += ((hovered || selected >= 0 ? 0 : 1) - spin) * (1 - Math.exp(-dt * 10));
@@ -113,7 +122,7 @@ export function Tools() {
     };
     const select = () => {
       const next = preview >= 0 ? preview : pinned;
-      buttons.forEach((button, i) => button.setAttribute("aria-pressed", String(i === next)));
+      buttons.forEach((button, i) => button.setAttribute("aria-pressed", String(i === pinned)));
       if (next === selected) return;
       selected = next;
       tiles.forEach((tile, i) => { tile.dataset.selected = String(items[i].group === selected); });
@@ -165,7 +174,7 @@ export function Tools() {
           <span className="skill-icon" style={{ maskImage: `url(/icons/${item.slug}.svg)`, backgroundColor: logoColor(item.slug!) }} />
         </div>; })}
       </div><p className="t-label">{SKILLS.hint}</p></div>
-      <div className="skills-list" ref={list}><div className="skills-flow">{SKILLS.groups.map(group => <div key={group.title} className="skill-group"><h3><button type="button" className="t-label" aria-pressed="false">{group.title}</button></h3><ul>{group.items.map(item => <li className="t-small" key={item.name}><span>{item.name}</span></li>)}</ul></div>)}</div></div>
+      <div className="skills-list" ref={list}><div className="skills-flow">{SKILLS.groups.map(group => <div key={group.title} className="skill-group"><h3><button type="button" className="t-label" aria-pressed="false">{group.title}</button></h3><ul>{group.items.map(item => <li className="t-small" key={item.name}><span className="skill-ink">{item.name}</span></li>)}</ul></div>)}</div></div>
     </div>
   </SectionReveal></section>;
 }

@@ -149,17 +149,6 @@ async function sweepPage(p) {
   await sleep(800);
   check("no HTTP or runtime errors after whole-page lazy image sweep", errors.length === 0);
 }
-async function fanMatrices(p, hover) {
-  const matrices = await p.$$eval(".fan-card", cards => cards.map(card => {
-    const m = new DOMMatrix(getComputedStyle(card).transform); return [m.a, m.b, m.c, m.d, m.e, m.f];
-  }));
-  const values = hover ? [[-16, -16, 20], [0, 0, 4], [16, 16, 20]] : [[-8, 0, 0], [4, 0, 0], [9, 0, 0]];
-  check(`fan computed matrices match technique at ${hover ? "hover" : "rest"}`, matrices.length === 3 && matrices.every((m, i) => {
-    const [angle, x, y] = values[i], a = angle * Math.PI / 180;
-    const expected = [Math.cos(a), Math.sin(a), -Math.sin(a), Math.cos(a), x, y];
-    return m.every((v, j) => Math.abs(v - expected[j]) < .00001);
-  }));
-}
 async function f3Desktop(p) {
   check('Work has one card per project and no index numbers', await p.evaluate(count => document.querySelectorAll('#work .work-card').length === count && !document.querySelector('#work .index-number'), [...readFileSync('lib/content.ts', 'utf8').split('export const WORK: Project[] =')[1].split('export const CAR')[0].matchAll(/slug: /g)].length));
   await scrollTo(p, '#work', 100);
@@ -179,13 +168,11 @@ async function f3Desktop(p) {
   await p.setViewport({width:1000,height:900,deviceScaleFactor:1});
   await scrollTo(p, '.work-card:nth-child(2)', 240);
   await p.screenshot({path:join(tmpdir(),'claude/briefs/f11-work.png')});
-  await p.setViewport({width:1440,height:900,deviceScaleFactor:1});  await scrollTo(p, ".other-band", 180);
-  check('Other things has one accessible heading and a concise link name', await p.$eval('.other-band', el => el.getAttribute('aria-label') === el.querySelector('h2').getAttribute('aria-label') && el.querySelector('.card-fan').getAttribute('aria-hidden') === 'true' && el.querySelectorAll('h2:not([aria-hidden="true"])').length === 1));
-  await p.mouse.move(1, 100);
-  await sleep(450); await fanMatrices(p, false);
-  await p.hover(".other-band");
-  await sleep(500); await fanMatrices(p, true);
-  check("Other things renders three typographic cards as a set", await p.$$eval(".fan-card", cards => cards.length === 3 && cards.every(card => card.classList.contains("fan-type") && !card.querySelector('img') && card.title.length > 0 && card.scrollHeight <= card.clientHeight && getComputedStyle(card).backgroundColor === getComputedStyle(cards[0]).backgroundColor)));
+  await p.setViewport({width:1440,height:900,deviceScaleFactor:1}); await scrollTo(p, ".other-gallery", 180);
+  check('Other things has one accessible heading and three distinct links', await p.$eval('.other-gallery', el => el.querySelectorAll('h2').length === 1 && el.querySelectorAll('a.other-card').length === 3 && !el.querySelector('[aria-hidden="true"] h3')));
+  check('Other cards show sharp images and complete readable copy', await p.$$eval('.other-card', cards => cards.length === 3 && cards.every(card => card.querySelector('img').naturalWidth > 0 && card.querySelector('h3').textContent.length > 0 && card.querySelector('p').textContent.length > 0 && card.scrollHeight <= card.clientHeight)));
+  await p.hover('.other-card'); await sleep(600);
+  check('hover lifts the first card without covering adjacent copy', await p.$$eval('.other-card', cards => new DOMMatrix(getComputedStyle(cards[0]).transform).m42 < -10 && cards[0].getBoundingClientRect().right < cards[1].getBoundingClientRect().left));
   await sharp(await p.screenshot()).resize({ width: 1000 }).toFile(join(tmpdir(), "claude/briefs/f3-fan.png"));
 
 }

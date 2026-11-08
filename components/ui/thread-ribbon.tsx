@@ -85,7 +85,10 @@ export function ThreadRibbon() {
     const tick = () => {
       const now = performance.now(), dt = last ? Math.min((now - last) / 1000, .033) : 1 / 60;
       if (last && now - last < 16) return;
-      last = now; time += dt; shape(dt); paint();
+      last = now; time += dt;
+      const journey = ScrollTrigger.getById("journey");
+      if (journey) progress = journey.progress * .65;
+      shape(dt); paint();
     };
     const sync = () => {
       const run = ready && visible && !document.hidden && !motion.matches && !lost;
@@ -98,7 +101,7 @@ export function ThreadRibbon() {
       camera.aspect = bounds.width / Math.max(bounds.height, 1); camera.position.z = camera.aspect < 1 ? 24 : 15; camera.updateProjectionMatrix();
       if (ready && !lost) paint();
     };
-    const pointer = (e: PointerEvent) => { pointerX = ((e.clientX - bounds.left) / bounds.width - .5) * 14; pointerY = (.5 - (e.clientY - bounds.top) / bounds.height) * 7; pointerOn = true; };
+    const pointer = (e: PointerEvent) => { pointerX = ((e.clientX - bounds.left) / bounds.width - .5) * 14; pointerY = (.5 - e.clientY / innerHeight) * 7; pointerOn = true; };
     const enter = () => { bounds = el.getBoundingClientRect(); };
     const leave = () => { pointerOn = false; };
     const contextLost = (e: Event) => { e.preventDefault(); lost = true; el.dataset.ready = "false"; sync(); };
@@ -117,7 +120,7 @@ export function ThreadRibbon() {
       section.removeEventListener("pointerenter", enter); section.removeEventListener("pointermove", pointer); section.removeEventListener("pointerleave", leave);
       document.removeEventListener("visibilitychange", sync); motion.removeEventListener("change", sync);
       renderer.domElement.removeEventListener("webglcontextlost", contextLost); renderer.domElement.removeEventListener("webglcontextrestored", contextRestored);
-      geometry.dispose(); material.dispose(); renderer.dispose(); renderer.forceContextLoss(); renderer.domElement.remove();
+      geometry.dispose(); material.dispose(); renderer.dispose(); if (!renderer.getContext().isContextLost()) renderer.forceContextLoss(); renderer.domElement.remove();
     };
   }, []);
   return <div ref={host} className="thread-ribbon" aria-hidden="true"><svg viewBox="0 0 1000 400" className="ribbon-fallback"><path d="M-20 280C200 0 280 80 420 240S680 60 1020 200" fill="none" stroke="#8BC4E8" strokeWidth="20" /></svg></div>;
