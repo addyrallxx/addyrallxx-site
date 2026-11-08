@@ -47,7 +47,17 @@ try {
     check('keyboard control resumes video ' + width, await p.$eval('video', el => !el.paused));
     await p.$eval('.scroll-video-control', el => el.blur());
     await capture('video-' + width);
+    // Zipper: scroll through the Journey pin must scrub frames forward, and it idles offscreen.
+    const pin = await p.$eval('.journey', el => ({ start: el.getBoundingClientRect().top + scrollY, length: innerWidth * 1.4 }));
+    await p.evaluate(y => window.__lenis.scrollTo(y, { immediate: true }), pin.start + 1); await sleep(900);
+    await p.waitForFunction(() => document.querySelector('.journey-zipper').dataset.ready === 'true');
+    const zipStart = await p.$eval('.journey-zipper', el => ({ frame: +el.dataset.frame, running: el.dataset.running }));
+    await p.evaluate(y => window.__lenis.scrollTo(y, { immediate: true }), pin.start + pin.length * .9); await sleep(1400);
+    const zipEnd = await p.$eval('.journey-zipper', el => +el.dataset.frame);
+    console.log('ZIPPER', width, JSON.stringify({ zipStart, zipEnd }));
+    check('zipper scrubs forward through the pin ' + width, zipStart.running === 'true' && zipStart.frame <= 5 && zipEnd >= 100);
     await go('.other-band', width < 720 ? 100 : 120);
+    check('offscreen zipper stops ' + width, await p.$eval('.journey-zipper', el => el.dataset.running === 'false'));
     check('offscreen video pauses ' + width, await p.$eval('video', el => el.paused));
     await p.$$eval('.fan-card img', images => Promise.all(images.map(image => { image.loading = 'eager'; return image.decode(); })));
     const rest = await p.$$eval('.fan-card', cards => cards.map(card => getComputedStyle(card).transform));

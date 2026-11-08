@@ -27,6 +27,7 @@ try {
     await p.setViewport({width,height:1000,deviceScaleFactor:1});
     await p.goto(process.argv[2] || 'http://localhost:3100',{waitUntil:'networkidle0'});
     check('identity '+width, await p.$eval('h1', e=>e.getAttribute('aria-label') === 'Written in Calgary. Running in Dhaka.'));
+    // RETIRED 2026-11-08: wave 3 audit only. Ribbon, four-photo E92 and card checks are obsolete; wave4-check.mjs covers the zipper.
     await p.waitForFunction(()=>document.documentElement.dataset.intro==='done'); await sleep(2000);
     await capture('hero-'+width);
     check('clock digits stay on one baseline '+width,await p.$$eval('.clock-digits',es=>es.every(e=>getComputedStyle(e).display.endsWith('flex')&&getComputedStyle(e).whiteSpace==='nowrap'&&e.getBoundingClientRect().height<=Math.max(...Array.from(e.children,c=>c.getBoundingClientRect().height))+2)));
