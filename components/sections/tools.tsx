@@ -46,28 +46,22 @@ export function Tools() {
     gsap.registerPlugin(ScrollTrigger);
     const panel = list.current!, media = gsap.matchMedia();
     media.add("(prefers-reduced-motion: no-preference)", () => {
-      const flow = panel.querySelector(".skills-flow")!;
-      const gradient = gsap.to(flow, { "--gradient-shift": -600, duration: 18, ease: "sine.inOut", repeat: -1, yoyo: true, paused: true });
-      // Each label samples the same panel-sized gradient without ancestor text clipping.
-      const measure = () => {
-        const bounds = panel.getBoundingClientRect();
-        panel.style.setProperty("--gradient-width", `${bounds.width}px`);
-        panel.style.setProperty("--gradient-height", `${bounds.height * 2.4}px`);
-        panel.querySelectorAll<HTMLElement>(".skill-ink").forEach(label => {
-          const r = label.getBoundingClientRect(); label.style.setProperty("--ink-x", `${bounds.left - r.left}px`); label.style.setProperty("--ink-y", `${bounds.top - r.top}px`);
-        });
-      };
-      const resizer = new ResizeObserver(measure); resizer.observe(panel);
-      let visible = false;
-      const sync = () => { if (visible && !document.hidden) gradient.resume(); else gradient.pause(); };
-      const observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; sync(); });
-      observer.observe(panel);
-      document.addEventListener("visibilitychange", sync);
-      panel.querySelectorAll<HTMLElement>(".skill-group").forEach((group, index) => {
-        gsap.from(group, { y: 24, duration: .65, delay: index * .05, ease: "power3.out", scrollTrigger: { trigger: panel, start: "top 90%", once: true } });
-        gsap.fromTo(group, { x: index % 2 ? 5 : -5 }, { x: index % 2 ? -5 : 5, ease: "none", scrollTrigger: { trigger: panel, start: "top bottom", end: "bottom top", scrub: .7 } });
+      const labels = Array.from(panel.querySelectorAll<HTMLElement>(".skill-ink"));
+      const widths = labels.map(label => gsap.quickTo(label, "--row-wdth", { duration: .4, ease: "power2.out" }));
+      let lastWidth = 100;
+      ScrollTrigger.create({ trigger: panel, start: "top bottom", end: "bottom top", onUpdate: self => {
+        const width = 100 + Math.min(Math.abs(self.getVelocity()) * .02, 18);
+        if (Math.abs(width - lastWidth) < .2) return;
+        lastWidth = width; widths.forEach(update => update(width));
+      }, onLeave: () => widths.forEach(update => update(100)), onLeaveBack: () => widths.forEach(update => update(100)) });
+      panel.querySelectorAll<HTMLElement>(".skill-group").forEach(group => {
+        gsap.fromTo(group.querySelectorAll(".skill-ink"), { y: 14 }, { y: 0, duration: .7, stagger: .04, ease: "expo.out", scrollTrigger: { trigger: group, start: "top 90%", once: true } });
       });
-      return () => { observer.disconnect(); resizer.disconnect(); document.removeEventListener("visibilitychange", sync); gradient.kill(); };
+      const observer = new IntersectionObserver(([entry]) => { panel.dataset.visible = String(entry.isIntersecting); });
+      const sync = () => { panel.dataset.paused = String(document.hidden); };
+      observer.observe(panel); sync(); document.addEventListener("visibilitychange", sync);
+      return () => { observer.disconnect(); document.removeEventListener("visibilitychange", sync); delete panel.dataset.visible; delete panel.dataset.paused; };
+
     }, panel);
     return () => media.revert();
   }, []);
@@ -173,7 +167,7 @@ export function Tools() {
           <span className="skill-icon" style={{ maskImage: `url(/icons/${item.slug}.svg)`, backgroundColor: logoColor(item.slug!) }} />
         </div>; })}
       </div><p className="t-label">{SKILLS.hint}</p></div>
-      <div className="skills-list" ref={list}><div className="skills-flow">{SKILLS.groups.map(group => <div key={group.title} className="skill-group"><h3><button type="button" className="t-label" aria-pressed="false">{group.title}</button></h3><ul>{group.items.map(item => <li className="t-small" key={item.name}><span className="skill-ink">{item.name}</span></li>)}</ul></div>)}</div></div>
+      <div className="skills-list" ref={list}><div className="skills-duotone" aria-hidden="true"><span /><span /></div><div className="skills-flow">{SKILLS.groups.map(group => <div key={group.title} className="skill-group"><h3><button type="button" className="t-label" aria-pressed="false">{group.title}</button></h3><ul>{group.items.map(item => <li className="t-small" key={item.name}><span className="skill-ink">{item.name}</span></li>)}</ul></div>)}</div></div>
     </div>
   </SectionReveal></section>;
 }

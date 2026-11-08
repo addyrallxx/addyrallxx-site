@@ -1,16 +1,23 @@
 @layer components {
-  html .skills-list { display: block; background: #2340FF; color: #F3F0E8; padding: clamp(24px, 3vw, 48px); border-radius: 20px; }
+  html .skills-list { position: relative; isolation: isolate; overflow: hidden; display: block; background: #0A0F2C; color: #F3F0E8; padding: clamp(24px, 3vw, 48px); border-radius: 20px; }
+  .skills-duotone { position: absolute; inset: 0; overflow: hidden; z-index: -1; pointer-events: none; }
+  .skills-duotone span { position: absolute; inset: -30%; background: radial-gradient(ellipse, rgb(35 64 255 / .7), transparent 60%); transform: translate(-25%,-25%); animation: tool-cobalt 26s ease-in-out infinite alternate paused; }
+  .skills-duotone span:last-child { background: radial-gradient(ellipse, rgb(110 18 48 / .55), transparent 60%); transform: translate(25%,25%); animation-name: tool-bordeaux; }
+  .skills-list::after { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: url('/textures/paper-grain-01.webp') repeat; opacity: .05; }
+  .skills-list[data-visible="true"][data-paused="false"] .skills-duotone span { animation-play-state: running; }
   .skills-flow { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 24px; }
-  .skill-ink { background: linear-gradient(120deg, #FFF8E4, #DCEBFF, #EFFFCF, #FFF8E4); background-size: var(--gradient-width, 600px) var(--gradient-height, 2000px); background-position: var(--ink-x, 0px) calc(var(--ink-y, 0px) + var(--gradient-shift, 0px)); background-clip: text; -webkit-text-fill-color: transparent; }
+  .skill-ink { background: linear-gradient(120deg, #F1E3C2, #D7F26B, #F3F0E8); background-clip: text; -webkit-text-fill-color: transparent; font-variation-settings: "wdth" var(--row-wdth, 100); letter-spacing: -.01em; }
   .skill-group { min-width: 0; }
-  html .skills-list h3 { color: #F3F0E8; -webkit-text-fill-color: #F3F0E8; }
+  html .skills-list h3 { width: fit-content; background: #0A0F2C; color: rgb(243 240 232 / .64); -webkit-text-fill-color: currentColor; }
   html .skills-list button { color: inherit; font-size: 11px; letter-spacing: .07em; padding: 0; }
   html .skills-list button[aria-pressed="true"] { color: #F3F0E8; text-decoration: underline; text-underline-offset: 6px; }
   .skills-list button:focus-visible { outline: 2px solid #F3F0E8; outline-offset: 4px; }
-  html .skills-list li { font-family: var(--font-display), sans-serif; font-size: clamp(16px, 1.5vw, 23px); line-height: 1.25; font-weight: 600; }
-  .skills-list li > span { display: inline-block; transition: transform .3s var(--ease-out); }
-  @media (hover: hover) and (prefers-reduced-motion: no-preference) { .skills-list li:hover > span { transform: translateX(4px); } }
+  html .skills-list li { overflow: hidden; font-family: var(--font-display), sans-serif; font-size: clamp(16px, 1.5vw, 23px); line-height: 1.25; font-weight: 600; }
+  .skills-list li > span { display: inline-block; transition: font-variation-settings 260ms ease-out, letter-spacing 260ms ease-out; }
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) { .skills-list .skill-ink:hover { font-variation-settings: "wdth" 125; letter-spacing: .02em; } }
   @media (max-width: 719px) { .skills-flow { gap: 28px 18px; } html .skills-list li { font-size: 17px; } }
-  @media (prefers-reduced-motion: reduce) { .skills-list li > span { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { .skills-list li > span { transition: none; font-variation-settings: "wdth" 100; } .skills-duotone span { animation: none; } }
   @media (forced-colors: active) { .skill-ink { background: none; -webkit-text-fill-color: CanvasText; } html .skills-list h3 { -webkit-text-fill-color: CanvasText; } }
+  @keyframes tool-cobalt { to { transform: translate(0,0); } }
+  @keyframes tool-bordeaux { to { transform: translate(10%,5%); } }
 }
