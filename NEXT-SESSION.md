@@ -1,5 +1,18 @@
 # Portfolio rebuild handoff
 
+## 2026-11-07 Wave 3 final release
+
+This is current; all sections below are historical. Application implementation through a3798bb is pushed to level4 and main, with Vercel production READY and 20 hosted Chrome checks passing at https://addyrallxx-site.vercel.app.
+
+- Completed round2/3: readable three-image Other Things cards, kinetic gradient tool panel preserving all six groups, four full-section service colour floods and vivid editorial media, live satin thread ribbon in Journey (not a globe), verbatim Info bio with 2028/timeline composition, and complete E92 photo framing. Approved sphere gradient retained.
+- Inherited Wave3 video, larger nav, route curtains, Method copy and palette work were preserved. Source and both Puzzled outputs remain 1024x576, 30fps, 58s; H264 retains 1740 frames with faststart. q90 images retain native detail.
+- Root review fixes include leaf text clipping, shared 60Hz cadence, hidden/offscreen/reduced gates, service contrast, phone footer clearance, clock glyph alignment, true city endpoint framing, correct marquee intrinsic content height and E92 x/xPercent ownership. Removed a legacy numeric school result and repaired copy-gate Unicode regex/canaries.
+- Final source gates: TypeScript, copy-gate, targeted ESLint and production build pass. Local real Chrome: 69 dedicated + 239 Level4 + 46 Wave2 + 35 field/video checks pass. All ten frame configurations pass; normal p95 4.3 to 4.5ms, worst 4x 20.9ms, no long tasks. Concurrent field/video: 180 video frames in six seconds, zero drops, p95 4.4ms. Ribbon paints 360 to 361 frames per six-second sample at normal and 4x on desktop/phone.
+- Gemini code, test, privacy and visual outputs were independently checked and verdict-stamped. Final visual review found zero blockers across fresh 1440/390 DPR1 captures. Reports distinguish earlier failed attempts from the final serial pass.
+- Reports: wave3-report.md and docs/wave3-levelup-audit.md. Full evidence: C:/Users/adnan/AppData/Local/Temp/claude/briefs/w2/wave3-final-*.log, wave3-round3/ and wave3-hosted/. Local server 33692 is stopped and port 3100 is clear; all owned browsers closed.
+- Physical phone and Safari are not verified. Untracked PNG originals with WebP twins, showcase-safe videos and two zero-byte SVGs remain excluded. No new dependency, paid asset/API, purchase, stash, broad staging or force push.
+
+
 ## 2026-11-07 Wave 3: premium motion and media
 
 This section is current. All sections below describe historical checkpoints. Implementation through `13b4b04` is committed and pushed to `level4`. Main promotion is pending the final serial browser gate.
