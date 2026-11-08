@@ -1,18 +1,44 @@
 @layer components {
-  .other-gallery > h2 { margin-bottom: clamp(32px, 5vw, 72px); }
-  @media (min-width: 720px) { .other-gallery > h2 { margin-bottom: clamp(64px, 6vw, 88px); } }
-  .other-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(16px, 2vw, 32px); perspective: 1200px; }
-  .other-card { display: flex; flex-direction: column; min-width: 0; background: var(--surface); color: var(--ink); border-radius: 18px; overflow: hidden; transition: transform .5s var(--ease-out); }
-  .other-image { aspect-ratio: 16/10; display: grid; place-items: center; background: var(--bg); }
-  .other-image img { display: block; width: 100%; height: 100%; object-fit: contain; }
-  .other-copy { padding: clamp(20px, 2vw, 32px); }
-  .other-copy p { margin-top: 12px; max-width: 28ch; color: var(--ink-2); }
-  .other-card:focus-visible { outline: 3px solid var(--accent); outline-offset: 6px; }
-  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-    .other-card:nth-child(1):hover { transform: translate3d(0,-12px,12px) rotate(-2deg); }
-    .other-card:nth-child(2):hover { transform: translate3d(0,-12px,24px); }
-    .other-card:nth-child(3):hover { transform: translate3d(0,-12px,12px) rotate(2deg); }
+  .other-band { display: flex; align-items: center; justify-content: center; gap: clamp(20px, 4vw, 64px); padding: 96px 0; border: 1px solid var(--line); border-radius: var(--r-md); }
+  .fan-composition { position: relative; flex: none; width: 494px; height: 460px; display: grid; place-items: center; }
+  .card-fan { position: relative; width: 260px; height: 210px; transform: scale(1.9); }
+  .fan-depth { position: absolute; inset: 0; }
+  .fan-card { position: absolute; border-radius: 10px; box-shadow: 0 24px 48px -20px rgba(10,15,44,.45); transition: transform .4s cubic-bezier(.4,0,.2,1); }
+  .fan-card:nth-child(1) { left: 6px; top: 34px; width: 130px; height: 160px; transform: rotate(-8deg); }
+  .fan-card:nth-child(2) { left: 70px; top: 8px; width: 130px; height: 170px; transform: rotate(4deg); }
+  .fan-card:nth-child(3) { right: 6px; top: 36px; width: 120px; height: 134px; transform: rotate(9deg); }
+  .fan-face { position: relative; height: 100%; overflow: hidden; border-radius: inherit; transition: transform .4s cubic-bezier(.4,0,.2,1); }
+  .fan-face::after { content: ""; position: absolute; inset: 0; border: 1px solid rgba(10,15,44,.12); border-radius: inherit; pointer-events: none; }
+  .fan-face img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .fan-card:nth-child(2) .fan-face { transition-delay: 30ms; }
+  .fan-card:nth-child(3) .fan-face { transition-delay: 60ms; }
+  .fan-captions { position: absolute; bottom: 0; left: 50%; translate: -50% 0; width: max-content; max-width: 100%; text-align: center; }
+  .fan-captions span { display: block; transition: opacity .4s cubic-bezier(.4,0,.2,1); }
+  .fan-captions span:last-child { position: absolute; inset: 0; opacity: 0; white-space: nowrap; }
+  .fan-links { list-style: none; }
+  .fan-links a:focus-visible { position: relative; clip: auto; width: auto; height: auto; margin: 8px; padding: 12px; overflow: visible; display: inline-flex; outline: 2px solid var(--accent); }
+  @media (min-width: 720px) and (prefers-reduced-motion: no-preference) {
+    .other-band:focus-visible .fan-card:nth-child(1) { transform: translate(-16px,20px) rotate(-16deg); }
+    .other-band:focus-visible .fan-card:nth-child(2) { transform: translate(0,4px) rotate(0); }
+    .other-band:focus-visible .fan-card:nth-child(3) { transform: translate(16px,20px) rotate(16deg); }
+    .other-band:focus-visible .fan-face { transform: translateY(-4px); }
+    .other-band:focus-visible .fan-captions span:first-child { opacity: 0; }
+    .other-band:focus-visible .fan-captions span:last-child { opacity: 1; }
   }
-  @media (max-width: 719px) { .other-grid { grid-template-columns: 1fr; gap: 28px; } .other-copy { padding: 24px; } }
-  @media (prefers-reduced-motion: reduce) { .other-card { transition: none; } }
+  @media (hover: hover) and (min-width: 720px) and (prefers-reduced-motion: no-preference) {
+    .other-band:hover .fan-card:nth-child(1) { transform: translate(-16px,20px) rotate(-16deg); }
+    .other-band:hover .fan-card:nth-child(2) { transform: translate(0,4px) rotate(0); }
+    .other-band:hover .fan-card:nth-child(3) { transform: translate(16px,20px) rotate(16deg); }
+    .other-band:hover .fan-face { transform: translateY(-4px); }
+    .other-band:hover .fan-captions span:first-child { opacity: 0; }
+    .other-band:hover .fan-captions span:last-child { opacity: 1; }
+  }
+  @media (min-width: 720px) and (max-width: 1100px) { .other-band > .t-display-l { font-size: 7vw; } .other-band { gap: 12px; } }
+  @media (max-width: 719px) {
+    .other-band { flex-direction: column; gap: 24px; padding: 48px 0; }
+    .fan-composition { width: 100%; height: 330px; }
+    .card-fan { transform: scale(1.3); }
+    .fan-captions { font-size: 12px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .fan-card, .fan-face, .fan-captions span { transition: none; } }
 }
