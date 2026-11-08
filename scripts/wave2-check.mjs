@@ -55,19 +55,22 @@ try {
   check('pinned stage paints only the current and preceding beats', await p.$$eval('.work-card', cards => cards.filter(card => getComputedStyle(card).visibility !== 'hidden').length <= 2 && cards.find(card => !card.inert)?.dataset.visible === 'true'));
   // The Studio mask finishes at .65; measure its link after it is actually exposed.
   await go(work + (studioIndex + .8) * 900);
-  const magnet = await p.evaluate(() => {
+  const magnet = await p.evaluate(async () => {
     const native = Element.prototype.getBoundingClientRect;
     let reads = 0, inertReads = 0;
     Element.prototype.getBoundingClientRect = function () {
       if (this.matches('.work-pill')) { reads++; if (this.closest('[inert]')) inertReads++; }
       return native.call(this);
     };
-    try { window.dispatchEvent(new PointerEvent('pointermove', { clientX:500, clientY:450, pointerType:'mouse' })); }
+    try {
+      for (let i = 0; i < 100; i++) window.dispatchEvent(new PointerEvent('pointermove', { clientX:500, clientY:450, pointerType:'mouse' }));
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    }
     finally { Element.prototype.getBoundingClientRect = native; }
     return { reads, inertReads };
   });
   console.log('magnet measurements', magnet);
-  check('magnet pointer samples measure only the active Work link', magnet.reads === 1 && magnet.inertReads === 0);
+  check('100 pointer samples coalesce to one active Work link measurement', magnet.reads === 1 && magnet.inertReads === 0);
   for (const slug of ['totaltex-ops', 'totaltex-web', 'fittrack', 'handled', 'sadman']) {
     const index = WORK.findIndex(item => item.slug === slug);
     await go(work + (index + .8) * 900);

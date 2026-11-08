@@ -264,16 +264,11 @@ async function sphereChecks(p) {
     return style.borderWidth === '0px' && style.backgroundColor === 'rgba(0, 0, 0, 0)' && icon.width === (innerWidth < 720 ? '32px' : '42px') && icon.maskImage !== 'none' && icon.backgroundColor !== 'rgba(0, 0, 0, 0)';
   }) && new Set(logos.map(logo => getComputedStyle(logo.querySelector('.skill-icon')).backgroundColor)).size > 3));
   check('SQL stays in the list and off the globe', await p.evaluate(() => [...document.querySelectorAll('.skills-list li')].some(li => li.textContent === 'SQL') && !document.querySelector('[data-sphere-item][aria-label="SQL"]')));
-  const colours = JSON.parse(readFileSync('lib/skill-colors.ts', 'utf8').split('= ')[1].replace(/;\s*$/, ''));
-  check('logo colours follow 3:1 contrast against paper ground', await p.$$eval('[data-sphere-item]', (logos, colours) => logos.every(logo => {
-    const hex = colours[logo.dataset.slug];
-    const channels = [0,2,4].map(i => parseInt(hex.slice(i,i+2),16)/255).map(c => c <= .04045 ? c/12.92 : ((c+.055)/1.055)**2.4);
-    const probe = document.createElement('span');
-    probe.style.color = (.872 + .05) / (channels[0]*.2126 + channels[1]*.7152 + channels[2]*.0722 + .05) < 3 ? 'var(--ink)' : '#'+hex;
-    document.body.append(probe); const colour = getComputedStyle(probe).color; probe.remove();
-    return getComputedStyle(logo.querySelector('.skill-icon')).backgroundColor === colour;
-  }), colours));
-  check('TypeScript and Kotlin retain their brand fills', await p.evaluate(() => getComputedStyle(document.querySelector('[data-slug="typescript"] .skill-icon')).backgroundColor === 'rgb(49, 120, 198)' && getComputedStyle(document.querySelector('[data-slug="kotlin"] .skill-icon')).backgroundColor === 'rgb(127, 82, 255)'));
+  check('logo fills clear 3:1 against the darkest sphere field', await p.$$eval('.skill-icon', icons => icons.every(icon => {
+    const channels = getComputedStyle(icon).backgroundColor.match(/[\d.]+/g).slice(0, 3).map(c => +c / 255).map(c => c <= .04045 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4);
+    const luminance = channels[0] * .2126 + channels[1] * .7152 + channels[2] * .0722;
+    return (.29 + .05) / (luminance + .05) >= 3;
+  })));
   check('unselected globe depth opacity stays between .45 and 1', await p.$$eval('[data-sphere-item]', logos => logos.every(logo => +logo.style.opacity >= .45 && +logo.style.opacity <= 1)));
   check("sphere DOM stays flat over 3s idle spin", Math.abs(after.nodes - before.nodes) <= 5 && before.transform !== after.transform);
   await p.$eval('.skills-list button', el => el.click());

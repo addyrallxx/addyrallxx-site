@@ -1,5 +1,17 @@
 # Portfolio rebuild handoff
 
+## 2026-11-07 Wave 3: premium motion and media
+
+This section is current. All sections below describe historical checkpoints. Implementation through `13b4b04` is committed and pushed to `level4`. Main promotion is pending the final serial browser gate.
+
+- Shipped to previews: the inherited Wave 2 integration, native Puzzled video re-encodes, layered cobalt/navy route curtain, larger navigation rail, half-resolution lit WebGL surface behind the skill globe, eased cursor attraction, scroll drift, bounded object perspective, shorter resume-tone Method copy and clearer ink hierarchy.
+- Video source is natively 1024x576, 30fps, 58s. H264 CRF18 slow with faststart and VP9 CRF28 retain that resolution and cadence. Images retain complete frames and q90 responsive delivery from integration. No synthetic upscale, new dependency, paid asset or Pro component.
+- Gemini reviews were checked against source and actual Chrome captures. Fixed route backplate geometry, active-nav and phone focus contrast, fan transform ownership across widths, sphere alignment and field stacking, phone projection breakpoint, field-aware icon contrast, settled small-text hinges and clipped glyphs, mobile clock city labels and lifecycle cleanup. Quiet hero space, intentional type occlusion and the pinned video stage remain authored choices.
+- Source gates pass: typecheck, copy-gate, production build and targeted ESLint. Method copy passes deslop 5/5. Latest dedicated Chrome suite passes 34 checks, including a visible native-video clone running concurrently with the active field: p95 4.4ms, no long tasks. The production player retains its offscreen pause gate. Final Level 4 and Wave 2 suites are running serially; this is not yet a production acceptance claim.
+- Tests now check actual logo fill contrast against the field's conservative minimum luminance .29, retaining the 3:1 graphical threshold. Some brand fills switch to ink for contrast. The former exact TypeScript/Kotlin-on-paper assertions were replaced by the stronger actual-background check. Text thresholds remain 4.5:1; frame limits remain 16.7ms normal, 33ms at 4x CPU and 50ms maximum long task. Magnetic tests verify 100 events coalesce to one active read and no inert reads.
+- Evidence and plan: `C:/Users/adnan/AppData/Local/Temp/claude/briefs/w2/wave3-plan.md`, `wave3-report.md`, `wave3-check.log`, `wave3-verify.log`, `wave3-wave2-check.log`, and DPR 1 captures in `wave3/`. Preview branch alias: https://addyrallxx-site-git-level4-addyrallxxs-projects.vercel.app.
+- Retained exclusions: original PNG twins, showcase-safe videos and the two zero-byte SVGs remain untracked. Do not stage them. Physical phone and Safari checks remain open. Final cleanup and hosted smoke follow release.
+
 ## 2026-11-07 wave 2 (uncommitted)
 
 This is the current working-tree handoff. Older sections below describe historical builds. HEAD remains fb90d30; this integration run did not stage, commit or push.
