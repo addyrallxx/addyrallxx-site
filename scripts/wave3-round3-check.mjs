@@ -13,6 +13,7 @@ const errors = [];
 try {
   const p = await browser.newPage();
   p.on('pageerror', e => errors.push(String(e)));
+  p.on('console', e => { if(e.type()==='error') errors.push(e.text()); });
   p.on('response', r => { if (r.status() >= 400) errors.push(r.status() + ' ' + r.url()); });
   const top = selector => p.$eval(selector, e => e.getBoundingClientRect().top + scrollY);
   const go = async y => { await p.evaluate(y => window.__lenis ? window.__lenis.scrollTo(y, { immediate: true }) : window.scrollTo(0,y), y); await sleep(1400); };
@@ -23,7 +24,7 @@ try {
     check('identity '+width, await p.$eval('h1', e=>e.getAttribute('aria-label') === 'Written in Calgary. Running in Dhaka.'));
     await p.waitForFunction(()=>document.documentElement.dataset.intro==='done'); await sleep(2000);
     await capture('hero-'+width);
-    check('clock digits stay on one baseline '+width,await p.$$eval('.clock-digits',es=>es.every(e=>getComputedStyle(e).display==='inline-flex'&&getComputedStyle(e).whiteSpace==='nowrap')));
+    check('clock digits stay on one baseline '+width,await p.$$eval('.clock-digits',es=>es.every(e=>getComputedStyle(e).display.endsWith('flex')&&getComputedStyle(e).whiteSpace==='nowrap'&&e.getBoundingClientRect().height<=Math.max(...Array.from(e.children,c=>c.getBoundingClientRect().height))+2)));
     for (const [name,selector] of [['work','.work-stack'],['other','.other-gallery'],['journey','.journey'],['alongside','#side-heading'],['taste','#taste'],['tools','.tools'],['method','#method'],['info','#info'],['e92','#e92'],['contact','#contact']]) {
       if (!await p.$(selector)) continue;
       await go(await top(selector)-110);
@@ -67,7 +68,7 @@ try {
         const pin=await p.$eval('.journey',e=>{const parent=e.parentElement;return {start:parent.getBoundingClientRect().top+scrollY,distance:parent.offsetHeight-e.offsetHeight};});
         if(pin.distance>0){await go(pin.start+pin.distance*.99);await capture('journey-arrival-'+width);}
       }
-      if(name==='e92'&&width===1440){const pin=await p.$eval('#e92',e=>{const parent=e.parentElement;return {start:parent.getBoundingClientRect().top+scrollY,distance:parent.offsetHeight-e.offsetHeight};});if(pin.distance>0){await go(pin.start+pin.distance*.5);await capture('e92-middle-'+width);await go(pin.start+pin.distance*.85);await capture('e92-details-'+width);}}
+      if(name==='e92'&&width===1440){const start=await top('#e92');await go(start+1000*3.2*.5);check('E92 mid-sequence capture contains the car',await p.$eval('.car-photo',e=>{const r=e.getBoundingClientRect();return r.bottom>0&&r.top<innerHeight;}));await capture('e92-middle-'+width);await go(start+1000*3.2*.85);await capture('e92-details-'+width);}
       if(name==='contact'){await go(await top('.glyph-pit')-180);await capture('contact-settled-'+width);}
     }
     for (let i=0;i<4;i++) { await go(await top('#svc-panel-'+(i+1))-150); await capture('services-'+i+'-'+width); check('full service copy '+i+' '+width,await p.$$eval('.svc-description',es=>es.every(e=>getComputedStyle(e).textOverflow!=='ellipsis'&&getComputedStyle(e).whiteSpace!=='nowrap'))); }
@@ -79,10 +80,15 @@ try {
     await p.emulateMediaFeatures([{name:'prefers-reduced-motion',value:'no-preference'}]);
   }
   const ratios = await p.evaluate(()=>{
-    const lum = h=>{const c=h.match(/../g).map(v=>parseInt(v,16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);return c[0]*.2126+c[1]*.7152+c[2]*.0722;};
+    const rgb = s=>s.match(/[\d.]+/g).slice(0,3).map(Number);
+    const lum = values=>{const c=values.map(v=>v/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);return c[0]*.2126+c[1]*.7152+c[2]*.0722;};
     const contrast=(a,b)=>(Math.max(lum(a),lum(b))+.05)/(Math.min(lum(a),lum(b))+.05);
-    return {tools:['FFF8E4','DCEBFF','EFFFCF'].map(h=>contrast(h,'2340FF')),services:['2340FF','0A0F2C','0E6B50','923B24'].map(h=>contrast('F3F0E8',h))};
+    const stops=[...getComputedStyle(document.querySelector('.skill-ink')).backgroundImage.matchAll(/rgb\([^)]+\)/g)].map(m=>rgb(m[0]));
+    const ground=rgb(getComputedStyle(document.querySelector('.skills-list')).backgroundColor);
+    const text=rgb(getComputedStyle(document.querySelector('.svc-row')).color);
+    const opacity=Math.min(...Array.from(document.querySelectorAll('.svc-row'),e=>+getComputedStyle(e).opacity));
+    return {tools:stops.flatMap((a,i)=>i?Array.from({length:33},(_,j)=>contrast(a.map((v,k)=>stops[i-1][k]+(v-stops[i-1][k])*j/32),ground)):[]),services:[...document.querySelectorAll('.svc-colour')].map(e=>{const g=rgb(getComputedStyle(e.dataset.svcColour==='2'?e.firstElementChild:e).backgroundColor);return contrast(text.map((v,i)=>v*opacity+g[i]*(1-opacity)),g);})};
   });
-  console.log('contrast',JSON.stringify(ratios));check('all gradient and section text >=4.5',Object.values(ratios).flat().every(n=>n>=4.5));
+  console.log('contrast',JSON.stringify({toolsMin:Math.min(...ratios.tools),services:ratios.services}));check('all rendered gradient and section text >=4.5',ratios.tools.length>=66&&ratios.services.length===4&&Object.values(ratios).flat().every(n=>n>=4.5));
   check('no runtime or HTTP errors',errors.length===0);console.log('passed',count);
 } finally { await browser.close(); }

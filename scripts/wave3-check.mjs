@@ -70,16 +70,17 @@ try {
       const frame = await p.evaluate(() => new Promise(resolve => {
         const frames = [], tasks = [], el = document.querySelector('.sphere-field'), video = document.querySelector('[data-wave3-video]');
         const initial = +el.dataset.paints, videoStart = video.currentTime;
-        let visible = !document.hidden, last, count = 0;
+        let visible = !document.hidden, last, start, count = 0;
         const visibility = () => { visible &&= !document.hidden; };
         document.addEventListener('visibilitychange', visibility);
         const observer = new PerformanceObserver(list => tasks.push(...list.getEntries().map(entry => entry.duration)));
         observer.observe({ type: 'longtask' });
         const sample = now => {
           if (last !== undefined) frames.push(now - last);
-          last = now;
+          last = now; start ??= now;
           document.querySelector('.tools').dispatchEvent(new PointerEvent('pointermove', { clientX: 350 + 200 * Math.sin(count / 25), clientY: 400 + 100 * Math.cos(count / 31) }));
-          if (++count < 600) requestAnimationFrame(sample);
+          count++;
+          if (now - start < 6000) requestAnimationFrame(sample);
           else {
             tasks.push(...observer.takeRecords().map(entry => entry.duration)); observer.disconnect(); document.removeEventListener('visibilitychange', visibility);
             frames.sort((a, b) => a - b);

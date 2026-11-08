@@ -10,7 +10,7 @@
     html .school-page .page-hero h1 { font-variation-settings: "wdth" 100; overflow-wrap: normal; }
     html .work-outline { font-size: clamp(32px, 10vw, 48px); overflow-wrap: normal; }
     html .home-section, html .hero { padding-left: max(20px, env(safe-area-inset-left)); padding-right: max(20px, env(safe-area-inset-right)); }
-    html .hero { min-height: 100svh; height: auto; padding-top: max(100px, calc(64px + env(safe-area-inset-top))); padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+    html .hero { min-height: 100svh; height: auto; padding-top: max(100px, calc(64px + env(safe-area-inset-top))); padding-bottom: calc(104px + env(safe-area-inset-bottom)); }
     html .chrome-top { top: max(12px, env(safe-area-inset-top)); }
     html .chrome-top::before { height: calc(96px + env(safe-area-inset-top)); background: linear-gradient(to bottom, var(--bg) 0 calc(64px + env(safe-area-inset-top)), transparent); }
     html .chrome-top, html .chrome-bottom { left: max(20px, env(safe-area-inset-left)); right: max(20px, env(safe-area-inset-right)); }
@@ -40,7 +40,7 @@
     html .e92 .car-caption .t-display-l { font-size: 12vw; }
     html .e92 .car-caption { right: var(--gutter); }
     html .glyph-pit { height: 300px; }
-    html .contact, html .project-page, html .work-page { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+    html .contact, html .project-page, html .work-page { padding-bottom: calc(104px + env(safe-area-inset-bottom)); }
     html .contact a, html .contact button, html .back-link, html .project-page a { min-width: 44px; min-height: 44px; }
     html .email-copy { min-width: 0; max-width: calc(100% - 6px); padding-inline: 16px; overflow-wrap: anywhere; }
     html .hero-facts > div, html .project-meta li { min-width: 0; }
