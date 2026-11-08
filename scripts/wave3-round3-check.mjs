@@ -38,6 +38,23 @@ try {
         check('ribbon animates with aligned strip columns '+width, await p.$eval('.thread-ribbon', e=>e.dataset.running==='true' && +e.dataset.indices%48===0));
         const paints=await p.$eval('.thread-ribbon', e=>+e.dataset.paints); await p.mouse.move(width*.5,600); await sleep(500);
         check('live ribbon paints '+width, await p.$eval('.thread-ribbon',(e,n)=>+e.dataset.paints>n,paints));
+        const cdp=await p.createCDPSession();
+        for(const rate of [1,4]) {
+          await cdp.send('Emulation.setCPUThrottlingRate',{rate});
+          const frame=await p.evaluate(()=>new Promise(resolve=>{
+            const frames=[],tasks=[],el=document.querySelector('.thread-ribbon'),initial=+el.dataset.paints;
+            let start,last,visible=!document.hidden;
+            const observer=new PerformanceObserver(list=>tasks.push(...list.getEntries().map(e=>e.duration)));observer.observe({type:'longtask'});
+            const sample=now=>{
+              visible&&=!document.hidden;if(last)frames.push(now-last);last=now;start??=now;
+              document.querySelector('.journey').dispatchEvent(new PointerEvent('pointermove',{clientX:innerWidth*(.5+.3*Math.sin(now/700)),clientY:innerHeight*(.5+.2*Math.cos(now/900))}));
+              if(now-start<6000)requestAnimationFrame(sample);else{tasks.push(...observer.takeRecords().map(e=>e.duration));observer.disconnect();frames.sort((a,b)=>a-b);resolve({p95:frames[Math.ceil(frames.length*.95)-1],maxTask:Math.max(0,...tasks),paints:+el.dataset.paints-initial,visible});}
+            };requestAnimationFrame(sample);
+          }));
+          console.log('RIBBON_FRAME',width,rate,JSON.stringify(frame));
+          check('ribbon frame budget and 60Hz cadence '+width+' '+rate,frame.visible&&frame.p95<=(rate===1?16.7:33)&&frame.maxTask<=50&&frame.paints>=320);
+        }
+        await cdp.send('Emulation.setCPUThrottlingRate',{rate:1});await cdp.detach();
       }
     }
     for (let i=0;i<4;i++) { await go(await top('#svc-panel-'+(i+1))-150); await capture('services-'+i+'-'+width); check('full service copy '+i+' '+width,await p.$$eval('.svc-description',es=>es.every(e=>getComputedStyle(e).textOverflow!=='ellipsis'&&getComputedStyle(e).whiteSpace!=='nowrap'))); }

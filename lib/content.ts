@@ -307,9 +307,9 @@ export const OTHER = {
   // Fan order is left, centre, right. The car has its own section now
   // (Adnan, 2026-10-10); all three cards are smaller builds.
   items: [
-    { name: "This site", line: "Design, code and motion. Every detail is mine.", image: "/other/site.webp", href: "/work" },
-    { name: "Motion studio", line: "Product films, built frame by frame in code.", image: "/studio/composite.webp", href: "/work/studio" },
-    { name: "Class steward", line: "One place for the class to catch what matters.", image: "/other/steward@2x.webp", href: "/school" },
+    { name: "This site", line: "Design, code and motion. Every detail is mine.", image: "/other/site.webp", width: 1440, height: 900, href: "/work" },
+    { name: "Motion studio", line: "Product films, built frame by frame in code.", image: "/studio/composite.webp", width: 1585, height: 992, href: "/work/studio" },
+    { name: "Class steward", line: "One place for the class to catch what matters.", image: "/other/steward@2x.webp", width: 1672, height: 941, href: "/school" },
   ],
 };
 

@@ -4,6 +4,9 @@
   .svc-colour-track { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
   .svc-colours { position: sticky; top: 0; height: 100svh; overflow: hidden; }
   .svc-colour { position: absolute; inset: 0; }
+  .svc-colour[data-svc-colour="1"] { clip-path: polygon(100% 100%, 100% 100%, 100% 100%); }
+  .svc-colour[data-svc-colour="2"] > span { transform: scaleY(0); }
+  .svc-colour[data-svc-colour="3"] { clip-path: ellipse(0% 0% at 75% 65%); }
   .svc-colour[data-svc-colour="2"] { display: flex; }
   .svc-colour > span { flex: 1; transform-origin: top; }
   .svc-sticky { position: sticky; top: 14vh; align-self: start; min-width: 0; }

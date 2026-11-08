@@ -84,7 +84,6 @@ export function ThreadRibbon() {
     const paint = () => { renderer.render(scene, camera); el.dataset.paints = String(Number(el.dataset.paints || 0) + 1); };
     const tick = () => {
       const now = performance.now(), dt = last ? Math.min((now - last) / 1000, .033) : 1 / 60;
-      if (last && now - last < 16) return;
       last = now; time += dt;
       const journey = ScrollTrigger.getById("journey");
       if (journey) progress = journey.progress * .65;
