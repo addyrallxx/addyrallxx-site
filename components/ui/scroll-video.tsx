@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type CSSProperties, type JSX } from "react
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { usePrefersReducedMotion } from "./use-reduced-motion";
+import { VIDEO_CONTROL } from "@/lib/content";
 import "./scroll-video.css";
 
 export type ScrollVideoProps = { mp4: string; webm?: string; poster: string; label: string; aspect?: string; className?: string };
@@ -13,11 +14,18 @@ export function ScrollVideo({ mp4, webm, poster, label, aspect = "16 / 9", class
   const video = useRef<HTMLVideoElement>(null);
   const reduced = usePrefersReducedMotion();
   const [playing, setPlaying] = useState(false);
+  const paused = useRef(false);
+  const toggle = () => {
+    const player = video.current!;
+    paused.current = !player.paused;
+    if (player.paused) void player.play().catch(() => {});
+    else player.pause();
+  };
   useEffect(() => {
     const el = root.current!, player = video.current!;
     let visible = false, loaded = false;
     const play = () => { void player.play().catch(() => { /* Keep the poster when autoplay is unavailable. */ }); };
-    const sync = () => { if (visible && !document.hidden && !reduced && !el.closest("[inert]")) play(); else player.pause(); };
+    const sync = () => { if (visible && !document.hidden && !reduced && !paused.current && !el.closest("[inert]")) play(); else player.pause(); };
     const near = new IntersectionObserver(entries => {
       if (!loaded && entries.some(entry => entry.isIntersecting)) {
         loaded = true; player.preload = "metadata"; player.load(); sync(); near.disconnect();
@@ -43,12 +51,12 @@ export function ScrollVideo({ mp4, webm, poster, label, aspect = "16 / 9", class
     return () => { media.revert(); near.disconnect(); observer.disconnect(); active.disconnect(); document.removeEventListener("visibilitychange", sync); player.pause(); };
   }, [mp4, webm, reduced]);
   return <figure ref={root} className={`scroll-video ${className}`} style={{ "--video-aspect": aspect } as CSSProperties}>
-    <div className="scroll-video-frame">
+    <div className="scroll-video-frame" data-cursor="Play" onClick={toggle}>
       <video ref={video} muted playsInline loop preload="none" poster={poster} aria-label={label} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)}>
         {webm && <source src={webm} type="video/webm" />}<source src={mp4} type="video/mp4" />
       </video>
-      <button type="button" className="scroll-video-control" aria-label={label} aria-pressed={playing} onClick={event => { event.preventDefault(); event.stopPropagation(); const player = video.current!; if (player.paused) void player.play().catch(() => {}); else player.pause(); }}>
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">{playing ? <><rect x="5" y="4" width="5" height="16" /><rect x="14" y="4" width="5" height="16" /></> : <path d="M6 3 21 12 6 21Z" />}</svg>
+      <button type="button" className="scroll-video-control sr-only" aria-pressed={playing} onClick={event => { event.stopPropagation(); toggle(); }}>
+        {playing ? VIDEO_CONTROL.pause : VIDEO_CONTROL.play}
       </button>
     </div><figcaption className="t-small">{label}</figcaption>
   </figure>;

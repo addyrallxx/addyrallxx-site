@@ -5,7 +5,8 @@
   .work[data-pinned] .work-card.work-stage { background: var(--panel); }
   .work[data-pinned] .work-card-content { height: 100%; }
   .work[data-pinned] .work-card[data-visible="false"] { visibility: hidden; }
-  .work[data-pinned] .work-stage .work-card-content { padding: 100px 4vw 60px; gap: 24px; }
+  .work[data-pinned] .work-stage .work-card-content { padding: 0 4vw; gap: 24px; justify-content: flex-start; }
+  .work[data-pinned] .work-stage .work-media { margin-top: calc(54svh - min(850px, 75vw) * 9 / 32); }
   .work[data-pinned] .work-stage .work-media { width: min(850px, 75vw); }
   .work[data-pinned] .work-stage .work-copy { width: min(850px, 75vw); }
   .work[data-pinned] .work-stage .work-line, .work[data-pinned] .work-stage .work-tags, .work[data-pinned] .work-stage h3 { display: none; }
@@ -67,7 +68,7 @@
   .work-phone .work-media-inner img { object-fit: contain; }
   @media (max-width: 719px) {
     .work-phone .work-media { height: 70svh; min-height: 400px; }
-    .work-stage .work-card-content { padding-top: 140px; padding-bottom: 48px; gap: 32px; }
+    .work-stage .work-card-content { padding-top: calc(54svh - min(1100px, 88vw) * 9 / 32); padding-bottom: 48px; gap: 32px; }
     .work-stage .work-stage-name { top: 72px; }
   }
   @media (prefers-reduced-motion: reduce) {

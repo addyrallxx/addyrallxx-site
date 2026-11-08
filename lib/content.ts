@@ -300,6 +300,8 @@ export const CAR = {
   signOff: "Bernina Grey. RB twins. Bad intentions.",
 };
 
+export const VIDEO_CONTROL = { play: "Play video", pause: "Pause video" };
+
 export const OTHER = {
   left: "Other",
   right: "Things",
