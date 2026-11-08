@@ -7,7 +7,7 @@
   .lit-text { display: block; contain: paint; transform: translateZ(0); pointer-events: none; color: var(--ink); }
   .section-atmosphere { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
   .section-atmosphere > div { position: absolute; inset: 0; opacity: 0; }
-  .kinetic-marquee { width: 100%; overflow: hidden; padding: 3vw 0; contain: paint; content-visibility: auto; contain-intrinsic-size: auto 18.6vw; pointer-events: none; }
+  .kinetic-marquee { width: 100%; overflow: hidden; padding: 3vw 0; contain: paint; content-visibility: auto; contain-intrinsic-size: auto 12.6vw; pointer-events: none; }
   .marquee-track, .marquee-copy { display: flex; width: max-content; }
   .marquee-item { font-family: var(--font-display), sans-serif; font-weight: 800; font-variation-settings: "wdth" 125; font-size: 12vw; line-height: 1.05; text-transform: uppercase; white-space: nowrap; color: transparent; -webkit-text-stroke: 1px var(--ink-3); }
   .marquee-filled { color: var(--ink); -webkit-text-stroke: 0; }

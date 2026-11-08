@@ -35,7 +35,7 @@
     html .work-follower { display: none; }
     html .work-stack { padding-bottom: 0; }
     html .marquee-item { font-size: 9vw; }
-    html .kinetic-marquee { contain-intrinsic-size: auto 15.45vw; }
+    html .kinetic-marquee { contain-intrinsic-size: auto 9.45vw; }
     html .e92 .car-photo { height: 76vw; }
     html .e92 .car-caption .t-display-l { font-size: 12vw; }
     html .e92 .car-caption { right: var(--gutter); }
