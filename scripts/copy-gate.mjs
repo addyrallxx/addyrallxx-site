@@ -28,12 +28,12 @@ const shipped = src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, ""
 const RULES = [
   {
     name: "em dash",
-    re: /â€”/g,
+    re: /\u2014/g,
     why: "Adnan's standing rule across every project. Use periods, commas, colons, parentheses.",
   },
   {
     name: "en dash used as punctuation",
-    re: /â€“/g,
+    re: /\u2013/g,
     why: "Same rule.",
   },
   {
@@ -95,8 +95,8 @@ const CANARY = `
   That system caught an earlier AI handover inventing revenue figures.
   This runs a real factory and it is not finished.
   Passionate about seamlessly crafting beautiful experiences.
-  A quiet moment â€” and then the rest.
-  Open Mayâ€“August, every year, without fail.
+  A quiet moment \u2014 and then the rest.
+  Open May\u2013August, every year, without fail.
   Read PLAN.md section 7 before shipping chunk 2.
 `;
 // Every rule now has a line in the canary, so any miss is a broken rule.
