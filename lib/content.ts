@@ -331,7 +331,9 @@ export const METHOD = {
 
 export const INFO = {
   label: "Info",
-  bio: "Born in Dhaka. A Bangladeshi citizen studying computer science in Calgary, graduating April 2028. I co-run Puzzled, I'm the named successor at TotalTex, the trims factory my father founded, and I'm looking for a summer 2027 internship.",
+  bio: "Born in Dhaka, studying computer science in Calgary. I co-run Puzzled, a digital BDC for Calgary car dealerships, and I'm next in line to run TotalTex, the trims factory my father built. I write the software both businesses run on, and I care how it looks. Graduating April 2028, looking for a summer 2027 internship.",
+  year: "2028",
+  yearLabel: "University of Calgary / April",
   lists: [
     {
       label: "Now",
