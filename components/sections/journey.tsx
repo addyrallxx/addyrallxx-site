@@ -5,7 +5,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { CHROME } from "@/lib/content";
 import "./journey.css";
-import { ThreadRibbon } from "@/components/ui/thread-ribbon";
+import { JourneyZipper } from "@/components/ui/journey-zipper";
 
 export function Journey() {
   const root = useRef<HTMLElement>(null);
@@ -23,7 +23,7 @@ export function Journey() {
     return () => media.revert();
   }, []);
   return <section className="journey" ref={root} aria-label={CHROME.clocks.slice().reverse().map(clock => clock.city).join(" / ")}>
-    <ThreadRibbon />
+    <JourneyZipper />
     <div className="journey-track">{CHROME.clocks.slice().reverse().map(clock => <div className="journey-place" key={clock.city}>
       <h2 className="journey-title t-display-xl">{clock.city}</h2>
     </div>)}</div>
