@@ -22,6 +22,9 @@
   .flap-card[data-flipping] { perspective: 400px; }
   .flap-card[data-flipping]::before { content: attr(data-glyph); }
   .flap-card::after { content: ""; position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #0A0A0A; }
+  /* Keep the mechanical flip, then let small text settle into a clean reading state. */
+  .split-flap[data-settled="true"] .flap-card { background: transparent; border-color: transparent; }
+  .split-flap[data-settled="true"] .flap-card::after { opacity: 0; }
   .flap-face { position: absolute; left: 0; right: 0; height: 50%; overflow: hidden; backface-visibility: hidden; background: color-mix(in srgb, var(--bg) 94%, white); }
   .flap-face::before { content: attr(data-glyph); position: absolute; left: 50%; transform: translateX(-50%); height: 200%; line-height: 1.35; }
   .flap-top { top: 0; transform-origin: center bottom; border-radius: 2px 2px 0 0; }

@@ -57,5 +57,11 @@
     html .chrome-top a, html .chrome-top button { min-height: 44px; }
     html .chrome-name a { font-size: 16px; }
     html .chrome-nav > button, html .chrome-nav > button:hover, html .chrome-nav > button:focus-visible { padding-inline: 16px; background: var(--ink); color: var(--bg); }
+    html .chrome-bottom { flex-wrap: wrap; row-gap: 4px; }
+    html .chrome-bottom .clocks { width: 100%; justify-content: space-between; gap: 12px; }
+    html .chrome-bottom .clock { gap: 4px; }
+    html .chrome-bottom .clock-city { display: inline; font-size: 11px; }
+    html .chrome-bottom .clock-period { font-size: 10px; }
+    html .chrome-bottom .availability { width: 100%; justify-content: center; }
   }
 }
