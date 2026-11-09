@@ -118,6 +118,10 @@ try {
     });
     measurements.contrast.push(...glyphContrast);
     check('glyph labels clear 4.5 against their actual fills ' + width, glyphContrast.length === 10 && glyphContrast.every(pair => pair.ratio >= 4.5));
+    check('glyphs use all six bright fills with different consecutive neighbours ' + width, await p.$$eval('.falling-glyph', nodes => {
+      const fills = nodes.map(node => getComputedStyle(node).backgroundColor);
+      return new Set(fills).size === 6 && fills.every((fill, i) => !i || fill !== fills[i - 1]);
+    }));
     check('no horizontal overflow ' + width, await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     await p.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]); await sleep(500);
     await go('#svc-panel-3');

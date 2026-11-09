@@ -9,9 +9,8 @@ import "./glyph-pit.css";
 const bangla = Noto_Sans_Bengali({ weight: "700", subsets: ["bengali"], display: "swap" });
 const glyphs = ["অ", "✦", "&", "{ }", "৳", "A", "S", "→", "★", "$"];
 const sizes = [120, 84, 150, 96, 110, 136, 124, 86, 64, 104];
-const night = ["#FF4A12", "#FFC233", "#2EC4B6", "#7C5CFF", "#FF5D8F", "#2EA8FF", "#9BE564", "#1C69D4", "#FF8C2E", "#E8E6E3"];
-// Preserve each hue and saturation, with day lightness at 90%.
-const day = ["#FFD8CC", "#FFF0CC", "#D6F5F2", "#D6CCFF", "#FFCCDC", "#CCEAFF", "#E3F8D3", "#D2E2F9", "#FFE3CC", "#E8E6E3"];
+const fills = ["#D7F26B", "#F3F0E8", "#F1E3C2", "#6E1230", "#0A0F2C", "#FF7A59"];
+const inks = ["#0A0F2C", "#0A0F2C", "#0A0F2C", "#F3F0E8", "#D7F26B", "#0A0F2C"];
 
 export function GlyphPit() {
   const pit = useRef<HTMLDivElement>(null);
@@ -77,5 +76,5 @@ export function GlyphPit() {
     motion.addEventListener("change", run); document.addEventListener("visibilitychange", visibility);
     return () => { disposed = true; stop(); resize.disconnect(); observer.disconnect(); motion.removeEventListener("change", run); document.removeEventListener("visibilitychange", visibility); };
   }, []);
-  return <div className="glyph-pit" ref={pit} aria-hidden="true">{glyphs.map((glyph, i) => <span key={glyph} className={`falling-glyph ${i === 0 || i === 4 ? bangla.className : ""}`} style={{ "--glyph-night": night[i], "--glyph-day": day[i], "--glyph-ink": i === 7 ? "#F5F3EE" : "#0A0A0A", fontSize: `calc(${sizes[i]} * .9 / 1440 * (100vw - 2 * var(--gutter)))` } as CSSProperties}>{glyph}</span>)}</div>;
+  return <div className="glyph-pit" ref={pit} aria-hidden="true">{glyphs.map((glyph, i) => <span key={glyph} className={`falling-glyph ${i === 0 || i === 4 ? bangla.className : ""}`} style={{ "--glyph-fill": fills[i % fills.length], "--glyph-ink": inks[i % inks.length], fontSize: `calc(${sizes[i]} * .9 / 1440 * (100vw - 2 * var(--gutter)))` } as CSSProperties}>{glyph}</span>)}</div>;
 }

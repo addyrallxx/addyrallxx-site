@@ -1,4 +1,4 @@
 @layer theme, base, components, utilities;
 @layer components {
-  .glyph-pit .falling-glyph { color: #0A0A0A; background: var(--glyph-day); padding: .18em; border: 3px solid #0A0A0A; border-radius: 16px; box-shadow: 6px 6px 0 #0A0A0A; cursor: default; touch-action: auto; pointer-events: none; }
+  .glyph-pit .falling-glyph { color: var(--glyph-ink); background: var(--glyph-fill); padding: .18em; border: 3px solid #0A0A0A; border-radius: 16px; box-shadow: 6px 6px 0 #0A0A0A; cursor: default; touch-action: auto; pointer-events: none; }
 }
