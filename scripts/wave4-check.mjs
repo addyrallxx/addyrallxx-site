@@ -9,10 +9,11 @@ const output = 'C:/Users/adnan/AppData/Local/Temp/claude/briefs/w4';
 mkdirSync(output, { recursive: true });
 const base = process.argv[2] ?? 'http://localhost:3100';
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
-const measurements = { video: [], contrast: [], services: [], assets: [] };
+const measurements = { video: [], contrast: [], services: [], assets: [], navigation: [] };
 const errors = [];
+const failures = [];
 let checks = 0;
-const check = (name, value) => { assert.ok(value, name); checks++; console.log('ok', name); };
+const check = (name, value) => { checks++; if (!value) failures.push(name); console.log(value ? 'ok' : 'FAIL', name); };
 const luminance = rgb => rgb.map(c => { c /= 255; return c <= .04045 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4; }).reduce((sum, c, i) => sum + c * [.2126, .7152, .0722][i], 0);
 const rgb = hex => hex.match(/../g).map(channel => parseInt(channel, 16));
 const contrast = (a, b) => (Math.max(luminance(a), luminance(b)) + .05) / (Math.min(luminance(a), luminance(b)) + .05);
@@ -27,10 +28,21 @@ try {
     await sleep(1400);
   };
   const capture = async name => sharp(await p.screenshot()).resize({ width: 1000, withoutEnlargement: true }).toFile(output + '/' + name + '.png');
+  await p.setViewport({ width: 1920, height: 960, deviceScaleFactor: 1 });
+  await p.goto(base, { waitUntil: 'domcontentloaded' });
+  assert.ok(await p.evaluate(() => document.querySelector('.chrome-name')?.textContent === 'Adnan Shakib' && !!document.querySelector('.hero h1')), 'Abort: portfolio identity missing');
+  await p.waitForFunction(() => document.documentElement.dataset.intro === 'done');
+  await sleep(2400);
+  check('1920 hero portal is loaded behind the headline', await p.$eval('.hero-portal', el => {
+    const image = el.querySelector('img');
+    return image.complete && image.naturalWidth > 0 && getComputedStyle(el).zIndex === '-1' && getComputedStyle(el.parentElement).isolation === 'isolate';
+  }));
+  await capture('hero-1920');
   for (const [width, height] of [[1440, 900], [390, 844]]) {
     await p.setViewport({ width, height, deviceScaleFactor: 1 });
     await p.goto(base, { waitUntil: 'networkidle0' });
-    check('portfolio identity ' + width, await p.$eval('.hero h1', el => /Calgary/i.test(el.getAttribute('aria-label')) && /Dhaka/i.test(el.getAttribute('aria-label'))));
+    assert.ok(await p.evaluate(() => document.querySelector('.chrome-name')?.textContent === 'Adnan Shakib' && !!document.querySelector('.hero h1')), 'Abort: portfolio identity missing ' + width);
+    check('portfolio identity ' + width, true);
     await p.waitForFunction(() => document.documentElement.dataset.intro === 'done');
     await go('.work-stack');
     const frame = await p.$eval('.scroll-video-frame', el => { const r = el.getBoundingClientRect(), chrome = document.querySelector('.chrome-bottom').getBoundingClientRect(); return { width: innerWidth, height: innerHeight, top: r.top, bottom: r.bottom, centre: (r.top + r.bottom) / 2, centrePercent: (r.top + r.bottom) / 2 / innerHeight * 100, below: innerHeight - r.bottom, chromeTop: chrome.top, chromeVisible: getComputedStyle(document.querySelector('.chrome-bottom')).visibility }; });
@@ -151,6 +163,7 @@ try {
     };
     const aligned = async id => {
       const positions = await p.evaluate(id => ({ heading: document.querySelector('#' + id + ' h2').getBoundingClientRect().top, header: document.querySelector('.chrome-top').getBoundingClientRect().bottom, scroll: scrollY, lenis: !!window.__lenis }), id);
+      measurements.navigation.push({ width, id, ...positions });
       console.log('ANCHOR', width, id, JSON.stringify(positions));
       check(id + ' heading lands below header with Lenis ' + width, positions.lenis && Math.abs(positions.heading - positions.header - 16) <= 3);
       await sleep(400);
@@ -172,8 +185,9 @@ try {
   for (const foreground of ['F3F0E8', 'F1E3C2', 'D7F26B']) for (const ground of ['0A0F2C', '2340FF']) { const ratio = contrast(rgb(foreground), rgb(ground)); measurements.contrast.push({ pair: '#' + foreground + ' on #' + ground, ratio }); check('tool colour contrast ' + foreground + ' on ' + ground, ratio >= 4.5); }
   for (const file of ['public/services/automation@2x.webp', 'public/services/dealership@2x.webp', 'public/other/steward@2x.webp', 'public/other/studio@2x.webp', 'public/e92/v2/profile.webp', 'public/e92/v2/profile-small.webp', 'public/e92/v2/profile.jpg']) { const meta = await sharp(file).metadata(); measurements.assets.push({ file, width: meta.width, height: meta.height }); check('image metadata ' + file, file.includes('e92') ? meta.width === (file.includes('small') ? 1600 : 3024) : meta.width === (file.includes('automation') || file.includes('steward') ? 1536 : 1672) && meta.height === (file.includes('automation') || file.includes('steward') ? 864 : 941)); }
   check('zero console runtime and HTTP errors', errors.length === 0);
-  console.log(checks + ' Wave 4 checks passed');
+  console.log((checks - failures.length) + '/' + checks + ' checks passed');
+  assert.equal(failures.length, 0, failures.join('\n'));
 } finally {
-  writeFileSync(output + '/codex-a-measurements.json', JSON.stringify({ ...measurements, errors }, null, 2));
+  writeFileSync(output + '/codex-a-measurements.json', JSON.stringify({ ...measurements, errors, failures }, null, 2));
   await browser.close();
 }
