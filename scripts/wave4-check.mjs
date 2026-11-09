@@ -154,6 +154,7 @@ try {
     };
     await clickNav('/school');
     check('School route works ' + width, await p.evaluate(() => location.pathname === '/school' && !!document.querySelector('.school-page h1')));
+    check('School keeps only the Archivo university heading ' + width, await p.evaluate(() => !document.querySelector('.school-ascii, .ascii-row') && document.querySelectorAll('.school-page h1').length === 1 && !!document.querySelector('.course-tree')));
     await clickNav('/');
     await clickNav('/school');
     await clickNav('/#info'); await aligned('info');

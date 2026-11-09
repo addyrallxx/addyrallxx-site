@@ -1,8 +1,5 @@
 @layer components {
-  .school-ascii, .course-tree { font-family: ui-monospace, "Cascadia Mono", Menlo, monospace; }
-  .school-ascii { max-width: 100%; color: var(--ink); opacity: .9; margin-bottom: var(--u); }
-  .ascii-row { font: inherit; font-size: var(--ascii-size, clamp(6px, .78vw, 11px)); line-height: 1; white-space: pre; width: max-content; margin: 0; }
-  .ascii-row:nth-child(5n + 6) { margin-top: 1em; }
+  .course-tree { font-family: ui-monospace, "Cascadia Mono", Menlo, monospace; }
   .course-tree { font-size: 16px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
   .course-tree ul { list-style: none; margin: 0; padding: 0; }
   .course-tree > ul > li { position: relative; padding-left: 4ch; }
