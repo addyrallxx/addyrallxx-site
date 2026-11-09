@@ -26,7 +26,7 @@ try {
   for (const width of [1440, 390]) {
     await p.setViewport({ width, height: 1000, deviceScaleFactor: 1 });
     await p.goto(base, { waitUntil: 'domcontentloaded' });
-    check('portfolio identity ' + width, await p.$eval('h1', el => el.getAttribute('aria-label') === 'Written in Calgary. Running in Dhaka.'));
+    check('portfolio identity ' + width, await p.$eval('h1', el => el.getAttribute('aria-label') === "Hi, I'm Adnan. Here's my work."));
     await p.waitForFunction(() => document.documentElement.dataset.intro === 'done');
     await sleep(2200);
     await capture('hero-' + width);

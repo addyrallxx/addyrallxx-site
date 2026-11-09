@@ -20,7 +20,7 @@ export const SITE = {
     { label: "WhatsApp", href: "https://wa.me/15878941429" },
   ] satisfies Link[],
   description:
-    "Adnan Shakib, UCalgary computer science student. Builds software for a Calgary dealership business and a Dhaka garment factory. Open to summer 2027 internships.",
+    "Adnan Shakib's portfolio: computer science at UCalgary, co-founder of Puzzled, next in line at TotalTex. Projects, resume and contact. Open to summer 2027 internships.",
 };
 
 export const NAV = [
@@ -44,8 +44,8 @@ export const CHROME = {
 };
 
 export const HERO = {
-  lines: ["Written in Calgary.", "Running in Dhaka."],
-  lead: "I'm Adnan Shakib. I build the software two businesses run on: listings for car dealerships in Alberta and BC, and orders and billing for a garment factory in Dhaka. Slow, ugly or vague means it isn't done.",
+  lines: ["Hi, I'm Adnan.", "Here's my work."],
+  lead: "I study computer science at the University of Calgary and co-run Puzzled, a listings business for car dealerships in Alberta and BC. I'm also next in line to run TotalTex, my family's garment trims factory in Dhaka.",
   // The resume line. A recruiter gets who, where, when and what next
   // before scrolling, so the display line never has to carry it.
   facts: [
@@ -333,7 +333,7 @@ export const METHOD = {
 
 export const INFO = {
   label: "Info",
-  bio: "Born in Dhaka, studying computer science in Calgary. I co-run Puzzled, a digital BDC for Calgary car dealerships, and I'm next in line to run TotalTex, the trims factory my father built. I write the software both businesses run on, and I care how it looks. Graduating April 2028, looking for a summer 2027 internship.",
+  bio: "I grew up in Dhaka and came to Calgary to study computer science. I graduate in April 2028. I co-founded Puzzled, which puts car dealerships' inventory online and handles the leads it brings in. In Dhaka, I'm the named successor at TotalTex, the trims factory my father built. I write the software both businesses run on, and I care how it looks. My other project is my E92, a 2008 BMW 335xi I've mostly built myself. I'm looking for a summer 2027 internship.",
   year: "2028",
   yearLabel: "University of Calgary / April",
   lists: [

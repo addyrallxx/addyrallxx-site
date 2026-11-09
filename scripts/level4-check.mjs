@@ -628,7 +628,7 @@ try {
   check("visible real Chrome before measurement", await p.evaluate(() => document.hidden === false));
   await p.waitForFunction(() => Number(document.querySelector(".intro-counter")?.dataset.value) >= 58, { timeout: 6000 });
   await sharp(await p.screenshot()).resize({ width: 1000 }).toFile(join(tmpdir(), "claude/briefs/f2-intro.png"));
-  check("identity", await p.$eval("h1", (el) => el.getAttribute("aria-label") === "Written in Calgary. Running in Dhaka."));
+  check("identity", await p.$eval("h1", (el) => el.getAttribute("aria-label") === "Hi, I'm Adnan. Here's my work."));
   await p.waitForFunction(() => document.documentElement.dataset.intro === "done", { timeout: 6000 });
   await sleep(1100);
   const info = await p.evaluate(() => ({
