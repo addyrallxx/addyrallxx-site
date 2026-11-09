@@ -47,13 +47,30 @@ export function PageTransition({ children }: { children: ReactNode }) {
     if (!pending.current || !panel.current) return;
     const word = panel.current.querySelector<HTMLElement>(".route-name")!;
     const letters = Array.from(word.querySelectorAll<HTMLElement>(".route-letter"));
-    // Reserve the final glyph widths so the axis sweep never shifts adjacent letters.
-    letters.forEach(letter => { letter.style.width = ""; });
-    word.style.setProperty("--route-width", "118");
-    const widths = letters.map(letter => letter.getBoundingClientRect().width);
-    letters.forEach((letter, i) => { letter.style.width = `${widths[i]}px`; });
-    word.style.setProperty("--route-width", "100");
+    const fit = () => {
+      const title = word.parentElement!;
+      if (!title.clientWidth) return;
+      const axis = word.style.getPropertyValue("--route-width");
+      word.style.fontSize = "";
+      letters.forEach(letter => { letter.style.width = ""; });
+      word.style.setProperty("--route-width", "118");
+      const size = parseFloat(getComputedStyle(word).fontSize);
+      const padding = getComputedStyle(title);
+      const available = title.clientWidth - parseFloat(padding.paddingLeft) - parseFloat(padding.paddingRight);
+      const natural = letters.reduce((sum, letter) => sum + letter.getBoundingClientRect().width, 0);
+      word.style.fontSize = `${size * Math.min(1, available / natural)}px`;
+      // Reserve widths at the widest axis so the sweep never shifts glyph slots.
+      const widths = letters.map(letter => letter.getBoundingClientRect().width);
+      letters.forEach((letter, i) => { letter.style.width = `${widths[i]}px`; });
+      word.style.setProperty("--route-width", axis || "100");
+    };
+    fit();
+    const resize = new ResizeObserver(fit);
+    resize.observe(word.parentElement!);
+    let disposed = false;
+    void document.fonts.ready.then(() => { if (!disposed) fit(); });
     gsap.set(word.querySelectorAll(".route-letter > span"), { yPercent: 110 });
+    return () => { disposed = true; resize.disconnect(); };
   }, [name]);
   useEffect(() => {
     const target = pending.current, timeline = animation.current;

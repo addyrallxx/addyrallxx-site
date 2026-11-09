@@ -4,8 +4,9 @@
   .route-panel.route-panel { z-index: 50; color: #0A0F2C; }
   .route-backplate[hidden], .route-panel[hidden] { display: none; }
   .route-shape { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; fill: currentColor; }
-  .route-title { position: relative; height: 100%; display: flex; align-items: center; padding: max(24px, 6vw); color: #F3F0E8; }
+  .route-title { position: relative; height: 100%; display: flex; align-items: center; justify-content: center; padding: max(24px, 6vw); color: #F3F0E8; }
   .route-name { font-family: var(--font-display), sans-serif; font-weight: 800; font-size: clamp(72px, 14vw, 220px); font-variation-settings: "wdth" var(--route-width, 100); line-height: .95; color: #F3F0E8; text-shadow: none; }
+  .route-name { flex: none; white-space: nowrap; width: max-content; }
   .route-name > span { display: block; }
   .route-letter { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .12em; margin-bottom: -.12em; }
   .route-letter > span { display: block; }

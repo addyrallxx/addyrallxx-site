@@ -126,9 +126,24 @@ try {
     check('reduced tool names stay at width 100 ' + width, await p.$$eval('.skill-ink', nodes => nodes.every(node => getComputedStyle(node).fontVariationSettings === '"wdth" 100')));
     await p.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'no-preference' }]);
     const clickNav = async href => {
+      await p.evaluate(() => {
+        window.__curtainFit = null;
+        window.addEventListener('route:covered', () => {
+          const word = document.querySelector('.route-name');
+          const axis = word.style.getPropertyValue('--route-width');
+          const slots = [...word.querySelectorAll('.route-letter')];
+          const before = slots.map(el => el.getBoundingClientRect().width);
+          word.style.setProperty('--route-width', '118');
+          const rect = word.getBoundingClientRect();
+          window.__curtainFit = { name: word.textContent, fits: rect.left >= 23 && rect.right <= innerWidth - 23, centred: Math.abs((rect.left + rect.right) / 2 - innerWidth / 2) < 2, oneLine: slots.every(el => Math.abs(el.getBoundingClientRect().top - slots[0].getBoundingClientRect().top) < 1), stable: slots.every((el, i) => el.getBoundingClientRect().width === before[i]) };
+          word.style.setProperty('--route-width', axis);
+        }, { once: true });
+      });
       await p.$eval((href === '/work' ? '' : '.chrome-top ') + 'a[href="' + href + '"]', el => el.click());
       await p.waitForFunction(() => !document.documentElement.dataset.transition);
       await sleep(1800);
+      const fit = await p.evaluate(() => window.__curtainFit);
+      if (fit) check('curtain fits at width 118 with stable slots: ' + fit.name + ' ' + width, fit.fits && fit.centred && fit.oneLine && fit.stable);
     };
     const aligned = async id => {
       const positions = await p.evaluate(id => ({ heading: document.querySelector('#' + id + ' h2').getBoundingClientRect().top, header: document.querySelector('.chrome-top').getBoundingClientRect().bottom, scroll: scrollY, lenis: !!window.__lenis }), id);
@@ -139,6 +154,8 @@ try {
     };
     await clickNav('/school');
     check('School route works ' + width, await p.evaluate(() => location.pathname === '/school' && !!document.querySelector('.school-page h1')));
+    await clickNav('/');
+    await clickNav('/school');
     await clickNav('/#info'); await aligned('info');
     await clickNav('/#contact'); await aligned('contact');
     await clickNav('/work');
