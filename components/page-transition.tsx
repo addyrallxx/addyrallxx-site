@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { usePrefersReducedMotion } from "@/components/ui/use-reduced-motion";
 import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { NAV, SCHOOL, SITE, WORK } from "@/lib/content";
 import "./page-transition.css";
 
@@ -15,6 +16,7 @@ export function PageTransition({ children }: { children: ReactNode }) {
   const router = useRouter(), pathname = usePathname(), reduced = usePrefersReducedMotion();
   const panel = useRef<HTMLDivElement>(null), content = useRef<HTMLDivElement>(null), backplate = useRef<HTMLDivElement>(null);
   const [name, setName] = useState("");
+  const [scrollRequest, setScrollRequest] = useState(0);
   const pending = useRef<{ path: string; hash: string } | null>(null);
   const animation = useRef<gsap.core.Timeline | null>(null);
   const headingTween = useRef<gsap.core.Tween | null>(null);
@@ -53,12 +55,27 @@ export function PageTransition({ children }: { children: ReactNode }) {
     word.style.setProperty("--route-width", "100");
     gsap.set(word.querySelectorAll(".route-letter > span"), { yPercent: 110 });
   }, [name]);
-  useLayoutEffect(() => {
+  useEffect(() => {
     const target = pending.current, timeline = animation.current;
-    if (!target || target.path !== pathname || !timeline) return;
+    if (!target || target.path !== pathname) return;
+    let cancelled = false;
+    const frame = () => new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+    void (async () => {
+    await document.fonts.ready;
+    await frame(); await frame();
+    if (cancelled || pending.current !== target) return;
+    // Destination effects install pins before we measure the final heading position.
+    gsap.registerPlugin(ScrollTrigger);
+    ScrollTrigger.refresh();
+    await frame();
+    if (cancelled || pending.current !== target) return;
     const anchor = target.hash ? document.getElementById(decodeURIComponent(target.hash.slice(1))) : null;
-    if (window.__lenis) { window.__lenis.resize(); window.__lenis.scrollTo(anchor ?? 0, { immediate: true, force: true }); }
-    else if (anchor) anchor.scrollIntoView(); else window.scrollTo(0, 0);
+    const destination = anchor?.querySelector<HTMLElement>("h1, h2") ?? anchor;
+    const header = document.querySelector(".chrome-top")?.getBoundingClientRect();
+    const y = destination ? destination.getBoundingClientRect().top + window.scrollY - (header?.bottom ?? 80) - 16 : 0;
+    if (window.__lenis) { window.__lenis.resize(); window.__lenis.scrollTo(y, { immediate: true, force: true }); }
+    else window.scrollTo(0, y);
+    if (!timeline) { reset(); destination?.setAttribute("tabindex", "-1"); destination?.focus({ preventScroll: true }); return; }
     const heading = content.current?.querySelector<HTMLElement>("h1");
     heading?.classList.add("route-heading-rise");
     const lines = heading?.querySelectorAll<HTMLElement>(".section-line > span, .hero-line > span");
@@ -78,14 +95,23 @@ export function PageTransition({ children }: { children: ReactNode }) {
       if (targets) headingTween.current = gsap.to(targets, { yPercent: 0, duration: .6, ease: "expo.out", onComplete: () => { gsap.set(targets, { clearProps: "transform" }); } });
     }, [], Math.max(.82, start));
     timeline.call(() => {
-      reset(); heading?.setAttribute("tabindex", "-1"); heading?.focus({ preventScroll: true });
+      const focus = destination ?? heading;
+      reset(); focus?.setAttribute("tabindex", "-1"); focus?.focus({ preventScroll: true });
       window.dispatchEvent(new Event("route:revealed"));
     }, [], finish);
-  }, [pathname, reset]);
+    })();
+    return () => { cancelled = true; };
+  }, [pathname, scrollRequest, reset]);
   const navigate = (href: string) => {
     if (pending.current) return;
-    if (reduced || !panel.current || !backplate.current) { router.push(href); fade(); return; }
     const target = new URL(href, location.href);
+    if (target.pathname === pathname || reduced || !panel.current || !backplate.current) {
+      pending.current = { path: target.pathname, hash: target.hash };
+      if (target.pathname === pathname) history.pushState(null, "", href);
+      else router.push(href, { scroll: false });
+      setScrollRequest(value => value + 1);
+      fade(); return;
+    }
     router.prefetch(href);
     setName(WORK.find(project => target.pathname === "/work/" + project.slug)?.name ?? (target.pathname === "/school" ? SCHOOL.label : NAV.find(link => link.href === target.pathname + target.hash || (target.pathname === "/work" && link === NAV[0]))?.label ?? SITE.name));
     pending.current = { path: target.pathname, hash: target.hash };
@@ -126,7 +152,7 @@ export function TransitionLink({ onClick, ...props }: ComponentProps<typeof Link
     onClick?.(event);
     if (!navigate || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || props.target === "_blank" || event.currentTarget.hasAttribute("download")) return;
     const target = new URL(event.currentTarget.href);
-    if (target.origin !== location.origin || target.pathname === location.pathname || !(target.pathname === "/" || target.pathname === "/school" || target.pathname === "/work" || target.pathname.startsWith("/work/"))) return;
+    if (target.origin !== location.origin || !(target.pathname === "/" || target.pathname === "/school" || target.pathname === "/work" || target.pathname.startsWith("/work/"))) return;
     event.preventDefault(); void navigate(target.pathname + target.search + target.hash);
   }} />;
 }

@@ -30,7 +30,7 @@ try {
   for (const [width, height] of [[1440, 900], [390, 844]]) {
     await p.setViewport({ width, height, deviceScaleFactor: 1 });
     await p.goto(base, { waitUntil: 'networkidle0' });
-    check('portfolio identity ' + width, await p.$eval('h1', el => el.getAttribute('aria-label') === 'Written in Calgary. Running in Dhaka.'));
+    check('portfolio identity ' + width, await p.$eval('.hero h1', el => /Calgary/i.test(el.getAttribute('aria-label')) && /Dhaka/i.test(el.getAttribute('aria-label'))));
     await p.waitForFunction(() => document.documentElement.dataset.intro === 'done');
     await go('.work-stack');
     const frame = await p.$eval('.scroll-video-frame', el => { const r = el.getBoundingClientRect(), chrome = document.querySelector('.chrome-bottom').getBoundingClientRect(); return { width: innerWidth, height: innerHeight, top: r.top, bottom: r.bottom, centre: (r.top + r.bottom) / 2, centrePercent: (r.top + r.bottom) / 2 / innerHeight * 100, below: innerHeight - r.bottom, chromeTop: chrome.top, chromeVisible: getComputedStyle(document.querySelector('.chrome-bottom')).visibility }; });
@@ -125,6 +125,27 @@ try {
     check('reduced third service keeps its chartreuse ground and midnight ink ' + width, await p.$eval('#svc-panel-3', el => { const s = getComputedStyle(el); return s.backgroundColor === 'rgb(215, 242, 107)' && s.color === 'rgb(10, 15, 44)'; }));
     check('reduced tool names stay at width 100 ' + width, await p.$$eval('.skill-ink', nodes => nodes.every(node => getComputedStyle(node).fontVariationSettings === '"wdth" 100')));
     await p.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'no-preference' }]);
+    const clickNav = async href => {
+      await p.$eval((href === '/work' ? '' : '.chrome-top ') + 'a[href="' + href + '"]', el => el.click());
+      await p.waitForFunction(() => !document.documentElement.dataset.transition);
+      await sleep(1800);
+    };
+    const aligned = async id => {
+      const positions = await p.evaluate(id => ({ heading: document.querySelector('#' + id + ' h2').getBoundingClientRect().top, header: document.querySelector('.chrome-top').getBoundingClientRect().bottom, scroll: scrollY, lenis: !!window.__lenis }), id);
+      console.log('ANCHOR', width, id, JSON.stringify(positions));
+      check(id + ' heading lands below header with Lenis ' + width, positions.lenis && Math.abs(positions.heading - positions.header - 16) <= 3);
+      await sleep(400);
+      check(id + ' landing stays stable ' + width, Math.abs(await p.evaluate(() => scrollY) - positions.scroll) <= 2);
+    };
+    await clickNav('/school');
+    check('School route works ' + width, await p.evaluate(() => location.pathname === '/school' && !!document.querySelector('.school-page h1')));
+    await clickNav('/#info'); await aligned('info');
+    await clickNav('/#contact'); await aligned('contact');
+    await clickNav('/work');
+    check('Work route works ' + width, await p.evaluate(() => location.pathname === '/work'));
+    await clickNav('/#contact'); await aligned('contact');
+    await clickNav('/#info'); await aligned('info');
+    await clickNav('/#work'); await aligned('work');
   }
   for (const foreground of ['F3F0E8', 'F1E3C2', 'D7F26B']) for (const ground of ['0A0F2C', '2340FF']) { const ratio = contrast(rgb(foreground), rgb(ground)); measurements.contrast.push({ pair: '#' + foreground + ' on #' + ground, ratio }); check('tool colour contrast ' + foreground + ' on ' + ground, ratio >= 4.5); }
   for (const file of ['public/services/automation@2x.webp', 'public/services/dealership@2x.webp', 'public/other/steward@2x.webp', 'public/other/studio@2x.webp', 'public/e92/v2/profile.webp', 'public/e92/v2/profile-small.webp', 'public/e92/v2/profile.jpg']) { const meta = await sharp(file).metadata(); measurements.assets.push({ file, width: meta.width, height: meta.height }); check('image metadata ' + file, file.includes('e92') ? meta.width === (file.includes('small') ? 1600 : 3024) : meta.width === (file.includes('automation') || file.includes('steward') ? 1536 : 1672) && meta.height === (file.includes('automation') || file.includes('steward') ? 864 : 941)); }
